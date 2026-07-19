@@ -1,0 +1,39 @@
+schema_version: 1
+products:
+  - id: alltrue
+    name: AllTrue System
+    repository: jerry200176-png/AllTrue_System
+    canonical_checkout: /home/jerry/workspace/AllTrue_System-clean
+    forbidden_checkouts:
+      - /home/jerry/alltrue
+    default_branch: main
+    criticality: tier_1
+    production:
+      platform: raspberry_pi
+      version_url: https://daan.lifenet.com.tw/version.json
+      health_url: https://daan.lifenet.com.tw/api/v1/health
+      deploy_authority: .github/workflows/deploy.yml
+    priority_order:
+      - credential_and_pii_containment
+      - attendance_billing_and_schedule_integrity
+      - open_production_bug_queue
+      - backup_restore_and_delivery_reliability
+      - business_intelligence_and_retention
+
+  - id: sunrise
+    name: Sunrise Cafe
+    repository: jerry200176-png/sunrise-cafe
+    canonical_checkout: /home/jerry/workspace/sunrise-cafe
+    default_branch: main
+    criticality: tier_1
+    production:
+      platform: vercel_supabase
+      version_url: https://sunrise-cafe-six.vercel.app/api/version
+      health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
+      deploy_authority: vercel_git_integration
+    priority_order:
+      - production_deployment_health
+      - booking_payment_and_notification_reliability
+      - rls_rate_limit_backup_and_secret_hygiene
+      - staff_operational_efficiency
+      - conversion_retention_and_multibranch_growth

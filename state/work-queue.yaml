@@ -1,0 +1,53 @@
+schema_version: 1
+updated_at: 2026-07-19T10:30:00+08:00
+wip_limits:
+  production_changes_per_product: 1
+  company_p0_incidents: unlimited
+queue:
+  - id: SEC-ALLTRUE-001
+    product: alltrue
+    priority: p0
+    title: Contain credentials and PII reachable from public git history
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1007
+    status: in_progress
+    exit_evidence:
+      - exposed credentials invalid or proven non-live
+      - replacement notification paths healthy
+      - APP_KEY handled by fingerprint and compatibility plan
+      - published refs purged and rescanned
+      - production identity and authenticated smoke verified
+
+  - id: OPS-ALLTRUE-002
+    product: alltrue
+    priority: p1
+    title: Finish latest production bug intake and SSH host-key hardening
+    source: https://github.com/jerry200176-png/AllTrue_System/pull/1324
+    status: queued
+
+  - id: OPS-SUNRISE-001
+    product: sunrise
+    priority: p1
+    title: Diagnose recent failed production deployments and restore release evidence
+    source: gmail:vercel-failed-production-deployment
+    status: queued
+
+  - id: SEC-SUNRISE-002
+    product: sunrise
+    priority: p1
+    title: Resolve Supabase RLS, rate-limit, and backup decision queue with production evidence
+    source: https://github.com/jerry200176-png/sunrise-cafe/issues/211
+    status: queued
+
+  - id: CI-PORTFOLIO-001
+    product: portfolio
+    priority: p1
+    title: Restore sustainable GitHub Actions capacity and reduce CI waste
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1288
+    status: queued
+
+  - id: MAIL-PORTFOLIO-001
+    product: portfolio
+    priority: p2
+    title: Reduce 16,913-message inbox into governed labels and retention buckets
+    source: gmail:jerry200176@gmail.com
+    status: queued
