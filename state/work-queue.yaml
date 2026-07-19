@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-07-19T11:30:00+08:00
+updated_at: 2026-07-19T11:26:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -9,14 +9,19 @@ queue:
     priority: p0
     title: Contain credentials and PII reachable from public git history
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1007
-    status: in_progress
+    status: contained_monitoring
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1328
     containment_evidence:
       - repository changed from public to private on 2026-07-19
       - GitHub read-back confirmed isPrivate true
       - canonical issue updated without secret or PII values
-      - read-only fingerprint audit implemented and locally verified on PR 1328
-      - PR merge is blocked by account-level GitHub Actions billing capacity
+      - read-only fingerprint audit merged in PR 1328 at commit b8be4c1 with its full CI suite passing
+      - production deployment of b8be4c1 succeeded and production identity is GREEN
+      - post-merge audit reached production access but stopped before comparison because strict SSH host-key verification rejected the configured host key
+      - host-key alignment merged in PR 1329; pinned production access then succeeded
+      - APP_KEY rotation package merged in PR 1330 and production deploy run 29671678338 passed health plus authenticated smoke
+      - post-rotation audit run 29671702310 confirmed TELEGRAM, APP_KEY, and BEARER are all DIFFERENT from historical leaked candidates
+      - issue 1007 closed with safe evidence; no raw credential or fingerprint was emitted
     exit_evidence:
       - exposed credentials invalid or proven non-live
       - replacement notification paths healthy
@@ -27,9 +32,15 @@ queue:
   - id: OPS-ALLTRUE-002
     product: alltrue
     priority: p1
-    title: Finish latest production bug intake and SSH host-key hardening
+    title: Restore verified SSH host-key trust for P0 credential audit
     source: https://github.com/jerry200176-png/AllTrue_System/pull/1324
-    status: queued
+    status: completed
+    blocks: SEC-ALLTRUE-001
+    evidence:
+      - P0 credential audit run 29671121503 failed before any fingerprint comparison because no trusted ED25519 host key was available to the GitHub Actions runner
+      - existing PR 1324 conflicts with current main and includes unrelated unsafe production-reporting changes; do not merge it as the remediation
+      - minimal host alignment PR 1329 passed all required checks and merged
+      - audit runs 29671290369 and 29671702310 proved pinned SSH access works
 
   - id: OPS-SUNRISE-001
     product: sunrise
@@ -51,12 +62,16 @@ queue:
     title: Restore sustainable GitHub Actions capacity and reduce CI waste
     source: https://github.com/jerry200176-png/AllTrue_System/issues/194
     decision: https://github.com/jerry200176-png/AllTrue_System/issues/1288
-    status: blocked_external_auth
+    status: completed
     evidence:
       - PR 1328 jobs received no runner and executed zero steps
       - GitHub annotation reports failed payment or spending-limit exhaustion
       - Founder-approved US$20 stop-at-limit cap is recorded
       - available browser reached GitHub Billing but requires account sign-in
+      - PR 1328 CI executed successfully on 2026-07-19; capacity is presently usable, but durable billing configuration remains unverified
+      - authenticated billing verification confirmed account Actions budget is US$20 with stop usage enabled
+      - PRs 1328, 1329, and 1330 completed required CI; production deploy 29671678338 succeeded
+      - issues 1288 and 194 closed with evidence
 
   - id: MAIL-PORTFOLIO-001
     product: portfolio
