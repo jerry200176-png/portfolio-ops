@@ -1,9 +1,34 @@
 schema_version: 1
-updated_at: 2026-07-19T11:26:00+08:00
+updated_at: 2026-07-19T12:15:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: GH-PORTFOLIO-001
+    product: portfolio
+    priority: p1
+    title: Make both repositories externally reviewable and clear stale PR inventory
+    status: completed
+    evidence:
+      - both repositories now have product descriptions, homepages, topics, concise entry documentation, contribution/security conduct, and explicit proprietary licensing
+      - AllTrue disabled duplicate ruleset removed while branch protection remained active
+      - AllTrue runtime logs removed from tracking in PR 1332; blanket ignore prevents recurrence
+      - stale or unsafe PRs were closed with supersession evidence; valuable billing work was rebuilt from current main as PR 1333
+      - Sunrise dependency automation now groups patch/minor updates and requires migration plans for all semver-major upgrades in PR 249
+      - Sunrise main CI, deploy/migrate, and production verify succeeded for repository-governance SHA 773ea48
+      - AllTrue main CI, security scan, deploy, and production checks succeeded through SHA 2cc7ee12
+
+  - id: PROD-ALLTRUE-003
+    product: alltrue
+    priority: p1
+    title: Suppress non-actionable director billing counter alerts
+    source: https://github.com/jerry200176-png/AllTrue_System/pull/1333
+    status: validating_ci
+    evidence:
+      - stale PR 1287 rebuilt from current main with intervening scheduling telemetry preserved
+      - local isolated regression suite passed 14 tests and 159 assertions
+      - PHPStan, strict docs integrity, control-plane lint, syntax, provenance, and diff checks passed
+
   - id: SEC-ALLTRUE-001
     product: alltrue
     priority: p0
@@ -45,9 +70,14 @@ queue:
   - id: OPS-SUNRISE-001
     product: sunrise
     priority: p1
-    title: Diagnose recent failed production deployments and restore release evidence
+    title: Restore Sunrise deployment capacity and release evidence
     source: gmail:vercel-failed-production-deployment
-    status: queued
+    status: active_diagnosis
+    evidence:
+      - production health endpoint returned ok and /api/version matched origin/main 773ea48 on 2026-07-19
+      - GitHub production deploy and Verify Production completed successfully for 773ea48 at 2026-07-19T03:56:29Z
+      - Vercel reported "Resource is limited - try again in 24 hours" for current PR preview deployments, with a code api-deployments-free limit above 100
+      - the Vercel capacity limit currently blocks preview deployment evidence and may block the next production release; do not merge deploy-requiring work until capacity is restored or a canonical alternative is verified
 
   - id: SEC-SUNRISE-002
     product: sunrise
