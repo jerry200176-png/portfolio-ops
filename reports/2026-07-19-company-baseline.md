@@ -4,13 +4,14 @@
 
 - AllTrue canonical main: `49baef28`; clean against `origin/main` at inspection time.
 - Sunrise canonical main: `d03313a`; clean against `origin/main` at inspection time.
-- Both GitHub repositories are public and the authenticated account has administrative permissions.
+- At initial inspection both GitHub repositories were public and the authenticated account had administrative permissions. AllTrue was changed to private during P0 containment; Sunrise remains public.
 - GitHub connector reads succeed; connector writes fail with HTTP 403. Authenticated `gh` CLI is the proven write path.
 
 ## P0/P1 facts
 
 - Four GitGuardian alerts dated 2026-07-17 identify a Telegram token, Laravel `APP_KEY`, and bearer credentials in published AllTrue history.
 - AllTrue issue #1007 is the canonical P0 incident. Founder autonomous authorization was recorded through `gh` after the connector write failed.
+- GitHub still returned all three alert-referenced commits by exact SHA. AllTrue was therefore changed to private and the setting was verified through GitHub.
 - Current AllTrue open PR #1324 addresses production bug-queue SSH host-key handling.
 - Sunrise has recent Vercel production-deployment failures and an open non-mergeable grouped dependency PR #235 containing several major-version upgrades.
 - GitHub reported 100% consumption of included Actions minutes, threatening both products' CI and governed deployment paths.

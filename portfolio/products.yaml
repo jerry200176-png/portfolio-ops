@@ -3,6 +3,7 @@ products:
   - id: alltrue
     name: AllTrue System
     repository: jerry200176-png/AllTrue_System
+    visibility: private
     canonical_checkout: /home/jerry/workspace/AllTrue_System-clean
     forbidden_checkouts:
       - /home/jerry/alltrue
@@ -23,6 +24,7 @@ products:
   - id: sunrise
     name: Sunrise Cafe
     repository: jerry200176-png/sunrise-cafe
+    visibility: public
     canonical_checkout: /home/jerry/workspace/sunrise-cafe
     default_branch: main
     criticality: tier_1

@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-07-19T10:30:00+08:00
+updated_at: 2026-07-19T11:30:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -10,6 +10,10 @@ queue:
     title: Contain credentials and PII reachable from public git history
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1007
     status: in_progress
+    containment_evidence:
+      - repository changed from public to private on 2026-07-19
+      - GitHub read-back confirmed isPrivate true
+      - canonical issue updated without secret or PII values
     exit_evidence:
       - exposed credentials invalid or proven non-live
       - replacement notification paths healthy
