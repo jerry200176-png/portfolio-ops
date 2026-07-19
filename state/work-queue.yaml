@@ -10,10 +10,13 @@ queue:
     title: Contain credentials and PII reachable from public git history
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1007
     status: in_progress
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1328
     containment_evidence:
       - repository changed from public to private on 2026-07-19
       - GitHub read-back confirmed isPrivate true
       - canonical issue updated without secret or PII values
+      - read-only fingerprint audit implemented and locally verified on PR 1328
+      - PR merge is blocked by account-level GitHub Actions billing capacity
     exit_evidence:
       - exposed credentials invalid or proven non-live
       - replacement notification paths healthy
@@ -44,10 +47,16 @@ queue:
 
   - id: CI-PORTFOLIO-001
     product: portfolio
-    priority: p1
+    priority: p0
     title: Restore sustainable GitHub Actions capacity and reduce CI waste
-    source: https://github.com/jerry200176-png/AllTrue_System/issues/1288
-    status: queued
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/194
+    decision: https://github.com/jerry200176-png/AllTrue_System/issues/1288
+    status: blocked_external_auth
+    evidence:
+      - PR 1328 jobs received no runner and executed zero steps
+      - GitHub annotation reports failed payment or spending-limit exhaustion
+      - Founder-approved US$20 stop-at-limit cap is recorded
+      - available browser reached GitHub Billing but requires account sign-in
 
   - id: MAIL-PORTFOLIO-001
     product: portfolio
