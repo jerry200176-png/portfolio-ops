@@ -221,11 +221,14 @@ queue:
     priority: p0
     title: DB-password fingerprint audit tool built, awaiting Founder merge to run
     source: https://github.com/jerry200176-png/AllTrue_System/pull/1414
-    status: draft_pr_open_blocked_on_founder_merge
+    status: draft_pr_open_blocked_on_founder_manual_merge
     evidence:
       - "extends SEC-ALLTRUE-001's fingerprint-comparison pattern to DB_PASSWORD (scripts/credential-fingerprint-audit.py + new workflow_dispatch workflow db-password-fingerprint-audit.yml); 4/4 tests pass; diff contains only synthetic fixture values"
-      - "cannot run: GitHub requires workflow_dispatch workflows to exist on the default branch before they can be triggered via API/CLI, even with --ref pointing at this branch — a platform constraint, not a policy choice"
-    next_action: Founder merges PR #1414 (or lands the workflow on main another way), then runs `gh workflow run db-password-fingerprint-audit.yml --repo jerry200176-png/AllTrue_System` — this is the single action that resolves SEC-ALLTRUE-003's last open question
+      - "2026-07-25 ~17:00: independent review completed against Founder's checklist (permissions, secret handling, logs/outputs/artifacts/cache, injection, error paths, match-only output) — PASSED, safe to merge on all content dimensions"
+      - "merge attempted, BLOCKED by a second, legitimate blocker: AllTrue's required 'Agent Session Provenance' check correctly failed because this PR's branch (built via ad hoc git clone in scratchpad) carries no .agent-session/manifest.json or human-authored.json — a genuine governance gate, not a bug. This session declined to fabricate a manifest or force-merge past 'admin enforcement' branch protection without clear authorization."
+      - "Founder decision (given live): merge PR #1414 manually via GitHub UI/admin. This session leaves it open, unmerged."
+      - "side finding: this same provenance-gate pattern likely explains Sunrise's recurring CI-SUNRISE-PROVENANCE failures on PR #253 too (not independently confirmed this pass)"
+    next_action: Founder merges PR #1414 manually (GitHub UI/admin — bypassing this specific gate is the Founder's call), then runs `gh workflow run db-password-fingerprint-audit.yml --repo jerry200176-png/AllTrue_System` — this is the single action that resolves SEC-ALLTRUE-003's last open question
 
   - id: MAIL-PORTFOLIO-001
     product: portfolio

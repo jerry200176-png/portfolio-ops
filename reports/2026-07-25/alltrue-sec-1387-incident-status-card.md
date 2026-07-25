@@ -398,6 +398,70 @@ cannot be completed from this session regardless of further approval; it
 needs the Founder to merge PR #1414 (or otherwise get the workflow onto
 `main`) and then run it.**
 
+**Update 2026-07-25 ~17:00 — independent review completed, merge attempted,
+found a second, genuine blocker.** Independently reviewed PR #1414 against
+the Founder's checklist (workflow permissions, secret handling, logs/
+outputs/artifacts/cache, command injection, error paths, whether results
+reveal anything beyond match/no-match):
+
+- Workflow-level `permissions: contents: read` — minimal, no write scope.
+- `workflow_dispatch` with no `inputs:` — zero attacker-controlled text
+  reaches the workflow; no injection surface (blob SHAs and repo/token
+  values are hardcoded or trusted `github.*` context, never event payload
+  text like issue/PR body).
+- Secrets (`PI_SSH_KEY`, `PI_HOST_KEY`, `PI_HOST`, `PI_USER`, `github.token`)
+  are used only to establish the SSH connection and API auth; never echoed.
+  No `set -x`/verbose tracing anywhere.
+- No `actions/upload-artifact` step exists — nothing is persisted off the
+  ephemeral runner. Extracted fingerprints live only in `/tmp/credential-audit/`
+  on the runner and are deleted in an `if: always()` cleanup step (redundant
+  with the runner's own ephemeral lifecycle, but correct hygiene).
+- `compare()`'s only output is `KIND\tSTATUS\tleaked=N\tproduction=M` —
+  status is one of `MATCH_ROTATION_REQUIRED` / `DIFFERENT` /
+  `*_NOT_FOUND`; never a hash or the credential itself. The `leaked=N`/
+  `production=M` counts are a minor, already-precedented (same format used
+  for SEC-ALLTRUE-001) piece of metadata beyond strict match/no-match —
+  noted, not a blocker, given the repo is private with 2 collaborators.
+- `set -euo pipefail` plus explicit `test -s` assertions in every step mean
+  a missing/empty result (SSH failure, empty production password, etc.)
+  fails the step rather than silently reporting a false negative — correctly
+  maps to "unavailable/error," not a masked no-match.
+- 4/4 tests re-confirmed passing on the current branch state.
+
+**Verdict: safe to merge on the security/workflow-content dimensions the
+Founder asked to check.** However, `gh pr merge` failed with
+`mergeStateStatus: BLOCKED` — a **different, legitimate blocker**: the
+repository's required "Agent Session Provenance" check
+(`.github/workflows/agent-provenance.yml` → `scripts/check-agent-provenance.sh`)
+failed. Investigation (reading the check script, not just its verdict)
+confirms this is **not a false positive** — it's a genuine, correctly-firing
+governance gate requiring every PR to carry either an
+`.agent-session/manifest.json` produced by the repo's own `agent-control`
+launcher (real `session_id`/`task_id`, worktree under
+`/home/jerry/workspace/tasks/alltrue/`, `preflight_result: pass`) or a
+`human-authored.json`. This PR's branch was built via an ad hoc `git clone`
+into this session's scratchpad, outside that launcher, so it legitimately
+has neither. This session declined to fabricate either manifest (would
+misrepresent authorship) or force-merge past a check the repo's own policy
+marks "admin enforcement" (deliberately strict) without clear authorization
+to bypass it specifically.
+
+**Founder decision (given live in this session): merge PR #1414 manually**
+(GitHub UI/admin), since bypassing this particular governance gate is a
+call for the accountable human, not this session. **PR #1414 remains open,
+unmerged, by this session.** Once merged, the next step is unchanged:
+`gh workflow run db-password-fingerprint-audit.yml --repo
+jerry200176-png/AllTrue_System` from `main`.
+
+**Side finding worth carrying forward**: this same provenance-check
+pattern very likely explains Sunrise's recurring "Agent Session Provenance"
+CI failures on PR #253 (tracked as `CI-SUNRISE-PROVENANCE` in
+`state/work-queue.yaml`) — if Sunrise has an equivalent
+`check-agent-provenance.sh`-style gate, that failure is probably also a
+correctly-firing control against a non-provenance-tracked PR, not a broken
+CI config. Not independently confirmed this pass (out of scope for today's
+AllTrue-focused work) — flagged for the next time that item is picked up.
+
 **Safe production rotation, if the audit comes back MATCH**: this session
 has no SSH/database tool access at all — not a restriction, a genuine
 capability gap (the Pi SSH key exists only as a GitHub Actions secret,
