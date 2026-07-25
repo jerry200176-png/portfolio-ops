@@ -1,0 +1,564 @@
+# Portfolio OS reference library — curated from GitHub Starred Repositories.
+# Built 2026-07-25. Schema: repo, category, relevant_to, use_for,
+# maintenance_status, license, confidence, status, rejection_reason.
+# status: existing_kept | existing_cleanup_candidate | added | rejected
+# confidence: how directly this maps to a real, current portfolio problem —
+# not a popularity score.
+schema_version: 1
+updated_at: "2026-07-25T13:39:00Z"
+
+entries:
+  # ── Newly added this round (13 total) ──────────────────────────────
+  - repo: supabase/supabase-js
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Official Supabase JS client patterns — Sunrise's exact backend stack
+    maintenance_status: active (pushed 2026-07-24)
+    license: MIT
+    confidence: high
+    status: added
+
+  - repo: upstash/ratelimit-js
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Directly closes SEC-SUNRISE-002's undecided rate-limiting item — current fail-open rate_limit_mode=memory/degraded_per_isolate on booking-health needs a real durable limiter
+    maintenance_status: active (pushed 2026-03-09)
+    license: MIT
+    confidence: high
+    status: added
+
+  - repo: vercel/examples
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Official Vercel pattern reference (Stripe, edge, deployment) — reference only, not for wholesale adoption
+    maintenance_status: active (pushed 2026-07-24)
+    license: MIT
+    confidence: medium
+    status: added
+
+  - repo: larastan/larastan
+    category: Laravel & PHP
+    relevant_to: [alltrue]
+    use_for: AllTrue's own required CI check is "PHPStan Advisory" — larastan is the Laravel-specific PHPStan extension that powers exactly that check
+    maintenance_status: active (pushed 2026-07-13)
+    license: MIT
+    confidence: high
+    status: added
+
+  - repo: spatie/laravel-activitylog
+    category: Laravel & PHP
+    relevant_to: [alltrue]
+    use_for: Audit-trail need (parent-portal/billing changes need a real change log) — same vendor as already-starred spatie/laravel-permission, ecosystem consistency
+    maintenance_status: active (pushed 2026-06-29)
+    license: MIT
+    confidence: high
+    status: added
+
+  - repo: spatie/laravel-schedule-monitor
+    category: Reliability & Observability
+    relevant_to: [alltrue]
+    use_for: Scheduling reliability — AllTrue's cron/scheduled-job monitoring gap
+    maintenance_status: active (pushed 2026-06-25)
+    license: MIT
+    confidence: high
+    status: added
+
+  - repo: spatie/laravel-health
+    category: Reliability & Observability
+    relevant_to: [alltrue]
+    use_for: Structured health-check pattern beyond AllTrue's current single /api/v1/health endpoint
+    maintenance_status: active (pushed 2026-07-22)
+    license: MIT
+    confidence: medium
+    status: added
+
+  - repo: open-telemetry/opentelemetry-php
+    category: Reliability & Observability
+    relevant_to: [alltrue]
+    use_for: Standard observability instrumentation reference for the PHP stack — category was nearly empty before this round
+    maintenance_status: active (pushed 2026-07-25)
+    license: Apache-2.0
+    confidence: medium
+    status: added
+
+  - repo: gitleaks/gitleaks
+    category: Security & Governance
+    relevant_to: [alltrue, portfolio-ops]
+    use_for: Already in live production use as AllTrue's required "gitleaks scan" CI check (confirmed via PR #1395 evidence) — this star documents/benchmarks a tool already adopted, not a speculative pick
+    maintenance_status: active (pushed 2026-07-22)
+    license: MIT
+    confidence: high
+    status: added
+
+  - repo: step-security/harden-runner
+    category: Security & Governance
+    relevant_to: [portfolio-ops, alltrue, sunrise]
+    use_for: GitHub Actions runner hardening — directly relevant to portfolio-ops's own CI/CD and product-repo governance mission
+    maintenance_status: active (pushed 2026-07-07)
+    license: Apache-2.0
+    confidence: high
+    status: added
+
+  - repo: ossf/scorecard
+    category: Security & Governance
+    relevant_to: [portfolio-ops]
+    use_for: Automated repo security-posture scoring — directly useful for portfolio-ops's own baseline-audit lens (docs/security-boundaries.md, checklists/baseline-audit.md)
+    maintenance_status: active (pushed 2026-07-25)
+    license: Apache-2.0
+    confidence: high
+    status: added
+
+  - repo: anthropics/claude-code-action
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops]
+    use_for: Official GitHub Action for Claude Code — directly relevant to Portfolio OS's GitHub-automation/workflow-governance goal
+    maintenance_status: active (pushed 2026-07-25)
+    license: MIT
+    confidence: high
+    status: added
+
+  - repo: anthropics/claude-agent-sdk-python
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops]
+    use_for: Reference for agent/tool orchestration patterns beyond the Claude Code CLI — informs how this repo's own .claude/agents/ definitions are structured
+    maintenance_status: active (pushed 2026-07-25)
+    license: MIT
+    confidence: medium
+    status: added
+
+  # ── Rejected candidates (evaluated, not starred) ───────────────────
+  - repo: vercel/nextjs-subscription-payments
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Would have matched Sunrise's Stripe+Next.js need
+    maintenance_status: archived
+    license: MIT
+    confidence: low
+    status: rejected
+    rejection_reason: Repository is archived (no longer maintained) — topical match but stale as a reference
+
+  - repo: owen-it/laravel-auditing
+    category: Laravel & PHP
+    relevant_to: [alltrue]
+    use_for: Alternative audit-trail package
+    maintenance_status: active (pushed 2026-07-17)
+    license: MIT
+    confidence: medium
+    status: rejected
+    rejection_reason: Redundant with accepted spatie/laravel-activitylog — avoid duplicate picks solving the same problem
+
+  - repo: grafana/k6
+    category: Reliability & Observability
+    relevant_to: []
+    use_for: Load testing
+    maintenance_status: active
+    license: AGPL-3.0
+    confidence: low
+    status: rejected
+    rejection_reason: No active load-testing initiative on either product — speculative adoption, overengineering risk at current portfolio scale
+
+  - repo: grafana/grafana
+    category: Reliability & Observability
+    relevant_to: []
+    use_for: Metrics dashboarding
+    maintenance_status: active
+    license: AGPL-3.0
+    confidence: low
+    status: rejected
+    rejection_reason: Too heavy for a self-hosted Pi + Vercel/Supabase serverless stack — no metrics-stack initiative exists to justify it
+
+  - repo: open-policy-agent/opa
+    category: Security & Governance
+    relevant_to: [portfolio-ops]
+    use_for: Policy-as-code enforcement
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: low
+    status: rejected
+    rejection_reason: Portfolio-ops's governance is currently lightweight Python regex hooks (guard_bash.py) — OPA is a significant new dependency/learning curve not justified by current complexity. Worth revisiting if governance needs grow.
+
+  - repo: sigstore/cosign
+    category: Security & Governance
+    relevant_to: []
+    use_for: Artifact/supply-chain signing
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: low
+    status: rejected
+    rejection_reason: No package-publishing or artifact-signing pipeline exists in either product — no active problem this solves
+
+  - repo: anthropics/anthropic-sdk-typescript
+    category: AI Agent & DevEx
+    relevant_to: []
+    use_for: Direct Anthropic API access from TypeScript
+    maintenance_status: active
+    license: MIT
+    confidence: low
+    status: rejected
+    rejection_reason: Redundant with accepted claude-agent-sdk-python; no current direct-API-integration use case in either product
+
+  - repo: vercel/turborepo
+    category: Next.js & Vercel
+    relevant_to: []
+    use_for: Monorepo build orchestration
+    maintenance_status: active
+    license: MIT
+    confidence: low
+    status: rejected
+    rejection_reason: Neither product is a monorepo — no current use case
+
+  # ── Existing stars, categorized — kept as-is ───────────────────────
+  - repo: spatie/laravel-permission
+    category: Security & Governance
+    relevant_to: [alltrue]
+    use_for: RBAC — already adopted pattern reference for AllTrue's permission model
+    maintenance_status: active
+    license: MIT
+    confidence: high
+    status: existing_kept
+
+  - repo: getsentry/sentry-laravel
+    category: Reliability & Observability
+    relevant_to: [alltrue]
+    use_for: Error tracking — official Laravel Sentry SDK
+    maintenance_status: active
+    license: MIT
+    confidence: high
+    status: existing_kept
+
+  - repo: cloudflare/security-audit-skill
+    category: Security & Governance
+    relevant_to: [portfolio-ops]
+    use_for: Multi-phase security-audit skill pattern — directly informs portfolio-ops's security-reviewer agent design
+    maintenance_status: active
+    license: MIT
+    confidence: high
+    status: existing_kept
+
+  - repo: anthropics/skills
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops]
+    use_for: Official Anthropic Agent Skills reference
+    maintenance_status: active
+    license: none (public reference repo)
+    confidence: high
+    status: existing_kept
+
+  - repo: filamentphp/filament
+    category: Laravel & PHP
+    relevant_to: [alltrue]
+    use_for: Admin panel framework — AllTrue's own admin UI approach
+    maintenance_status: active
+    license: MIT
+    confidence: high
+    status: existing_kept
+
+  - repo: irazasyed/telegram-bot-sdk
+    category: Laravel & PHP
+    relevant_to: [alltrue]
+    use_for: Telegram Bot SDK — AllTrue uses Telegram notifications (per SEC-ALLTRUE-* credential history)
+    maintenance_status: active
+    license: BSD-3-Clause
+    confidence: high
+    status: existing_kept
+
+  - repo: laravel-notification-channels/telegram
+    category: Laravel & PHP
+    relevant_to: [alltrue]
+    use_for: Telegram notification channel for Laravel
+    maintenance_status: active
+    license: MIT
+    confidence: medium
+    status: existing_kept
+
+  - repo: line/line-bot-sdk-nodejs
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: LINE Messaging API — Sunrise uses LINE for deposits/reminders
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: high
+    status: existing_kept
+
+  - repo: line/line-bot-sdk-php
+    category: Laravel & PHP
+    relevant_to: []
+    use_for: LINE SDK for PHP — not currently used by AllTrue (which uses Telegram), kept for optionality
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: low
+    status: existing_kept
+
+  - repo: supabase/supabase
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Sunrise's core backend platform
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: high
+    status: existing_kept
+
+  - repo: radix-ui/primitives
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Accessible primitives underlying shadcn/ui
+    maintenance_status: active
+    license: MIT
+    confidence: high
+    status: existing_kept
+
+  - repo: shadcn-ui/ui
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Component distribution pattern — likely Sunrise's UI foundation
+    maintenance_status: active
+    license: MIT
+    confidence: high
+    status: existing_kept
+
+  - repo: birobirobiro/awesome-shadcn-ui
+    category: Next.js & Vercel
+    relevant_to: [sunrise]
+    use_for: Curated shadcn/ui ecosystem list
+    maintenance_status: active
+    license: MIT
+    confidence: medium
+    status: existing_kept
+
+  - repo: GibbonEdu/core
+    category: SaaS Product & UX
+    relevant_to: [alltrue]
+    use_for: Open-source school management platform — same domain as AllTrue, useful for feature/UX comparison
+    maintenance_status: active
+    license: GPL-3.0
+    confidence: high
+    status: existing_kept
+
+  - repo: alextselegidis/easyappointments
+    category: SaaS Product & UX
+    relevant_to: [sunrise]
+    use_for: Self-hosted appointment scheduler — booking-domain UX reference for Sunrise
+    maintenance_status: active
+    license: GPL-3.0
+    confidence: medium
+    status: existing_kept
+
+  - repo: calcom/cal.diy
+    category: SaaS Product & UX
+    relevant_to: [sunrise]
+    use_for: Scheduling infrastructure reference
+    maintenance_status: active
+    license: MIT
+    confidence: medium
+    status: existing_kept
+
+  - repo: alfio-event/alf.io
+    category: SaaS Product & UX
+    relevant_to: [sunrise]
+    use_for: Reservation-system UX reference
+    maintenance_status: active
+    license: GPL-3.0
+    confidence: medium
+    status: existing_kept
+
+  - repo: chatwoot/chatwoot
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: General customer-support-desk product reference
+    maintenance_status: active
+    license: NOASSERTION
+    confidence: low
+    status: existing_kept
+
+  - repo: novuhq/novu
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Notification-infrastructure reference
+    maintenance_status: active
+    license: NOASSERTION
+    confidence: low
+    status: existing_kept
+
+  - repo: fullcalendar/fullcalendar
+    category: SaaS Product & UX
+    relevant_to: [sunrise]
+    use_for: Calendar UI component
+    maintenance_status: active
+    license: MIT
+    confidence: medium
+    status: existing_kept
+
+  - repo: VoltAgent/awesome-agent-skills
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops]
+    use_for: Curated agent-skills list
+    maintenance_status: active
+    license: MIT
+    confidence: medium
+    status: existing_kept
+
+  - repo: VoltAgent/awesome-design-md
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops]
+    use_for: DESIGN.md-for-coding-agents pattern reference
+    maintenance_status: active
+    license: MIT
+    confidence: low
+    status: existing_kept
+
+  - repo: Leonxlnx/taste-skill
+    category: AI Agent & DevEx
+    relevant_to: [alltrue]
+    use_for: Likely the source of AllTrue's own "taste-gate" pattern (commit 97f2e611, issue #1386) — worth confirming that link explicitly
+    maintenance_status: active
+    license: MIT
+    confidence: medium
+    status: existing_kept
+
+  - repo: pbakaus/impeccable
+    category: AI Agent & DevEx
+    relevant_to: []
+    use_for: AI design-taste reference
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: low
+    status: existing_kept
+
+  - repo: vbenjs/vue-vben-admin
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Admin panel reference (Vue — neither product uses Vue)
+    maintenance_status: active
+    license: MIT
+    confidence: low
+    status: existing_kept
+
+  - repo: alexpate/awesome-design-systems
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Meta/curated list of design systems
+    maintenance_status: active
+    license: Unlicense
+    confidence: low
+    status: existing_kept
+
+  # ── Existing stars flagged as cleanup candidates (NOT removed — Founder decision) ──
+  - repo: crater-invoice-inc/crater
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Invoicing app reference
+    maintenance_status: stale — last push 2024-08-10 (~2 years)
+    license: AGPL-3.0
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Unmaintained for ~2 years; no longer a credible production-maturity reference
+
+  - repo: carbon-design-system/carbon
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: IBM's design system
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: One of three redundant generic design systems (carbon, fluentui, primer) starred with no tie to either product's actual UI stack (Sunrise uses shadcn/radix; AllTrue uses Filament/Livewire) — recommend keeping at most one as general inspiration
+
+  - repo: microsoft/fluentui
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Microsoft's design system
+    maintenance_status: active
+    license: NOASSERTION
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Redundant with carbon-design-system/carbon and primer/css — see that entry
+
+  - repo: primer/css
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: GitHub's own design system CSS
+    maintenance_status: active
+    license: MIT
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Redundant with carbon-design-system/carbon and microsoft/fluentui — see that entry
+
+  - repo: firefly-iii/firefly-iii
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Personal finance manager
+    maintenance_status: active
+    license: AGPL-3.0
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Generic SaaS-genre inspiration not tied to a specific current technical problem for either product
+
+  - repo: akaunting/akaunting
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Online accounting software
+    maintenance_status: active
+    license: NOASSERTION
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Same as firefly-iii — no active technical problem this addresses
+
+  - repo: frappe/erpnext
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Open-source ERP
+    maintenance_status: active
+    license: GPL-3.0
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Same pattern — broad industry inspiration, not a current-problem reference; also large/heavy as an adoptable-pattern source
+
+  - repo: kimai/kimai
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Time tracking
+    maintenance_status: active
+    license: AGPL-3.0
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: No time-tracking feature or problem currently active on either product
+
+  - repo: invoiceninja/invoiceninja
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: Invoicing/quoting app
+    maintenance_status: active
+    license: NOASSERTION
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Same cluster as crater/firefly-iii/akaunting — generic genre inspiration, not tied to a real current need
+
+  - repo: pacifio/ui
+    category: AI Agent & DevEx
+    relevant_to: []
+    use_for: "Agent UI design language"
+    maintenance_status: active but tiny (151 stars, single-purpose niche)
+    license: MIT
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Unclear direct utility; low signal beyond novelty
+
+  - repo: nextlevelbuilder/ui-ux-pro-max-skill
+    category: AI Agent & DevEx
+    relevant_to: []
+    use_for: AI design-intelligence skill
+    maintenance_status: active
+    license: MIT
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Naming and provenance are suspicious relative to its very high star count for an otherwise obscure account — recommend re-verifying legitimacy before continuing to treat as a trusted reference, rather than assuming quality from the star count
+
+  - repo: argyleink/open-props
+    category: SaaS Product & UX
+    relevant_to: []
+    use_for: CSS custom-properties system
+    maintenance_status: moderately stale — last push 2026-01-31 (~6 months)
+    license: MIT
+    confidence: low
+    status: existing_cleanup_candidate
+    rejection_reason: Not tied to either product's actual styling approach (both lean on Tailwind/shadcn-style utility patterns, not this system)
