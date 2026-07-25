@@ -1,71 +1,93 @@
 # CEO Dashboard
 
-Last updated: 2026-07-25 (by `/portfolio-maintain` bootstrap — restructuring
-from `company-os`, evidence carried forward from 2026-07-24 state, not a
-fresh triage pass). Regenerate via `/portfolio-maintain status` or
-`/portfolio-maintain triage` for current facts before trusting stale rows.
+Last updated: 2026-07-25 13:07 +08:00 (by `/portfolio-maintain triage`,
+scoped to AllTrue SEC-ALLTRUE-003 only, per Founder instruction — Sunrise
+row below is a staleness flag only, not a fresh triage).
 
 ## Executive Summary
 
 - Active projects: 2 (AllTrue System, Sunrise Cafe), both Tier 0, both live
   in production.
-- Portfolio-level highest risk: **SEC-ALLTRUE-003** — AllTrue was publicly
-  visible while a CI credential was exposed in a public Actions log.
-  Visibility restored to private and verified; exposed credential treated as
-  compromised; containment PR #1395 open with required checks failing as of
-  last check (2026-07-24T11:06Z).
+- Portfolio-level highest risk: **AllTrue repository is currently PUBLIC**
+  (confirmed via live GitHub API check), contradicting the prior claim that
+  visibility had been restored to private. Git history contains a pre-fix
+  plaintext database password (now superseded in code, rotation status at
+  any real point of use unconfirmed). See
+  `reports/2026-07-25/alltrue-sec-1387-incident-status-card.md`. This is
+  more urgent than the original SEC-ALLTRUE-003 code-fix question, which is
+  already resolved (PR #1395 merged, CI green).
 - This session's value so far: rebuilt the portfolio control plane
-  (`company-os` → `portfolio-ops`) onto a conservative autonomy policy — no
-  further product changes made yet in this pass.
+  (`company-os` → `portfolio-ops`), persisted it to a branch with a secret
+  scan, adversarially hardened the PreToolUse hooks (found and fixed real
+  bypasses), and ran a scoped incident triage that corrected two stale
+  facts and surfaced one new live risk. No AllTrue/Sunrise code was
+  changed; no merge/deploy/visibility-change was performed.
 
 ## Portfolio Table
 
-| Tier | Product | Production | Git status | CI | Critical work | Gmail signals | UX risk | Current action | Next action |
+| Tier | Product | Production | Git status | CI | Critical work | UX risk | Current action | Next action | Data freshness |
 |---|---|---|---|---|---|---|---|---|---|
-| 0 | AllTrue System | live, health OK, version drift vs. last successful deploy (2e715dd1 vs 5911a90) as of 2026-07-24 | canonical clean at last check | PR #1395 required checks failing (Agent Session Provenance, Presubmit Checks) | SEC-ALLTRUE-003 credential containment | GitGuardian-class alerts historically high-signal here | medium | repair PR #1395 gates | Founder merge decision once green |
-| 0 | Sunrise Cafe | live, health OK, version matched `origin/main` at last check | canonical clean at last check | main CI green at last check | SEC-SUNRISE-002 RLS/rate-limit/backup decision queue | Vercel capacity-limit mail | medium | confirm current Vercel preview capacity | resume SEC-SUNRISE-002 with fresh evidence |
+| 0 | AllTrue System | live, health OK, version `8b4a30f1` (2 commits behind main `97f2e611`, normal deploy lag) | not checked this pass (GitHub-only triage) | PR #1395 merged, all 20 checks green | Repo is public (new finding); DB-password rotation/reuse unconfirmed; issue #1387 open | not assessed this pass | Founder decision on repo visibility | see Decisions Required | **Fresh — 2026-07-25 13:07, this triage** |
+| 0 | Sunrise Cafe | live, health OK at last check | not checked this pass | main CI green at last check (2026-07-19) | SEC-SUNRISE-002 RLS/rate-limit/backup decision queue; Vercel capacity-limit mail | medium (last assessed 2026-07-19) | none taken this pass — explicitly out of scope | resume `/portfolio-maintain triage` on Sunrise once AllTrue P0 is closed | **STALE — 6 days old (last real check 2026-07-19), do not act on this row without re-triaging** |
 
-Facts above are inherited from `state/work-queue.yaml` as of 2026-07-24 and
-have **not** been re-verified in this session. Run `/portfolio-maintain
-triage` before acting on them.
+Per instruction, this pass did not touch Sunrise beyond flagging staleness.
+AllTrue containment took priority; no Sunrise code work should start before
+the AllTrue P0 above reaches Founder closure.
 
 ## Work Completed (this session)
 
 - Repository: `portfolio-ops` (control plane, not a product)
   - Restructured `company-os` → `portfolio-ops`, git history preserved.
-  - Rewrote `governance/AUTONOMY_POLICY.md` and the Authority section of
-    `governance/COMPANY_CONSTITUTION.md`: revoked autonomous merge/deploy/
-    production-data-mutation/Gmail-mutation/history-rewrite authority.
-  - Added `CLAUDE.md`, `portfolio.yaml` + schema, `PORTFOLIO.md`,
-    `docs/*`, `.claude/skills/portfolio-maintain/`, `.claude/agents/*`,
-    `.claude/settings.json` + hooks.
+  - Branch `chore/portfolio-maintenance-os`: secret-scanned, committed the
+    full restructuring (architecture, skill, agents, hooks, governance,
+    schemas, dashboard, carried-forward evidence). No `origin` remote
+    configured, so not pushed and no Draft PR opened yet — Founder decision
+    needed on whether/where to add a remote.
+  - Adversarially tested `.claude/hooks/guard_bash.py` and `deny_tool.py`:
+    found and fixed real bypasses (`git -C` flag insertion, Python-list-
+    literal token separation, generic deploy scripts, symlink-indirected
+    credential reads, a missing Gmail `update_label` mutation tool) and one
+    false positive (a commit message mentioning "deploy"). Full results:
+    `docs/hook-threat-model.md`. **Caveat**: live end-to-end hook firing in
+    this session was not confirmed — likely needs `/hooks` reload or a
+    fresh session (see threat model doc).
   - No product repository (AllTrue, Sunrise) was touched.
-  - Unverified: hooks have been tested against a dummy repo and a read-only
-    command sample, not against a live product repo.
+- AllTrue System: read-only triage only, no code changes. See Incident
+  Status Card: `reports/2026-07-25/alltrue-sec-1387-incident-status-card.md`.
+  Corrected `state/work-queue.yaml` and `portfolio.yaml` to reflect that
+  PR #1395 is merged (not open/failing as previously recorded) and added
+  the new repo-visibility finding.
 
 ## Decisions Required
 
-1. **AllTrue PR #1395** (SEC-ALLTRUE-003 containment) — once required checks
-   pass, this needs a Founder merge decision; it removes a hard-coded CI
-   credential path. Do not merge without re-verifying checks are green.
-2. **Sunrise Vercel capacity** — if preview-deployment capacity is still
-   limited, decide whether to wait, escalate the plan/billing limit, or
-   route around it for the next release.
-3. **portfolio-ops autonomy rewrite** — confirm the new conservative
-   `AUTONOMY_POLICY.md` (this session's change) matches intent going
-   forward; it replaces a broader autonomous-merge/deploy grant that was
-   live until today.
+1. **AllTrue repository visibility** (new, most urgent) — confirm whether
+   it should be private and restore it, or explicitly accept public
+   visibility as an intentional tradeoff (e.g., for GitHub Actions minutes)
+   given git history contains a superseded-but-real database credential.
+2. **AllTrue DB-password reuse verification** — confirm the pre-fix value
+   was never used as a real credential outside ephemeral CI; rotate
+   anywhere it was. Not yet confirmed either way.
+3. **AllTrue Actions-log residual exposure** — decide whether to accept run
+   `30086225720`'s log as residual risk or take GitHub action on it.
+4. **Issue #1387 closure** — close only once 1–3 are addressed; this
+   session does not close issues.
+5. **portfolio-ops remote** — no GitHub remote is configured for this
+   control-plane repo; decide whether to add one (and its visibility)
+   before a Draft PR can be opened for the restructuring branch.
+6. **Sunrise Vercel capacity / SEC-SUNRISE-002** — carried forward, still
+   unresolved, intentionally not touched this pass (6 days stale — needs a
+   fresh triage before any action).
 
 ## Next Highest-ROI Actions (max 5, portfolio-wide)
 
-1. Run `/portfolio-maintain triage` on AllTrue to re-verify PR #1395 gate
-   status with fresh evidence before any merge decision.
-2. Re-check Sunrise Vercel/Actions capacity; unblock SEC-SUNRISE-002 if
-   capacity has recovered.
-3. Run a baseline audit (`/portfolio-maintain execute`, product/UX/
-   engineering/operations/business lenses) on whichever of the two Tier 0
-   products has gone longer without one.
-4. Read 90 days of Gmail signals for both products via `gmail-signal-analyst`
-   to refresh the triage report — last full pass was 2026-07-19.
-5. Validate the new hooks in `.claude/settings.json` against each product
-   repo's actual workflow (not just the dummy repo) before relying on them.
+1. Founder resolves AllTrue repo visibility (Decision 1) — highest-leverage
+   single action available right now.
+2. Founder or a follow-up session confirms DB-password non-reuse (Decision
+   2) and closes issue #1387 with evidence.
+3. Re-run `/portfolio-maintain triage` on Sunrise (currently 6 days stale)
+   before any Sunrise work begins.
+4. Confirm the portfolio-ops hooks actually fire live (open `/hooks` or
+   start a fresh session, then re-run the throwaway-repo proof in
+   `docs/hook-threat-model.md`).
+5. Decide on a `portfolio-ops` GitHub remote so the restructuring branch
+   can get a real Draft PR instead of sitting local-only.

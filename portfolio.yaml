@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-07-25T00:00:00+08:00"
+updated_at: "2026-07-25T13:07:00+08:00"
 projects:
   - id: alltrue
     name: AllTrue System
@@ -24,15 +24,16 @@ projects:
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-07-24"
-    open_p0: 1 # SEC-ALLTRUE-003: public Actions credential exposure containment, PR #1395 open
+    latest_activity: "2026-07-25"
+    open_p0: 1 # SEC-ALLTRUE-003: code fix merged (PR #1395), operational closure pending — see repo visibility finding below
     open_p1: 1 # PROD-ALLTRUE-003: director billing counter alert noise, PR #1333 validating CI
-    current_priority: SEC-ALLTRUE-003 containment — repair required CI gates on PR #1395, do not merge without Founder approval
-    next_action: verify PR #1395 required checks (Agent Session Provenance, Presubmit Checks), confirm CI-only credential replacement, surface for Founder merge decision
+    current_priority: SEC-ALLTRUE-003 — repo currently PUBLIC (contradicts prior "restored to private" claim); Founder decision needed, see reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
+    next_action: Founder resolves repo visibility + confirms DB password was never reused outside CI, then closes issue #1387
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1387
       - https://github.com/jerry200176-png/AllTrue_System/pull/1395
       - https://github.com/jerry200176-png/AllTrue_System/issues/1007
+      - reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
 
   - id: sunrise
     name: Sunrise Cafe
