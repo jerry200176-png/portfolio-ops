@@ -9,7 +9,8 @@ Read `../../../CLAUDE.md` first. Claude Code remains the production controller
 and primary executor. This control-plane harness records intent, evidence,
 approvals, and checkpoints; it grants no authority beyond existing policy.
 
-Use `/portfolio-run run <mission-id>` or `/portfolio-run resume <mission-id>`.
+Use `/portfolio-run run --mission state/missions/<mission-id>.yaml` or the
+equivalent `resume` command.
 The source of truth is `state/missions/<mission-id>.yaml`, not chat history.
 Validate the outcome contract and run:
 
@@ -19,8 +20,9 @@ python3 .claude/skills/portfolio-run/scripts/mission_loop.py run --mission state
 
 The runner reads JSON-compatible YAML without added dependencies. Claude
 performs real authorized Observe → Plan → Act → Verify work and records it.
-An opened Draft PR is evidence, not completion. Monitor pending external state
-and continue other unblocked work. Repair an actionable failure and retry once.
+An opened Draft PR is evidence, not completion. A pending external state creates
+a monitor checkpoint (never a stop reason); resume to re-observe it while other
+unblocked work continues. Repair an actionable failure and retry once.
 Queue and bundle related Founder-only actions; stop for `founder_only_blocker`
 only when no safe work remains. Allowed terminal reasons only:
 `mission_complete`, `founder_only_blocker`, `safety_boundary`,

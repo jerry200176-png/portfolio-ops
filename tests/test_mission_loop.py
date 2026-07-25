@@ -9,19 +9,23 @@ class MissionLoopTests(unittest.TestCase):
   self.tmp=tempfile.TemporaryDirectory(); self.p=Path(self.tmp.name); self.m=self.p/"mission.yaml"; self.q=self.p/"queue.yaml"; self.policy=self.p/"policy.yaml"
   self.q.write_text('{"schema_version":1,"updated_at":"","approvals":[]}'); self.policy.write_text((ROOT/"state/mission-loop-policy.yaml").read_text())
  def tearDown(self): self.tmp.cleanup()
- def execute(self,m): self.m.write_text(json.dumps(m)); return loop.run(self.m,self.q,self.policy)
+ def execute(self,m):
+  self.m.write_text(json.dumps(m)); r=loop.run(self.m,self.q,self.policy)
+  return loop.run(self.m,self.q,self.policy) if r["stop_reason"] is None else r
  def test_pr_open_is_not_a_stop_reason(self):
   r=self.execute(fixture("example-ci-monitor.yaml")); self.assertEqual(r["stop_reason"],"mission_complete"); self.assertEqual(r["completed_steps"],["open-draft-pr","monitor-ci"])
  def test_existing_draft_pr_is_reused(self):
   m=fixture("example-ci-monitor.yaml"); m["evidence"]=[{"draft_pr":"synthetic://draft/1"}]; r=self.execute(m); self.assertEqual(r["evidence"][1]["result"],"Existing Draft PR reused")
  def test_pending_ci_is_monitored_not_terminal(self):
-  r=self.execute(fixture("example-ci-monitor.yaml")); self.assertEqual([x.get("ci") for x in r["evidence"] if "ci" in x],["pending","success"])
+  m=fixture("example-ci-monitor.yaml"); self.m.write_text(json.dumps(m)); r=loop.run(self.m,self.q,self.policy); self.assertEqual(r["stop_reason"],None); self.assertEqual([x.get("ci") for x in r["evidence"] if "ci" in x],["pending"]); r=loop.run(self.m,self.q,self.policy); self.assertEqual([x.get("ci") for x in r["evidence"] if "ci" in x],["pending","success"])
  def test_founder_action_enters_approval_queue(self):
   self.execute(fixture("example-founder-bundle.yaml")); self.assertEqual(len(json.loads(self.q.read_text())["approvals"]),1)
  def test_unblocked_work_continues_with_pending_approval(self):
   r=self.execute(fixture("example-founder-bundle.yaml")); self.assertEqual(r["stop_reason"],"founder_only_blocker"); self.assertIn("prepare-docs",r["completed_steps"]); self.assertIn("prepare-verification",r["completed_steps"])
  def test_related_approvals_are_bundled(self):
   self.execute(fixture("example-founder-bundle.yaml")); self.assertEqual(len(json.loads(self.q.read_text())["approvals"][0]["bundled_actions"]),2)
+ def test_resolved_founder_approval_allows_resume(self):
+  r=self.execute(fixture("example-founder-bundle.yaml")); q=json.loads(self.q.read_text()); q["approvals"][0]["status"]="resolved"; q["approvals"][0]["resolved_at"]="now"; self.q.write_text(json.dumps(q)); r=loop.run(self.m,self.q,self.policy); self.assertIn("request-credential",r["completed_steps"])
  def test_retry_occurs_no_more_than_once(self):
   m=fixture("example-ci-monitor.yaml"); m["steps"]=[{"id":"broken","kind":"failure"}]; r=self.execute(m); self.assertEqual(r["stop_reason"],"tool_unavailable"); self.assertEqual(r["steps"][0]["retries"],1)
  def test_turn_cap_writes_resumable_checkpoint(self):

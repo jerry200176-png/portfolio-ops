@@ -29,9 +29,19 @@ def approval(queue, mission, step):
 def done(m, s, result):
     s["status"] = "completed"; m["completed_steps"].append(s["id"]); m["evidence"].append({"step": s["id"], "result": result, "at": now()})
     m.setdefault("phase_history", []).append({"step": s["id"], "phases": ["observe", "plan", "act", "verify", "checkpoint"], "at": now()})
-def runnable(m): return next((s for s in m.get("steps", []) if s.get("status", "pending") == "pending" and not s.get("blocked_by")), None)
+def runnable(m): return next((s for s in m.get("steps", []) if s.get("status", "pending") == "pending" and not s.get("blocked_by") and not s.get("monitor_cycle")), None)
+def reconcile_approvals(m, q):
+    """Continue only after a Founder has durably marked the queued approval resolved."""
+    resolved = {a["approval_id"] for a in q.get("approvals", []) if a.get("status") == "resolved"}
+    for step in m.get("steps", []):
+        if step.get("status") == "approval_pending":
+            match = next((b for b in m["blockers"] if b["step"] == step["id"]), None)
+            if match and match["approval_id"] in resolved:
+                done(m, step, "Founder approval resolved")
+    m["blockers"] = [b for b in m["blockers"] if b["approval_id"] not in resolved]
 def run(mission_path, queue_path, policy_path):
     m, q, policy = load(mission_path), load(queue_path), load(policy_path); validate(m)
+    reconcile_approvals(m, q)
     # A new invocation resumes a budget checkpoint from durable state.
     if m.get("stop_reason") == "budget_or_turn_cap":
         m.update(status="active", phase="observe", stop_reason=None)
@@ -46,6 +56,8 @@ def run(mission_path, queue_path, policy_path):
             observations, index = s.get("observations", ["pending", "success"]), s.get("observation_index", 0)
             result = observations[min(index, len(observations)-1)]; s["observation_index"] = index + 1; m["evidence"].append({"step": s["id"], "ci": result, "at": now()})
             if result == "success": done(m, s, "CI succeeded")
+            elif result == "pending":
+                s["monitor_cycle"] = True; m["next_action"] = f"monitor {s['id']}"; continue
             elif result != "pending":
                 if s.get("retries", 0) < policy["defaults"]["max_retries_per_failure"]: s["retries"] = s.get("retries", 0) + 1
                 else: m.update(status="paused", phase="checkpointed", stop_reason="tool_unavailable", resume_instruction=f"Resolve CI failure then resume {m['mission_id']}"); break
@@ -60,8 +72,12 @@ def run(mission_path, queue_path, policy_path):
         else: done(m, s, "completed")
         m["next_action"] = next((x["id"] for x in m.get("steps", []) if x.get("status", "pending") == "pending"), "verify exit criteria")
     waiting = [s for s in m.get("steps", []) if s.get("status") == "approval_pending"]
+    monitored = [s for s in m.get("steps", []) if s.get("monitor_cycle")]
     pending = [s for s in m.get("steps", []) if s.get("status", "pending") == "pending"]
-    if not pending and not waiting and m.get("stop_reason") is None: m.update(status="completed", phase="complete", stop_reason="mission_complete", resume_instruction="No action required")
+    if monitored and m.get("stop_reason") is None:
+        for step in monitored: step.pop("monitor_cycle", None)
+        m.update(status="active", phase="checkpointed", resume_instruction=f"Re-observe pending external state, then resume {m['mission_id']}")
+    elif not pending and not waiting and m.get("stop_reason") is None: m.update(status="completed", phase="complete", stop_reason="mission_complete", resume_instruction="No action required")
     elif turns >= cap and m.get("stop_reason") is None: m.update(status="paused", phase="checkpointed", stop_reason="budget_or_turn_cap", resume_instruction=f"Run /portfolio-run resume {m['mission_id']}")
     elif not pending and waiting and m.get("stop_reason") is None: m.update(status="paused", phase="checkpointed", stop_reason="founder_only_blocker", resume_instruction=f"Resolve queued approvals then /portfolio-run resume {m['mission_id']}")
     if m.get("stop_reason") not in ALLOWED_STOPS and m.get("stop_reason") is not None: raise ValueError("invalid emitted stop_reason")
