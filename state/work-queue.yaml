@@ -141,7 +141,7 @@ queue:
     priority: p0
     title: Restore Sunrise deployment capacity — now confirmed hitting production
     source: gmail:vercel-failed-production-deployment
-    status: active_diagnosis
+    status: root_cause_confirmed_awaiting_founder_dashboard_action
     evidence:
       - production health/version endpoints confirmed current this pass (2026-07-25) — deployed commit 9ac7da6f IS current origin/main HEAD (verified via git merge-base --is-ancestor), production is not behind despite a stale local checkout
       - GitHub production deploy and Verify Production completed successfully for 773ea48 at 2026-07-19T03:56:29Z
@@ -149,7 +149,11 @@ queue:
       - "ESCALATED 2026-07-25 (reports/2026-07-25/gmail-signals.md): Gmail evidence now shows the capacity cap hitting PRODUCTION deploys directly on multiple dates, not only preview — this is worse than the prior 'preview only' assessment"
       - GitHub CI status checks alone show 'Canceled by Ignored Build Step' for recent attempts, which does not by itself confirm resolution — the check simply did not run (github-triage caveat)
       - no GitHub issue exists for this specific problem; issue #211 covers Supabase RLS/rate-limit/backup decisions only, not Vercel capacity
-    next_action: direct Vercel dashboard/API verification of current capacity status (not yet performed this pass); do not merge deploy-requiring Sunrise work until confirmed restored. Open a GitHub issue to track this distinctly from #211.
+      - "ROOT CAUSE CONFIRMED 2026-07-25 (reports/2026-07-25/sunrise-vercel-deployment-forensics.md), via GitHub Deployments API forensics: 2-4 distinct Vercel projects (sunrise-cafe, sunrise-cafe-pklg, a legacy unlabeled project, and a short-lived workspace pair) have all been linked via GitHub App integration to this one repo under one shared-quota team account (jerry200176-6960s-projects), multiplying every push's deployment count — confirmed via the SAME commit (9ac7da6) having separate deployment records for sunrise-cafe and sunrise-cafe-pklg 3 minutes apart"
+      - "MIXED CAUSE: primary = Vercel configuration problem (duplicate project linkage); secondary/compounding = GitHub automation problem (verify-production.yml's auto-redeploy-on-drift fires more under quota pressure, not less, since it cannot distinguish throttled from stuck)"
+      - "existing mitigations (ignoreCommand, PR #203/#206 cron tuning) address build-minute waste and cron frequency, NOT the deployment-count cap — ignoreCommand only skips the build step, after the deployment record is already quota-counted"
+      - "production impact so far: latent risk + wasted CI signal, not confirmed downtime — production has stayed current throughout"
+    next_action: "Founder logs into Vercel dashboard, identifies which project serves sunrise-cafe-six.vercel.app, and disconnects/deletes the duplicate project(s) (sunrise-cafe-pklg at minimum, plus the abandoned legacy/workspace ones) — likely cuts deployment count 50%+ immediately with zero code change. In parallel: fix verify-production.yml to back off (not retrigger) on deploy_rate_limited, and rate-limit the auto-redeploy trigger. Do NOT upgrade to Vercel Pro before fixing the duplication and remeasuring — Pro would mask the bug, not fix it."
 
   - id: SEC-SUNRISE-002
     product: sunrise
