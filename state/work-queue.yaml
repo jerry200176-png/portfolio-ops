@@ -1,22 +1,50 @@
 schema_version: 1
-updated_at: 2026-07-24T19:07:00+08:00
+updated_at: 2026-07-25T14:30:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: SEC-ALLTRUE-1401
+    product: alltrue
+    priority: p0
+    title: Parent-portal cross-student PII exposure — containment unexecuted
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1401
+    status: fix_merged_containment_unverified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1400
+    evidence:
+      - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): fix PR #1400 is merged"
+      - production-deploy claim for #1400 is self-reported in the issue thread, not independently confirmed this pass (no production data tool in github-triage agent's scope)
+      - issue's own containment checklist (parent notification, evidence retention, exposure-log review) is entirely unchecked
+      - Gmail signal from ~2026-07-24 (reports/2026-07-25/gmail-signals.md) corroborates an incident report consistent with this issue
+    next_action: Founder confirms production deploy of #1400 and executes containment checklist (notification, evidence retention, exposure review) — PII of minors, legal-adjacent, this session does not act unilaterally. Ranked above SEC-ALLTRUE-003's remaining items — this is an active authorization-boundary bug, not historical exposure.
+
+  - id: SEC-ALLTRUE-GITGUARDIAN-0717
+    product: alltrue
+    priority: p0
+    title: GitGuardian 3-secret cluster (Telegram Bot Token, Laravel APP_KEY, Bearer Token) — dedup unconfirmed
+    source: gmail:GitGuardian-alerts-2026-07-17
+    status: unresolved_pending_confirmation
+    evidence:
+      - "GitGuardian sent 3 alerts on 2026-07-17 (reports/2026-07-25/gmail-signals.md); not yet confirmed whether these are the same candidates already rotated and closed under SEC-ALLTRUE-001 (which confirmed TELEGRAM, APP_KEY, and BEARER were different from historical leaked candidates) or a new, separate exposure"
+      - github-triage agent could not resolve this — no direct secret-scanning pull performed yet against current AllTrue state
+    next_action: run GitHub secret-scanning directly against AllTrue_System and diff fingerprints/timestamps against the SEC-ALLTRUE-001 closure evidence before scoring as new work or marking covered. Treated as P0 pending this confirmation given the exposure type (bot token, app key, bearer token) if not already covered.
+
   - id: SEC-ALLTRUE-003
     product: alltrue
     priority: p0
     title: Contain public Actions credential exposure and restore release identity
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1387
-    status: active_containment
+    status: visibility_resolved_reuse_verification_pending
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1395
     evidence:
-      - AllTrue was publicly visible while issue 1387 documented a credential in a public Actions log; repository visibility was restored to private and read-back verified at 2026-07-24T11:04:33Z
-      - exposed CI credential is treated as compromised; no secret value was copied into Company OS evidence
-      - production health was OK, but version endpoint reported 2e715dd1 while main and successful Deploy to Pi run 30088050777 targeted 5911a90
-      - remediation PR 1395 removes the hard-coded CI credential path and requires a runtime CI database password; required Agent Session Provenance and Presubmit Checks were failing as of 2026-07-24T11:06Z
-    next_action: Repair required gates on PR 1395, merge only after the full required suite passes, verify CI-only credential replacement and production revision, then close the canonical incident with non-sensitive evidence.
+      - "2026-07-25 triage (reports/2026-07-25/alltrue-sec-1387-incident-status-card.md) superseded the entries below: PR 1395 is MERGED (commit 3332d068, 2026-07-24T11:21:13Z) with all 20 required checks green — the prior 'gates failing' evidence was stale."
+      - production version endpoint now reports 8b4a30f1 (2026-07-24T14:13:56Z), which is after the security-fix commit 3332d068; the earlier 2e715dd1/5911a90 drift is resolved by normal subsequent deploys
+      - "RESOLVED 2026-07-25 ~14:40 (Founder-approved this session): repository changed from public to private via gh api PATCH, re-verified via fresh GET (private:true, visibility:private); forks=0, releases=0, Pages=disabled — no other public surface found"
+      - exposure inventory (incident card §17) found no evidence the literal exposed value appears anywhere beyond the two already-known files (.github/workflows/ci.yml, backend/phpunit.xml, both fixed in PR 1395); 28 other files matching the DB_PASSWORD/MYSQL_PASSWORD variable NAME are flagged low-risk/unconfirmed, not new exposures
+      - credential rotation/invalidation of the exposed DB password at any real point of use is STILL NOT confirmed anywhere in the issue/PR thread — this is the one remaining blocker to clean closure (unlike the separate, closed SEC-ALLTRUE-001 which had explicit rotation-audit evidence)
+      - unauthorized-use assessment (incident card §18): no positive evidence of compromise found in the surfaces this session can check (public health endpoints, collaborator list, fork count); DB/provider audit logs and GitHub's own audit log were NOT checked (no tool access) — absence of evidence, not evidence of absence
+      - exposed CI credential is treated as compromised; no secret value was copied into this evidence file or the incident status card
+    next_action: Founder decision required on credential-reuse verification (the one remaining blocker) and Actions-log residual risk (proposed deletion list in incident card §17, nothing deleted). Recommendation is READY TO CLOSE WITH EXPLICIT RESIDUAL RISK if Founder accepts reuse-risk as low-probability; otherwise NOT READY TO CLOSE pending independent confirmation. Issue 1387 stays open until Founder acts; this session does not close it.
 
   - id: GH-PORTFOLIO-001
     product: portfolio
@@ -37,11 +65,33 @@ queue:
     priority: p1
     title: Suppress non-actionable director billing counter alerts
     source: https://github.com/jerry200176-png/AllTrue_System/pull/1333
-    status: validating_ci
+    status: merged
     evidence:
       - stale PR 1287 rebuilt from current main with intervening scheduling telemetry preserved
       - local isolated regression suite passed 14 tests and 159 assertions
       - PHPStan, strict docs integrity, control-plane lint, syntax, provenance, and diff checks passed
+      - "2026-07-25 triage (reports/2026-07-25/github-triage.md): CONFIRMED MERGED, commit eacf960f, 2026-07-19 — prior 'validating_ci' status was stale"
+    next_action: none — resolved, no further action
+
+  - id: OPS-ALLTRUE-1096
+    product: alltrue
+    priority: p1
+    title: "Billing calculation bug: 0/2998 vs 3000 discrepancy"
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1096
+    status: open_no_pr
+    evidence:
+      - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): open, no PR attached, concrete reproducible numeric discrepancy reported"
+    next_action: candidate for next execute-mode Draft PR once P0 items clear
+
+  - id: DEC-ALLTRUE-1100
+    product: alltrue
+    priority: p1
+    title: A/B package overlap — product decision needed, not a code defect
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1100
+    status: needs_founder_product_decision
+    evidence:
+      - "2026-07-25 GitHub triage: needs Founder/PM input on intended package behavior before any PR is drafted"
+    next_action: leave queued; do not treat as engineering work until decision is made
 
   - id: SEC-ALLTRUE-001
     product: alltrue
@@ -83,22 +133,54 @@ queue:
 
   - id: OPS-SUNRISE-001
     product: sunrise
-    priority: p1
-    title: Restore Sunrise deployment capacity and release evidence
+    priority: p0
+    title: Restore Sunrise deployment capacity — now confirmed hitting production
     source: gmail:vercel-failed-production-deployment
     status: active_diagnosis
     evidence:
-      - production health endpoint returned ok and /api/version matched origin/main 773ea48 on 2026-07-19
+      - production health/version endpoints confirmed current this pass (2026-07-25) — deployed commit 9ac7da6f IS current origin/main HEAD (verified via git merge-base --is-ancestor), production is not behind despite a stale local checkout
       - GitHub production deploy and Verify Production completed successfully for 773ea48 at 2026-07-19T03:56:29Z
-      - Vercel reported "Resource is limited - try again in 24 hours" for current PR preview deployments, with a code api-deployments-free limit above 100
-      - the Vercel capacity limit currently blocks preview deployment evidence and may block the next production release; do not merge deploy-requiring work until capacity is restored or a canonical alternative is verified
+      - Vercel reported "Resource is limited - try again in 24 hours" for PR preview deployments, with a code api-deployments-free limit above 100
+      - "ESCALATED 2026-07-25 (reports/2026-07-25/gmail-signals.md): Gmail evidence now shows the capacity cap hitting PRODUCTION deploys directly on multiple dates, not only preview — this is worse than the prior 'preview only' assessment"
+      - GitHub CI status checks alone show 'Canceled by Ignored Build Step' for recent attempts, which does not by itself confirm resolution — the check simply did not run (github-triage caveat)
+      - no GitHub issue exists for this specific problem; issue #211 covers Supabase RLS/rate-limit/backup decisions only, not Vercel capacity
+    next_action: direct Vercel dashboard/API verification of current capacity status (not yet performed this pass); do not merge deploy-requiring Sunrise work until confirmed restored. Open a GitHub issue to track this distinctly from #211.
 
   - id: SEC-SUNRISE-002
     product: sunrise
-    priority: p1
-    title: Resolve Supabase RLS, rate-limit, and backup decision queue with production evidence
+    priority: p0
+    title: Supabase RLS/rate-limit/backup — Founder decisions made but unexecuted
     source: https://github.com/jerry200176-png/sunrise-cafe/issues/211
-    status: queued
+    status: decided_not_executed
+    evidence:
+      - "Founder decisions FD-1...FD-6 (RLS, rate limiting, backup posture) were recorded 2026-07-19 in issue #211"
+      - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): confirmed via PR search — ZERO execution PRs exist referencing #211 or its decision items since 2026-07-19"
+      - "current production state: fail-open rate limiting confirmed live (booking-health endpoint reports rate_limit_mode=memory, rate_limit_grade=degraded_per_isolate); backup posture unconfirmed; RLS application status unconfirmed"
+    next_action: reclassified from "queued" (implies not-yet-decided) to "decided_not_executed" (implies live unaddressed risk) — highest-ROI Sunrise engineering work available for next execute-mode pass, since the decision-making step is already done and only implementation remains
+
+  - id: CI-SUNRISE-PROVENANCE
+    product: sunrise
+    priority: p1
+    title: Agent Session Provenance CI check failing repeatedly
+    source: gmail:sunrise-ci-failures (8x/30 days)
+    status: needs_log_triage
+    evidence:
+      - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): confirmed as a real, currently-failing required check on PR #253 — preflight_result: cloud-agent-bypass rejected, plus an out-of-root worktree path flagged"
+      - "Gmail pattern (8 failures / 30 days) corroborated by direct GitHub observation — mutually reinforcing signal, not a false alarm"
+    next_action: pull full check-run logs for PR #253's Agent Session Provenance job to determine whether this is a broken CI config or a genuine provenance/security policy violation
+
+  - id: OPS-SUNRISE-DEPENDABOT-BRANCH
+    product: sunrise
+    priority: p2
+    title: Uncommitted dependabot.yml wildcard change on chore/dependabot-major-policy — intent unclear
+    source: local working tree
+    status: needs_founder_confirmation
+    evidence:
+      - local branch chore/dependabot-major-policy has an uncommitted modified .github/dependabot.yml widening the major-version ignore list from a named list to a wildcard (dependency-name:"*")
+      - content structurally matches what already shipped on origin/main via merged PR #249 (2026-07-19); confirmed via direct git diff this session
+      - no open or closed PR exists for this specific branch
+      - working tree is dirty and NOT touched, reset, or discarded per Git rules (never reset/clean a tree we didn't create)
+    next_action: confirm with Founder/orchestrator whether this branch is stale/redundant (safe to leave or discard) or represents in-progress intent that should continue
 
   - id: CI-PORTFOLIO-001
     product: portfolio

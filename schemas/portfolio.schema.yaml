@@ -1,0 +1,45 @@
+# Schema (informal, YAML-as-documentation) for portfolio.yaml.
+# Not machine-validated by default; the bootstrap mode of the
+# portfolio-maintain skill checks new/edited entries against this shape.
+
+schema_version: 1
+
+project_fields:
+  id: {type: string, required: true, note: "stable kebab/snake id, used as cross-reference key"}
+  name: {type: string, required: true}
+  local_path: {type: string, required: true, note: "absolute path; must exist or be flagged missing"}
+  github_repo: {type: string, required: true, note: "owner/repo, or null for non-GitHub"}
+  forbidden_checkouts: {type: list<string>, required: false, note: "paths agents must never edit (legacy/duplicate clones)"}
+  tier: {type: int, required: true, enum: [0, 1, 2, 3], note: "see docs/prioritization.md"}
+  lifecycle: {type: string, required: true, enum: [production, active, incubating, dormant, archived]}
+  product_type: {type: string, required: true}
+  target_users: {type: string, required: true}
+  production_status: {type: string, required: true, enum: [live, staged, none]}
+  business_criticality: {type: string, required: true, enum: [high, medium, low]}
+  technical_risk: {type: string, required: true, enum: [high, medium, low]}
+  ux_risk: {type: string, required: true, enum: [high, medium, low]}
+  data_sensitivity: {type: string, required: true, enum: [high, medium, low]}
+  stack: {type: list<string>, required: true}
+  deploy_target: {type: string, required: true}
+  production: {type: object, required: false, fields: [version_url, health_url]}
+  latest_activity: {type: date (YYYY-MM-DD), required: true}
+  open_p0: {type: int, required: true}
+  open_p1: {type: int, required: true}
+  current_priority: {type: string, required: true, note: "one line, references an id in state/work-queue.yaml when applicable"}
+  next_action: {type: string, required: true, note: "single concrete next step, not a backlog"}
+  evidence_links: {type: list<string>, required: true, note: "URLs or repo-relative paths; empty list is a bootstrap defect"}
+
+meta_fields:
+  # For non-product infrastructure entries under `meta:` — lighter shape.
+  id: {type: string, required: true}
+  name: {type: string, required: true}
+  local_path: {type: string, required: true}
+  github_repo: {type: string, required: false}
+  note: {type: string, required: true}
+
+validation_rules:
+  - "every project.id must be unique"
+  - "every project.local_path should exist on disk; if not, flag in triage report, do not silently drop the entry"
+  - "tier assignment must match docs/prioritization.md criteria, not be copied from a GitHub label"
+  - "open_p0/open_p1 counts must be reconciled against github-triage mode output, not hand-guessed"
+  - "evidence_links must not contain secret values, tokens, or raw PII"

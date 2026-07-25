@@ -1,38 +1,56 @@
-# Autonomous operations policy
+# Autonomy policy
+
+**Superseded 2026-07-25.** This file previously granted agents autonomous
+merge, deploy, production-data mutation, Gmail deletion, and Git-history
+rewrite authority. That grant is revoked. The table below is the current
+policy and is authoritative; see `docs/security-boundaries.md` for the full
+rationale and `CLAUDE.md` for the always-in-context summary.
 
 ## Default posture
 
-AI agents may act without per-action Founder confirmation. They must choose the safest action that still advances the company and preserve evidence for later audit.
+Agents act autonomously on read, analysis, triage, and Draft-PR-stage work.
+Anything that mutates a shared, external, or production-facing system beyond
+a Draft PR requires explicit Founder approval in the session, given at the
+time of the action — a past approval for one action does not carry forward to
+a similar one.
 
 | Capability | Autonomous | Required control |
 |---|---:|---|
 | Read GitHub, Gmail, repositories, logs, telemetry | Yes | Minimize PII and secret exposure |
-| Triage, label, assign, archive, and organize | Yes | Preserve active conversations and recovery paths |
-| Create/update issues, PRs, comments, drafts, and email | Yes | Exact target and grounded context |
-| Send email or external replies | Yes | Correct recipients, no secrets/PII, professional tone |
-| Implement, commit, push, review, merge | Yes | Isolated branch/worktree, tests, required checks |
-| Deploy | Yes | Canonical CI/CD path only |
-| Production verification | Yes | Prefer read-only checks; record revision and behavior |
-| Credential rotation/revocation | Yes | Never reveal values; replace/verify/revoke sequence |
-| Gmail deletion | Yes | Delete only confirmed spam/phishing or policy-expired mail; otherwise archive |
-| Production data mutation | Yes | Domain authorization, backup/recovery, dry-run where supported, evidence |
-| Git history rewrite | Yes | Mirror backup, ref inventory, collaborator/clone invalidation plan, post-purge scan |
+| Triage, label, and organize (non-destructively) | Yes | Never close an issue, never archive/delete Gmail |
+| Create/update issues, PR comments, Draft PRs | Yes | Exact target, grounded evidence, marked Draft |
+| Send email, reply, or any Gmail mutation | **No** | Founder sends it, or explicitly approves content first |
+| Merge a pull request | **No** | Founder merges |
+| Deploy to production | **No** | Founder deploys or explicitly directs the deploy step |
+| Production data mutation | **No** | Founder approves scope, backup, and executes or explicitly directs it |
+| Production verification (read-only checks) | Yes | Read-only: health/version endpoints, logs, dashboards |
+| Credential rotation/revocation | **No** | Founder-directed; agents never print secret values |
+| Gmail deletion/archival | **No** | Read/search/label-for-review only |
+| Git history rewrite | **No** | Founder-directed only, with backup first |
+| Close a GitHub issue | **No** | Founder closes, or explicitly approves the close |
 
 ## Stop-the-line conditions
 
-Pause normal roadmap work and open or update a P0 incident when any of the following is observed:
+Surface immediately (do not wait for the next report cycle) when any of the
+following is observed:
 
-- live or potentially live credential in public history
-- production PII or database dump reachable from published refs
-- active data loss, auth bypass, cross-tenant exposure, or financial corruption
-- failed backup/restore chain with no verified recovery point
-- production identity differs from the intended release
+- a live or potentially live credential in public history or logs
+- production PII or a database dump reachable from published refs
+- active data loss, auth bypass, cross-tenant exposure, or financial
+  corruption
+- a failed backup/restore chain with no verified recovery point
+- production identity differing from the intended release
 
-The incident may continue autonomously. "Stop" means stop unrelated delivery, not wait for the Founder.
+Investigating and documenting the incident is autonomous (read-only evidence
+gathering, containment recommendations). Any mutating containment step
+(rotating a credential, changing repository visibility, reverting a deploy)
+still needs Founder approval unless the Founder has pre-approved that
+specific action for that specific incident in this session.
 
-## Gmail retention default
+## Gmail
 
-- Security, billing, legal, customer, vendor, GitHub, CI/CD, and production mail: retain and label.
-- Newsletters and promotions: archive after classification; unsubscribe only when the sender and link are trustworthy.
-- Confirmed spam/phishing: Trash; permanent deletion only after Gmail retention or a dedicated cleanup run.
-- Never send automated replies to no-reply addresses or security alerts unless a supported remediation workflow requires it.
+Read and search freely. Label only in ways that aid triage (e.g. a review
+queue label) and that do not remove mail from the Founder's normal view.
+Never send, reply, delete, archive, or apply a label that hides mail from the
+inbox without being asked. Draft replies may be prepared for Founder review
+but never sent autonomously.
