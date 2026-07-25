@@ -28,6 +28,7 @@ def approval(queue, mission, step):
     queue["approvals"].append(item); return item["approval_id"]
 def done(m, s, result):
     s["status"] = "completed"; m["completed_steps"].append(s["id"]); m["evidence"].append({"step": s["id"], "result": result, "at": now()})
+    m.setdefault("phase_history", []).append({"step": s["id"], "phases": ["observe", "plan", "act", "verify", "checkpoint"], "at": now()})
 def runnable(m): return next((s for s in m.get("steps", []) if s.get("status", "pending") == "pending" and not s.get("blocked_by")), None)
 def run(mission_path, queue_path, policy_path):
     m, q, policy = load(mission_path), load(queue_path), load(policy_path); validate(m)
@@ -55,6 +56,7 @@ def run(mission_path, queue_path, policy_path):
             url = s.get("pr_url", s["id"])
             already_opened = any(e.get("draft_pr") == url for e in m["evidence"] if isinstance(e, dict))
             done(m, s, "Existing Draft PR reused" if already_opened else "Draft PR opened")
+            m["evidence"][-1]["draft_pr"] = url
         else: done(m, s, "completed")
         m["next_action"] = next((x["id"] for x in m.get("steps", []) if x.get("status", "pending") == "pending"), "verify exit criteria")
     waiting = [s for s in m.get("steps", []) if s.get("status") == "approval_pending"]
@@ -64,6 +66,33 @@ def run(mission_path, queue_path, policy_path):
     elif not pending and waiting and m.get("stop_reason") is None: m.update(status="paused", phase="checkpointed", stop_reason="founder_only_blocker", resume_instruction=f"Resolve queued approvals then /portfolio-run resume {m['mission_id']}")
     if m.get("stop_reason") not in ALLOWED_STOPS and m.get("stop_reason") is not None: raise ValueError("invalid emitted stop_reason")
     m["updated_at"] = now(); q["updated_at"] = now(); save(mission_path, m); save(queue_path, q); return m
+def active(directory):
+    choices = []
+    for path in sorted(Path(directory).glob("*.yaml")):
+        mission = load(path)
+        if not mission.get("example") and not mission.get("mission_id", "").startswith("example-") and mission.get("status") in {"active", "paused"}: choices.append(mission)
+    if len(choices) != 1: raise ValueError(f"expected exactly one active mission, found {len(choices)}")
+    return choices[0]
+def require_writer(args):
+    if args.writer != "claude_code": raise ValueError("active mission state may only be written with --writer claude_code")
 if __name__ == "__main__":
-    p = argparse.ArgumentParser(); p.add_argument("command", choices=["run", "resume"]); p.add_argument("--mission", required=True); p.add_argument("--queue", default="state/founder-approval-queue.yaml"); p.add_argument("--policy", default="state/mission-loop-policy.yaml"); a = p.parse_args()
-    r = run(a.mission, a.queue, a.policy); print(json.dumps({"mission_id": r["mission_id"], "status": r["status"], "stop_reason": r["stop_reason"], "next_action": r["next_action"]}))
+    p = argparse.ArgumentParser(); p.add_argument("command", choices=["create","validate","active","next","approvals","checkpoint","run","resume","close"]); p.add_argument("--mission"); p.add_argument("--missions-dir", default="state/missions"); p.add_argument("--queue", default="state/founder-approval-queue.yaml"); p.add_argument("--policy", default="state/mission-loop-policy.yaml"); p.add_argument("--writer"); p.add_argument("--mission-id"); p.add_argument("--title"); p.add_argument("--goal"); p.add_argument("--priority", default="p2"); p.add_argument("--reason", default="budget_or_turn_cap"); a = p.parse_args()
+    if a.command == "active": print(json.dumps(active(a.missions_dir))); raise SystemExit
+    if a.command == "approvals": print(json.dumps(load(a.queue).get("approvals", []))); raise SystemExit
+    if a.command == "create":
+        require_writer(a); path=Path(a.missions_dir)/f"{a.mission_id}.yaml"; path.parent.mkdir(parents=True,exist_ok=True)
+        if path.exists(): raise ValueError("mission already exists")
+        t=now(); m={"mission_id":a.mission_id,"title":a.title,"priority":a.priority,"status":"active","phase":"observe","goal":a.goal,"success_criteria":["Define exit criterion"],"non_goals":["Define non-goals"],"authority":["Portfolio control-plane only"],"hard_boundaries":["Existing CLAUDE.md applies"],"completed_steps":[],"current_step":None,"next_action":"define first bounded step","blockers":[],"evidence":[],"verification":{"reviewer_findings":[]},"rollback":"Revert this mission state only.","stop_reason":None,"resume_instruction":"Run /portfolio-run resume.","created_at":t,"updated_at":t,"outcome_contract":{"inputs":["Define inputs"],"success_criteria":["Define exit criterion"],"non_goals":["Define non-goals"],"authority":["Portfolio control-plane only"],"verification":["Define verification"],"rollback":["Revert state"],"stop_conditions":["mission_complete","budget_or_turn_cap"]},"steps":[]}; save(path,m); print(path); raise SystemExit
+    if not a.mission: a.mission=str(Path(a.missions_dir)/f"{active(a.missions_dir)['mission_id']}.yaml")
+    m=load(a.mission)
+    if a.command == "validate": validate(m); print("valid"); raise SystemExit
+    if a.command == "next": print(m["next_action"]); raise SystemExit
+    require_writer(a)
+    if a.command in {"run","resume"}: r=run(a.mission,a.queue,a.policy)
+    elif a.command == "checkpoint":
+        if a.reason not in ALLOWED_STOPS: raise ValueError("invalid checkpoint reason")
+        m.update(status="paused",phase="checkpointed",stop_reason=a.reason,resume_instruction="Run /portfolio-run resume."); m["updated_at"]=now(); save(a.mission,m); r=m
+    else:
+        if not m.get("verification",{}).get("exit_criteria_passed"): raise ValueError("exit criteria not passed")
+        m.update(status="completed",phase="complete",stop_reason="mission_complete"); save(a.mission,m); r=m
+    print(json.dumps({"mission_id":r["mission_id"],"status":r["status"],"stop_reason":r["stop_reason"],"next_action":r["next_action"]}))

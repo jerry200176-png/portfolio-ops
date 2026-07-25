@@ -31,6 +31,28 @@ verifier cannot edit product code or recursively dispatch reviewers. Record
 every finding in `verification.reviewer_findings` with `adopted`, `rejected`,
 or `deferred` disposition and rationale.
 
+## Operator commands
+
+Claude Code is the sole writer of active mission state. The required
+`--writer claude_code` guard makes that execution role explicit; it is not a
+new permission or authority grant. Use the smallest set of commands:
+
+```sh
+# create, then fill the outcome contract and bounded steps
+python3 .claude/skills/portfolio-run/scripts/mission_loop.py create --writer claude_code --mission-id <id> --title <title> --goal <goal>
+python3 .claude/skills/portfolio-run/scripts/mission_loop.py validate --mission state/missions/<id>.yaml
+python3 .claude/skills/portfolio-run/scripts/mission_loop.py run --writer claude_code --mission state/missions/<id>.yaml
+python3 .claude/skills/portfolio-run/scripts/mission_loop.py next --mission state/missions/<id>.yaml
+python3 .claude/skills/portfolio-run/scripts/mission_loop.py approvals
+python3 .claude/skills/portfolio-run/scripts/mission_loop.py resume --writer claude_code --mission state/missions/<id>.yaml
+```
+
+Use `active` only after triage has created exactly one non-example active
+mission. `checkpoint` and `close` are guarded writes; `close` requires recorded
+`verification.exit_criteria_passed`. The script deliberately does not invoke
+Claude runtime skills itself. Perform the Claude-only smoke test in
+`docs/portfolio-run.md` before activation.
+
 On resume, read durable state, approval queue, and policy; verify repository
 reality; preserve completed work; then continue `next_action`. Never recreate a
 PR in `evidence.opened_prs`. Keep detailed output in state/report files and

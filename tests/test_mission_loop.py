@@ -34,4 +34,15 @@ class MissionLoopTests(unittest.TestCase):
   for reason in loop.ALLOWED_STOPS: m["stop_reason"]=reason; loop.validate(m)
  def test_existing_safety_hooks_and_agent_restrictions_remain_intact(self):
   settings=json.loads((ROOT/".claude/settings.json").read_text()); self.assertIn("Bash(git reset --hard*)",settings["permissions"]["deny"]); self.assertIn("guard_bash.py",(ROOT/".claude/settings.json").read_text()); rules=(ROOT/".claude/rules/agent-definitions.md").read_text(); self.assertIn("`repo-maintainer` has Write/Edit",rules); self.assertIn("every other agent returns text",rules)
+ def test_phase_transition_is_checkpointed(self):
+  r=self.execute(fixture("example-ci-monitor.yaml")); self.assertEqual(r["phase_history"][0]["phases"],["observe","plan","act","verify","checkpoint"])
+ def test_active_selection_requires_exactly_one_non_example_mission(self):
+  m=fixture("example-ci-monitor.yaml"); m["mission_id"]="real"; m["status"]="active"; (self.p/"real.yaml").write_text(json.dumps(m)); self.assertEqual(loop.active(self.p)["mission_id"],"real")
+  (self.p/"other.yaml").write_text(json.dumps(m | {"mission_id":"other"}));
+  with self.assertRaises(ValueError): loop.active(self.p)
+ def test_writer_guard_rejects_non_claude_writer(self):
+  class Args: writer="codex"
+  with self.assertRaises(ValueError): loop.require_writer(Args())
+ def test_portfolio_maintain_status_remains_read_only_mode(self):
+  status=(ROOT/".claude/skills/portfolio-maintain/modes/status.md").read_text(); self.assertIn("Pure read, no mutation",status); self.assertIn("Do not fetch git remotes",status)
 if __name__ == "__main__": unittest.main()
