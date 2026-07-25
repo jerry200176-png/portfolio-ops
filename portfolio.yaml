@@ -25,10 +25,10 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-07-25"
-    open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (repo visibility unresolved)
+    open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (visibility RESOLVED, credential-reuse verification still pending — see work-queue.yaml)
     open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
-    current_priority: SEC-ALLTRUE-1401 — parent-portal cross-student PII exposure (minors); fix merged (PR #1400) but containment checklist (notification, evidence retention, exposure review) entirely unexecuted and production deploy unverified. Ranked above repo-visibility item — active authorization-boundary bug outranks historical exposure.
-    next_action: Founder confirms production deploy of #1400 and executes containment checklist; in parallel, Founder resolves repo visibility (SEC-ALLTRUE-003) and confirms whether GitGuardian's 2026-07-17 3-secret cluster duplicates the already-rotated SEC-ALLTRUE-001 set
+    current_priority: SEC-ALLTRUE-1401 — parent-portal cross-student PII exposure (minors); fix merged (PR #1400) but containment checklist (notification, evidence retention, exposure review) entirely unexecuted and production deploy unverified. Ranked above SEC-ALLTRUE-003 — active authorization-boundary bug outranks a now-contained historical exposure.
+    next_action: Founder confirms production deploy of #1400 and executes containment checklist; in parallel, Founder confirms DB-password reuse status for SEC-ALLTRUE-003 (repo is now private, only remaining blocker) and whether GitGuardian's 2026-07-17 3-secret cluster duplicates the already-rotated SEC-ALLTRUE-001 set
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400

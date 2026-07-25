@@ -34,15 +34,17 @@ queue:
     priority: p0
     title: Contain public Actions credential exposure and restore release identity
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1387
-    status: code_fix_merged_operational_closure_pending
+    status: visibility_resolved_reuse_verification_pending
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1395
     evidence:
       - "2026-07-25 triage (reports/2026-07-25/alltrue-sec-1387-incident-status-card.md) superseded the entries below: PR 1395 is MERGED (commit 3332d068, 2026-07-24T11:21:13Z) with all 20 required checks green — the prior 'gates failing' evidence was stale."
       - production version endpoint now reports 8b4a30f1 (2026-07-24T14:13:56Z), which is after the security-fix commit 3332d068; the earlier 2e715dd1/5911a90 drift is resolved by normal subsequent deploys
-      - NEW FINDING (2026-07-25): repository jerry200176-png/AllTrue_System is currently PUBLIC (search_repositories: private=false), contradicting the 2026-07-24T11:04:33Z claim that visibility was restored to private and verified — git history contains the pre-fix plaintext DB password (confirmed present in PR 1395's diff), so this is a live, not merely historical, exposure while public
-      - credential rotation/invalidation of the exposed DB password at any real point of use is NOT confirmed anywhere in the issue/PR thread (unlike the separate, closed SEC-ALLTRUE-001 which had explicit rotation-audit evidence)
+      - "RESOLVED 2026-07-25 ~14:40 (Founder-approved this session): repository changed from public to private via gh api PATCH, re-verified via fresh GET (private:true, visibility:private); forks=0, releases=0, Pages=disabled — no other public surface found"
+      - exposure inventory (incident card §17) found no evidence the literal exposed value appears anywhere beyond the two already-known files (.github/workflows/ci.yml, backend/phpunit.xml, both fixed in PR 1395); 28 other files matching the DB_PASSWORD/MYSQL_PASSWORD variable NAME are flagged low-risk/unconfirmed, not new exposures
+      - credential rotation/invalidation of the exposed DB password at any real point of use is STILL NOT confirmed anywhere in the issue/PR thread — this is the one remaining blocker to clean closure (unlike the separate, closed SEC-ALLTRUE-001 which had explicit rotation-audit evidence)
+      - unauthorized-use assessment (incident card §18): no positive evidence of compromise found in the surfaces this session can check (public health endpoints, collaborator list, fork count); DB/provider audit logs and GitHub's own audit log were NOT checked (no tool access) — absence of evidence, not evidence of absence
       - exposed CI credential is treated as compromised; no secret value was copied into this evidence file or the incident status card
-    next_action: Founder decision required on repo visibility (top priority), credential-reuse verification, and Actions-log residual risk — see Decisions Required in reports/2026-07-25/alltrue-sec-1387-incident-status-card.md. Issue 1387 stays open until then; this session does not close it.
+    next_action: Founder decision required on credential-reuse verification (the one remaining blocker) and Actions-log residual risk (proposed deletion list in incident card §17, nothing deleted). Recommendation is READY TO CLOSE WITH EXPLICIT RESIDUAL RISK if Founder accepts reuse-risk as low-probability; otherwise NOT READY TO CLOSE pending independent confirmation. Issue 1387 stays open until Founder acts; this session does not close it.
 
   - id: GH-PORTFOLIO-001
     product: portfolio
