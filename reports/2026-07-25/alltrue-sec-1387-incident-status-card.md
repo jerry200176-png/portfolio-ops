@@ -349,6 +349,120 @@ because no tool grants access to them.
   against a confirmed live-compromise finding. This is a recommendation for
   the Founder's next decision, not an action taken.
 
+## 20. Credential closure — updated 2026-07-25 ~16:20 +08:00 (Founder-approved this session)
+
+**DB provider / environment / consumers, identified**:
+- MySQL, self-hosted on the Raspberry Pi, reachable at `127.0.0.1` from the
+  backend process (not exposed externally).
+- Production credential lives **only** in `/home/admin/backend/.env` on the
+  Pi (`DB_PASSWORD`), read by `backend/config/database.php`
+  (`env('DB_PASSWORD', '')`) — it is **not** a GitHub Actions secret and
+  never has been; `deploy.yml`'s backup step reads it directly off the Pi's
+  `.env` file at backup time (`grep DB_PASSWORD .../env | cut -d= -f2`),
+  it does not inject it from GitHub.
+- The leaked value (pre-fix, in `.github/workflows/ci.yml` / `backend/phpunit.xml`)
+  was a **hard-coded literal**, not sourced from any GitHub Actions secret.
+  The repo does have a `CI_DB_PASSWORD` repository secret, but the repo's
+  own `docs/OPERATIONS_RUNBOOK.md` (§ secret table) documents it as already
+  retired — "已退役；active workflows 不引用此 secret" — confirmed:
+  `ci.yml`/`phpunit.xml` post-fix both use the literal `ci-ephemeral`, not
+  `secrets.CI_DB_PASSWORD`. **No GitHub secret rotation is needed or
+  applicable to the leaked value** — there was never a live secret backing
+  it.
+
+**Old value reuse/validity — attempted, not yet resolved**:
+The repo's own Secret Rotation Policy (`OPERATIONS_RUNBOOK.md` §O) requires
+this exact question to be answered *before* rotating: is the exposed value
+the same as the real production password? This session built the tool to
+answer it the same safe way SEC-ALLTRUE-001 answered the equivalent
+question for APP_KEY/TELEGRAM/BEARER (fingerprint comparison, value never
+printed): PR
+[jerry200176-png/AllTrue_System#1414](https://github.com/jerry200176-png/AllTrue_System/pull/1414)
+(Draft, not merged — this session does not merge product-repo PRs), which
+adds a `DB_PASSWORD` extraction pattern to
+`scripts/credential-fingerprint-audit.py` (tested, 4/4 tests pass, only
+synthetic fixture values in the diff) and a new
+`db-password-fingerprint-audit.yml` `workflow_dispatch` workflow that
+hashes the pre-fix blob value and production's live
+`config('database.connections.mysql.password')`, reporting only
+`MATCH_ROTATION_REQUIRED` / `DIFFERENT` / `*_NOT_FOUND`.
+
+**Blocked on a GitHub platform constraint, not a policy choice**:
+`workflow_dispatch`-triggered workflows must exist on the repository's
+*default* branch before GitHub will run them via API/CLI — running them
+against another ref's copy of the file is not possible until the workflow
+file itself is on `main`. That requires either merging PR #1414 (outside
+this session's approval scope for product repositories) or a direct push
+to `main` (forbidden — Git rules, branch protection). **This sub-step
+cannot be completed from this session regardless of further approval; it
+needs the Founder to merge PR #1414 (or otherwise get the workflow onto
+`main`) and then run it.**
+
+**Safe production rotation, if the audit comes back MATCH**: this session
+has no SSH/database tool access at all — not a restriction, a genuine
+capability gap (the Pi SSH key exists only as a GitHub Actions secret,
+usable only inside a workflow run, not directly by this session). If
+rotation turns out to be necessary, the repo's own documented SOP
+(`OPERATIONS_RUNBOOK.md` §O.2) is: `MySQL FLUSH PRIVILEGES` + `.env` update
++ deploy, executed only after reading `docs/DANGEROUS_OPERATIONS.md` and
+confirming backup/rollback — i.e., it should go through the same
+GitHub-Actions-mediated path (a new, tested, Founder-reviewed workflow),
+not ad hoc SSH from this session.
+
+## 21. GitHub Security log query (item B)
+
+Attempted the requested query (`action:repo.access
+repo:jerry200176-png/AllTrue_System`) via the closest available API
+surfaces:
+- `GET /users/{username}/settings/security-log` → `404 Not Found`
+- `GET /users/{username}/audit-log` → `404 Not Found`
+- `GET /orgs/{owner}/audit-log` → `404 Not Found` (not applicable —
+  `jerry200176-png` is a personal account, not a GitHub organization)
+- `GET /users/{username}/events` → succeeds, but this is the ordinary
+  public/private **Events API** (recent pushes, PRs, etc.), not the
+  Security log; it has no event type for repository visibility changes
+  and no `action:repo.access`-style filtering.
+
+**Conclusion: unavailable evidence.** GitHub's personal-account Security
+log (`github.com/settings/security-log`) has no public REST/GraphQL API
+equivalent — it is Enterprise Cloud org/enterprise audit-log API only. The
+visibility-change actor/timestamp/OAuth-app metadata this item asked for
+can only be retrieved by the Founder directly opening
+`https://github.com/settings/security-log` and filtering
+`action:repo.access repo:jerry200176-png/AllTrue_System` in the browser —
+no tool in this session can do this on the Founder's behalf. Root cause of
+the earlier public-visibility discrepancy (§16) remains undetermined for
+the same reason.
+
+## 22. Actions log deletion (item C) — completed 2026-07-25 ~16:10 +08:00
+
+Evidence recorded before any deletion:
+- Run `30086225720`, workflow `ci.yml`, job "PHPUnit Feature & Unit Tests"
+  (job id `89458978004`), commit `7dca4ced007adc2a93436dd9d3060ff7c514354a`,
+  started `2026-07-24T10:27:24Z`, conclusion `failure`.
+- Confirmed present pre-deletion: run metadata (`id`, `status`,
+  `conclusion`) readable via API; this session did **not** re-fetch the raw
+  log text itself (to avoid re-exposing the plaintext value into this
+  session's own transcript a second time, per §3/§8's existing caveat) —
+  reliance is on issue #1387's own original report that this run's log
+  printed the value, which is the reason this run was targeted for
+  deletion in the first place.
+- **Artifacts precisely checked, not deleted**: two artifacts existed
+  (`junit-test-results`, 329 bytes; `frontend-unit-coverage`, 533 bytes).
+  Both downloaded and inspected in this session's scratchpad (not the
+  product repo) — actual contents are `api-routes.md` (a route listing)
+  and `coverage-summary.json` (a coverage report); neither references
+  `DB_PASSWORD`, `MYSQL_PASSWORD`, or `ci-ephemeral` in any form. **No
+  secret-shaped content found — both artifacts left untouched**, per the
+  Founder's "only delete if it contains the secret" condition.
+- **Deletion performed**: `DELETE
+  /repos/jerry200176-png/AllTrue_System/actions/runs/30086225720/logs`
+  (logs-only endpoint — the whole run was deliberately **not** deleted).
+- **Verified inaccessible**: a subsequent `GET .../runs/30086225720/logs`
+  and `GET .../jobs/89458978004/logs` both now return `404 Not Found`. The
+  run's own metadata (`id`, `status`, `conclusion`) is still readable —
+  only the log content was removed, exactly as approved.
+
 ## Hook live-proof (item G)
 
 Confirmed live and blocking in this actual session: a `git reset --hard`
@@ -370,38 +484,40 @@ independent confirmation the hook is wired in and active this session.
 at merge time (all required checks green, minimal/targeted diff, clear
 root cause). No action needed on the PR itself.
 
-**Incident #1387 closure**: **READY TO CLOSE WITH EXPLICIT RESIDUAL RISK.**
+**Incident #1387 closure**: **NOT READY TO CLOSE.**
 
-Evidence for this revised recommendation: code fix merged and deployed
-(§12, §13, §9); repository visibility now resolved — private, re-verified,
-0 forks/releases/Pages (§16); hook safety controls confirmed live (item G).
-**Residual risk, explicitly not resolved**: credential reuse/invalidation
-at any real point of use remains unconfirmed (§4, §5, §18) — this is a
-provider-side/DB-side check this session has no tool access to perform,
-not something further GitHub-side investigation can close. The Actions-log
-residual exposure (run `30086225720`) remains undecided (§17, deletion
-proposed but not performed). If the Founder accepts the DB-password-reuse
-question as low-probability residual risk (e.g., because the value was
-demonstrably CI-only and never configured anywhere real), closure with
-that explicit caveat is reasonable. If the Founder wants certainty rather
-than accepted risk, treat as **NOT READY TO CLOSE** until §4/§5 are
-independently confirmed.
+Per the Founder's own explicit closure conditions (item F, this session's
+instructions), all five of the following must hold before #1387 closes:
+
+| Condition | Status |
+|---|---|
+| repo private | ✅ RESOLVED — private, re-verified, 0 forks/releases/Pages (§16) |
+| old credential confirmed invalid／unused／rotated | ❌ **NOT MET** — the fingerprint-comparison tool to answer this exists (PR #1414) but cannot run yet (§20 — blocked on a GitHub platform constraint: `workflow_dispatch` requires the workflow file on `main`, which requires either merging a product-repo PR — outside this session's scope — or a direct push to `main` — forbidden) |
+| replacement verified | ✅ CI-side: PR #1395 merged, `ci-ephemeral` fixture confirmed live (§12, §13). Production-side: not applicable until the row above resolves whether production even needs a change |
+| known Actions log exposure removed | ✅ RESOLVED — run `30086225720`'s logs deleted and verified 404; artifacts precisely checked and left untouched, no secret found (§22) |
+| remaining evidence and residual risk documented | ✅ this document, §16–22 |
+
+Four of five conditions are met. The one blocking condition — credential
+reuse/invalidation confirmation — is not something this session can force
+closed: the verification tool is built, tested, and sitting in a Draft PR;
+it needs the Founder to either merge PR #1414 or otherwise get the
+workflow onto `main` and trigger it, at which point the comparison result
+(match/different, never the value itself) resolves this immediately.
 
 ## Decisions Required (Founder-only — not something this session can resolve)
 
 1. **Repository visibility** — ✅ RESOLVED this pass (private, verified).
-2. **Credential reuse verification** — still open: confirm (or arrange
-   someone/some process to confirm) the old DB password was never used as
-   a real credential outside ephemeral CI; rotate anywhere it was. This is
-   the one item genuinely blocking a clean (non-residual-risk) closure.
-3. **Actions log residual exposure** — decide whether to leave run
-   `30086225720`'s log as accepted residual risk or direct this session
-   (or take direct GitHub UI action yourself) to delete it. Proposed
-   deletion list: §17.
-4. **Issue #1387 closure** — this session recommends **READY TO CLOSE WITH
-   EXPLICIT RESIDUAL RISK** per the above; final closure action is still a
-   Founder call (or explicit direction back to this session) — this
-   session does not close issues itself.
-5. **Root cause of the visibility discrepancy** — not determined (no
-   audit-log access); worth a lightweight follow-up if it matters for
-   preventing recurrence, not blocking closure.
+2. **Merge or otherwise land PR #1414** — the single remaining blocker.
+   Once the `db-password-fingerprint-audit.yml` workflow exists on `main`,
+   trigger it (`gh workflow run db-password-fingerprint-audit.yml`) and the
+   result closes the credential-reuse question definitively without ever
+   exposing the value.
+3. **GitHub Security log** — this session could not query it
+   programmatically (§21, no API surface exists for personal-account
+   accounts); if the visibility-change root cause matters, check
+   `https://github.com/settings/security-log` directly, filtered
+   `action:repo.access repo:jerry200176-png/AllTrue_System`.
+4. **Issue #1387 closure** — **NOT READY TO CLOSE** until Decision 2
+   resolves; this session does not close issues itself regardless.
+5. **Root cause of the visibility discrepancy** — still not determined (no
+   audit-log access); tied to Decision 3.

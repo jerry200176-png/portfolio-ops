@@ -34,9 +34,14 @@ queue:
     priority: p0
     title: Contain public Actions credential exposure and restore release identity
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1387
-    status: visibility_resolved_reuse_verification_pending
+    status: blocked_on_pr_1414_merge
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1395
+    blocked_by: https://github.com/jerry200176-png/AllTrue_System/pull/1414
     evidence:
+      - "2026-07-25 ~16:20 (Founder-approved): identified credential architecture — production DB_PASSWORD lives only in Pi backend/.env, never a GitHub secret; leaked value was a hard-coded literal, not sourced from any secret; CI_DB_PASSWORD repo secret confirmed dead/retired per AllTrue's own OPERATIONS_RUNBOOK.md, unused by any active workflow post-fix"
+      - "opened AllTrue_System PR #1414 (Draft, not merged): extends the SEC-ALLTRUE-001 fingerprint-comparison pattern to DB_PASSWORD; tests pass (4/4); cannot be triggered yet because GitHub requires workflow_dispatch workflows to exist on the default branch before they can run — blocked on Founder merging #1414 (product-repo merge is outside this session's approval scope)"
+      - "GitHub personal Security log query attempted (action:repo.access) — no API surface exists for personal accounts (confirmed 404 on 3 endpoint shapes); unavailable evidence, Founder must check https://github.com/settings/security-log directly"
+      - "Actions log for run 30086225720 DELETED (logs-only endpoint, not the whole run) and verified inaccessible (404); artifacts precisely checked first — both clean, no secret-shaped content, left untouched"
       - "2026-07-25 triage (reports/2026-07-25/alltrue-sec-1387-incident-status-card.md) superseded the entries below: PR 1395 is MERGED (commit 3332d068, 2026-07-24T11:21:13Z) with all 20 required checks green — the prior 'gates failing' evidence was stale."
       - production version endpoint now reports 8b4a30f1 (2026-07-24T14:13:56Z), which is after the security-fix commit 3332d068; the earlier 2e715dd1/5911a90 drift is resolved by normal subsequent deploys
       - "RESOLVED 2026-07-25 ~14:40 (Founder-approved this session): repository changed from public to private via gh api PATCH, re-verified via fresh GET (private:true, visibility:private); forks=0, releases=0, Pages=disabled — no other public surface found"
@@ -44,7 +49,7 @@ queue:
       - credential rotation/invalidation of the exposed DB password at any real point of use is STILL NOT confirmed anywhere in the issue/PR thread — this is the one remaining blocker to clean closure (unlike the separate, closed SEC-ALLTRUE-001 which had explicit rotation-audit evidence)
       - unauthorized-use assessment (incident card §18): no positive evidence of compromise found in the surfaces this session can check (public health endpoints, collaborator list, fork count); DB/provider audit logs and GitHub's own audit log were NOT checked (no tool access) — absence of evidence, not evidence of absence
       - exposed CI credential is treated as compromised; no secret value was copied into this evidence file or the incident status card
-    next_action: Founder decision required on credential-reuse verification (the one remaining blocker) and Actions-log residual risk (proposed deletion list in incident card §17, nothing deleted). Recommendation is READY TO CLOSE WITH EXPLICIT RESIDUAL RISK if Founder accepts reuse-risk as low-probability; otherwise NOT READY TO CLOSE pending independent confirmation. Issue 1387 stays open until Founder acts; this session does not close it.
+    next_action: "NOT READY TO CLOSE (revised recommendation). Founder merges PR #1414 (or otherwise gets its workflow onto main) and triggers it — that single action resolves the last blocking condition. 4 of 5 Founder-specified closure conditions are now met (repo private, replacement verified, Actions-log exposure removed, evidence documented); only credential-reuse confirmation remains open, and it is blocked on a GitHub platform constraint, not further investigation this session can perform. Issue 1387 stays open; this session does not close it."
 
   - id: GH-PORTFOLIO-001
     product: portfolio
@@ -198,6 +203,29 @@ queue:
       - authenticated billing verification confirmed account Actions budget is US$20 with stop usage enabled
       - PRs 1328, 1329, and 1330 completed required CI; production deploy 29671678338 succeeded
       - issues 1288 and 194 closed with evidence
+
+  - id: OPS-PORTFOLIO-002
+    product: portfolio
+    priority: p1
+    title: Portfolio OS Draft PR #1 merged; hooks fixed and tested
+    source: https://github.com/jerry200176-png/portfolio-ops/pull/1
+    status: completed
+    evidence:
+      - "2026-07-25 ~16:00 (Founder-approved): fixed guard_bash.py false positive where PR-body/commit-message TEXT describing a dangerous command (e.g. 'git reset --hard') was denied as if it were a real invocation — narrow fix scoped to -m/--body/--title/--description/--message/-F/--body-file flag values only, including the $(cat <<'EOF' ...) heredoc shape; a real dangerous command adjacent to or smuggled via bash -c around a heredoc is still denied (regression-tested both directions)"
+      - "live-proved in a throwaway repo: descriptive commit message allowed, real git reset --hard still blocked"
+      - "full diff secret-scanned clean; PR #1 merged (commit 3f325cbd) into portfolio-ops main; local main fast-forwarded, working tree clean"
+    next_action: none — resolved
+
+  - id: SEC-ALLTRUE-1414-db-audit
+    product: alltrue
+    priority: p0
+    title: DB-password fingerprint audit tool built, awaiting Founder merge to run
+    source: https://github.com/jerry200176-png/AllTrue_System/pull/1414
+    status: draft_pr_open_blocked_on_founder_merge
+    evidence:
+      - "extends SEC-ALLTRUE-001's fingerprint-comparison pattern to DB_PASSWORD (scripts/credential-fingerprint-audit.py + new workflow_dispatch workflow db-password-fingerprint-audit.yml); 4/4 tests pass; diff contains only synthetic fixture values"
+      - "cannot run: GitHub requires workflow_dispatch workflows to exist on the default branch before they can be triggered via API/CLI, even with --ref pointing at this branch — a platform constraint, not a policy choice"
+    next_action: Founder merges PR #1414 (or lands the workflow on main another way), then runs `gh workflow run db-password-fingerprint-audit.yml --repo jerry200176-png/AllTrue_System` — this is the single action that resolves SEC-ALLTRUE-003's last open question
 
   - id: MAIL-PORTFOLIO-001
     product: portfolio
