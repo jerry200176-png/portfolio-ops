@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-07-25T13:07:00+08:00"
+updated_at: "2026-07-25T14:30:00+08:00"
 projects:
   - id: alltrue
     name: AllTrue System
@@ -25,15 +25,19 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-07-25"
-    open_p0: 1 # SEC-ALLTRUE-003: code fix merged (PR #1395), operational closure pending — see repo visibility finding below
-    open_p1: 1 # PROD-ALLTRUE-003: director billing counter alert noise, PR #1333 validating CI
-    current_priority: SEC-ALLTRUE-003 — repo currently PUBLIC (contradicts prior "restored to private" claim); Founder decision needed, see reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
-    next_action: Founder resolves repo visibility + confirms DB password was never reused outside CI, then closes issue #1387
+    open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (repo visibility unresolved)
+    open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
+    current_priority: SEC-ALLTRUE-1401 — parent-portal cross-student PII exposure (minors); fix merged (PR #1400) but containment checklist (notification, evidence retention, exposure review) entirely unexecuted and production deploy unverified. Ranked above repo-visibility item — active authorization-boundary bug outranks historical exposure.
+    next_action: Founder confirms production deploy of #1400 and executes containment checklist; in parallel, Founder resolves repo visibility (SEC-ALLTRUE-003) and confirms whether GitGuardian's 2026-07-17 3-secret cluster duplicates the already-rotated SEC-ALLTRUE-001 set
     evidence_links:
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1401
+      - https://github.com/jerry200176-png/AllTrue_System/pull/1400
       - https://github.com/jerry200176-png/AllTrue_System/issues/1387
       - https://github.com/jerry200176-png/AllTrue_System/pull/1395
       - https://github.com/jerry200176-png/AllTrue_System/issues/1007
       - reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
+      - reports/2026-07-25/github-triage.md
+      - reports/2026-07-25/gmail-signals.md
 
   - id: sunrise
     name: Sunrise Cafe
@@ -53,13 +57,16 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-07-19"
-    open_p0: 0
-    open_p1: 1 # SEC-SUNRISE-002: RLS/rate-limit/backup decision queue, queued
-    current_priority: OPS-SUNRISE-001 — Vercel preview-deployment capacity limited; confirm current status before next release
-    next_action: re-check Vercel Actions/preview capacity, then resume SEC-SUNRISE-002 (RLS, rate limiting, backup posture) with production evidence
+    latest_activity: "2026-07-25"
+    open_p0: 2 # OPS-SUNRISE-001: Vercel capacity now confirmed hitting PRODUCTION (escalated); SEC-SUNRISE-002: RLS/rate-limit/backup decided 2026-07-19 but zero execution PRs since — fail-open rate limiting live now
+    open_p1: 1 # CI-SUNRISE-PROVENANCE: Agent Session Provenance check failing repeatedly, confirmed on PR #253
+    current_priority: OPS-SUNRISE-001 — Vercel deployment-capacity cap now confirmed hitting production deploys directly (not just preview); no GitHub issue tracks this distinctly from #211
+    next_action: direct Vercel dashboard/API verification of current capacity (not yet performed); open a GitHub issue for the production-impacting cap; then execute SEC-SUNRISE-002's already-decided FD-1...FD-6 items (RLS, rate limiting, backup posture) — decision-making is done, only implementation remains
     evidence_links:
       - https://github.com/jerry200176-png/sunrise-cafe/issues/211
+      - https://github.com/jerry200176-png/sunrise-cafe/pull/253
+      - reports/2026-07-25/github-triage.md
+      - reports/2026-07-25/gmail-signals.md
 
 # Non-product infrastructure tracked for context, not scored/tiered as a product.
 meta:
