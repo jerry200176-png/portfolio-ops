@@ -22,45 +22,34 @@ after this install).
 No `jq` on this machine, so both hooks are plain Python 3 reading/writing
 the hook JSON protocol directly (stdlib only, no dependencies).
 
-## Why these are safe to trust
+`.claude/settings.json` also carries a `permissions.deny` block for the
+handful of most-literal destructive patterns (`git push --force`, `git
+reset --hard`, etc.) as a complementary hard layer — per Claude Code's own
+guidance, Bash pattern-matching in hooks is best-effort and can fail open
+on ambiguous parsing, while the native permission system is a harder
+allow/deny. `guard_bash.py` stays as the deeper, adversarially-tested layer
+(symlink resolution, `git -C` tolerance, wrapper unwrapping) that a simple
+glob can't do — the two are deliberately redundant on the simplest cases,
+not a replacement of one by the other.
 
-Before wiring them into `settings.json`, both scripts were:
+## Full detail and known limitations
 
-1. Pipe-tested standalone against synthetic stdin (safe commands: `git
-   status/log/diff/fetch`, `ls`, `find`, `cat` of ordinary files, `gh issue
-   list`, `npm test/lint/build`, `git push` to a non-main branch, `git
-   branch -a` — all confirmed to produce no output, i.e. allowed; unsafe
-   commands — force push, `reset --hard`, `git clean -fd`, force branch
-   delete, remote delete-push, each deploy-tool pattern, `.env`/`.pem`
-   reads, credential exfil via curl — all confirmed denied with a clear
-   reason).
-2. Tested against a real throwaway Git repository (created under the
-   session scratchpad, deleted after): confirmed `git commit` is denied on
-   an **unborn** `main` branch (no commits yet) and on a **committed**
-   `main` branch, and allowed on a feature branch — the branch check uses
-   `git symbolic-ref`/`rev-parse` against the actual repository state, not
-   a string match on the command.
-3. Confirmed `~/.claude/settings.json` (the pre-existing global config with
-   real user settings — `bypassPermissions`, enabled plugins, etc.) parses
-   as valid JSON and is byte-for-byte unchanged after this install.
-
-## Known limitations (be aware, don't over-trust)
-
-- Pattern matching on shell command strings can be evaded by a sufficiently
-  unusual invocation (e.g. an aliased command, a script that internally
-  shells out to `git push --force`). This is a guardrail against ordinary
-  mistakes and casual attempts, not a sandbox — the real backstop is
-  `CLAUDE.md`'s rules plus agents not being *instructed* to do these things.
-- The credential-leak guard only recognizes a few common filename shapes.
-  It will not catch a renamed secrets file or a secret embedded inline in a
-  command argument.
-- `merge_pull_request`/Gmail-mutation denial is by tool name, so it holds
-  regardless of arguments — but any *new* MCP server/tool added later isn't
-  covered until added to the matcher.
+`../../docs/hook-threat-model.md` is the maintained, up-to-date source for
+adversarial test results, confirmed bypasses that were fixed, false
+positives found and fixed, and what remains unfixable by a textual hook —
+don't duplicate that narrative here; it drifts. The current regression
+count is in `test_guard_bash.py`'s own output (`python3
+test_guard_bash.py`).
 
 ## Testing changes to these hooks
 
-Re-run the standalone pipe tests before trusting an edit:
+Re-run the full regression suite before trusting an edit:
+
+```bash
+python3 test_guard_bash.py
+```
+
+Or pipe-test a single case directly:
 
 ```bash
 echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' | python3 guard_bash.py   # expect: no output

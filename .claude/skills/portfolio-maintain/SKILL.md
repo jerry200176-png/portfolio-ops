@@ -48,8 +48,8 @@ memory of a previous run:
 
 - `checklists/` — the detailed procedures for inventory, GitHub triage,
   Gmail signals, reference-repo research, and baseline audits (5 lenses).
-- `templates/` and `../../../docs/templates/` — Project Status Card, Draft
-  PR description, checkpoint format.
+- `../../../docs/templates/` — Project Status Card, Draft PR description,
+  checkpoint format.
 - `../../../docs/prioritization.md` — tiering and the Impact × Confidence ×
   Urgency ÷ Effort formula.
 - `../../../docs/evidence-policy.md` — what counts as evidence, checkpoint

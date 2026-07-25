@@ -13,26 +13,11 @@
 
 ## Daily/triage sequence
 
-1. Read `CLAUDE.md`, then `portfolio.yaml` and `CEO_DASHBOARD.md` for last
-   known state — treat as stale until re-verified this session.
-2. Inspect each Tier 0/1 repo: fetch origin, check branch/working-tree/
-   stash/ahead-behind state.
-3. Inspect open PRs, review threads, required checks, recent failed
-   workflows, and deployment state via GitHub.
-4. Verify production health and release identity (read-only: version/health
-   endpoints) for each Tier 0/1 product.
-5. Triage Gmail (read-only): security/production/customer signals first,
-   then GitHub/CI, then business, then noise.
-6. Update `state/work-queue.yaml` using the priority order in
-   `docs/prioritization.md`.
-7. Enforce WIP limit: at most one production-affecting implementation per
-   product in flight at a time (unless a P0 incident requires interrupting
-   it).
-8. Execute the highest-value unblocked item through: reproduce → plan →
-   implement → test → Draft PR. Stop there — merge and deploy are Founder
-   decisions (see `governance/AUTONOMY_POLICY.md`).
-9. Update `CEO_DASHBOARD.md` and write a dated report under
-   `reports/YYYY-MM-DD/`.
+The actual step-by-step procedure lives in
+`.claude/skills/portfolio-maintain/modes/triage.md` (and `execute.md` for
+the implementation half) — invoke it, don't re-derive it here. This file
+covers cadence and reporting standard; the skill is the single source of
+truth for the steps themselves, so the two can't drift apart.
 
 ## New project intake
 
