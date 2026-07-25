@@ -1,8 +1,51 @@
 # CEO Dashboard
 
-Last updated: 2026-07-25 ~14:45 +08:00 (by `/portfolio-maintain triage`,
-full pass, plus two Founder-approved containment actions executed live in
-this session — see Work Completed).
+Last updated: 2026-07-25 ~16:30 +08:00 (full AllTrue #1387 containment
+round 2 + Portfolio OS PR #1 merged + hook fix round 2, all Founder-
+approved live in this session — see Work Completed and the new
+"2026-07-25 round 2" section below).
+
+## 2026-07-25 round 2 — AllTrue #1387 containment, Portfolio OS merge, priority reorder
+
+- **AllTrue #1387: 4 of 5 Founder closure conditions now met.** Repo
+  private ✅, replacement verified ✅ (CI-side), Actions-log exposure
+  removed ✅ (run `30086225720` logs deleted, verified 404; artifacts
+  precisely checked — clean, untouched), evidence documented ✅. The one
+  remaining blocker — confirming the leaked DB password was never real/
+  reused in production — has its verification tool built and tested
+  (AllTrue_System PR [#1414](https://github.com/jerry200176-png/AllTrue_System/pull/1414),
+  Draft, not merged) but **cannot run yet**: GitHub requires
+  `workflow_dispatch` workflows to exist on the default branch before
+  they're triggerable, which requires either merging #1414 (outside this
+  session's product-repo merge authority) or a direct push to `main`
+  (forbidden). **Recommendation revised to NOT READY TO CLOSE** — Founder
+  merging #1414 and running it is the single remaining action.
+- **GitHub personal Security log**: no programmatic access exists (3
+  endpoint shapes tried, all 404) — this is an Enterprise/org-only API
+  surface. Founder must check `github.com/settings/security-log` directly
+  if the visibility-change root cause matters.
+- **Portfolio OS PR #1**: merged (commit `3f325cbd`) after fixing a second
+  hook false-positive (descriptive text in PR bodies/commit messages was
+  being denied as if it were a real command — fixed narrowly, regression-
+  tested both directions, live-proved in a throwaway repo) and a clean
+  full-diff secret scan. Local `main` fast-forwarded, working tree clean.
+- **Priority reorder** (AllTrue #1401 vs. Sunrise Vercel cap vs. Sunrise
+  Agent Session Provenance CI): #1401 remains the single highest-severity
+  item (PII of minors) but its remaining work is Founder-only (legal/
+  notification), not something `execute` mode (Draft-PR engineering work)
+  can act on. Comparing the other two on actual user/production impact and
+  ongoing recurrence: the Vercel deployment cap is recurring across
+  multiple dates and hits **production** directly (blocking releases,
+  including future fixes), while the Provenance CI failures — though also
+  recurring — have no end-user impact, only an internal governance gate.
+  **Selected for `execute`: Sunrise Vercel deployment-capacity cap.**
+  Caveat found during selection: this project is on Vercel's Hobby (free)
+  tier and has already iterated on code-side mitigations (`ignoreCommand`,
+  cron-frequency reductions in PRs #203/#206) — the durable fix may turn
+  out to be a Founder billing decision (plan upgrade) rather than pure
+  code, but a further code-side reduction in build/deploy volume hasn't
+  been fully explored yet and is this session's next concrete step if
+  continued.
 
 ## Executive Summary
 
