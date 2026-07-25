@@ -1,0 +1,5 @@
+schema_version: 1
+required_approval_fields: [approval_id, mission_id, exact_action, why_human_only, risk, rollback_ready, evidence_ready, blocks, bundled_actions, status, requested_at, resolved_at]
+rules:
+  - Pending related actions with the same mission_id and bundle_key share one approval.
+  - Only Founder resolution changes a pending approval to resolved.

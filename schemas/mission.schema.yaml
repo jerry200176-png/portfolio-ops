@@ -1,0 +1,9 @@
+schema_version: 1
+format: JSON-compatible YAML
+required_fields: [mission_id, title, priority, status, phase, goal, success_criteria, non_goals, authority, hard_boundaries, completed_steps, current_step, next_action, blockers, evidence, verification, rollback, stop_reason, resume_instruction, created_at, updated_at]
+outcome_contract_required: [inputs, success_criteria, non_goals, authority, verification, rollback, stop_conditions]
+allowed_stop_reasons: [mission_complete, founder_only_blocker, safety_boundary, tool_unavailable, budget_or_turn_cap]
+rules:
+  - An investigation step requires unanswered_question.
+  - A verifier finding has adopted, rejected, or deferred disposition.
+  - An opened PR and CI pending are events, never stop reasons.
