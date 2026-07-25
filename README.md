@@ -1,33 +1,67 @@
-# Jerry AI Software Company OS
+# Portfolio Ops
 
-This directory is the portfolio control plane for the software company operating:
+This directory is the portfolio control plane for jerry200176-png's product
+portfolio:
 
 - `jerry200176-png/AllTrue_System`
 - `jerry200176-png/sunrise-cafe`
 
-The Founder has delegated continuous engineering and operations to AI agents. Agents may triage Gmail and GitHub, plan and implement work, review and merge pull requests, deploy through each product's canonical delivery path, verify production, communicate externally, and maintain organizational memory without per-action approval.
-
-Autonomy does not weaken evidence requirements. Every production-affecting change must remain attributable, testable, reversible where practical, and closed with production evidence.
+AI agents handle read, analysis, triage, and Draft-PR-stage implementation
+work autonomously. Merging, deploying, production data mutation, Gmail
+mutation, issue closure, credential rotation, and Git history rewrites all
+require explicit Founder approval given in the session — see
+`governance/AUTONOMY_POLICY.md` and `CLAUDE.md`. (Formerly `company-os`,
+which granted broader autonomy; that grant was revoked 2026-07-25 — see
+`PORTFOLIO.md`'s change log.)
 
 ## Canonical locations
 
 | Purpose | Path |
 |---|---|
-| Company governance | `workspace/company-os/` |
-| Safe agent launcher | `workspace/agent-control/` |
-| AllTrue canonical checkout | `workspace/AllTrue_System-clean/` |
-| Sunrise canonical checkout | `workspace/sunrise-cafe/` |
+| Portfolio control plane (this repo) | `~/workspace/portfolio-ops/` |
+| Safe agent session launcher | `~/workspace/agent-control/` |
+| AllTrue canonical checkout | `~/workspace/AllTrue_System-clean/` |
+| Sunrise canonical checkout | `~/workspace/sunrise-cafe/` |
 | Legacy AllTrue checkout | `/home/jerry/alltrue` — never edit |
 
 ## Start here
 
-1. `AGENTS.md`
-2. `governance/COMPANY_CONSTITUTION.md`
-3. `governance/AUTONOMY_POLICY.md`
-4. `portfolio/products.yaml`
-5. `operations/DAILY_OPERATING_LOOP.md`
-6. `state/work-queue.yaml`
+1. `CLAUDE.md` — safety boundaries, Git rules, Founder decision boundary.
+2. `.claude/skills/portfolio-maintain/SKILL.md` — the operating procedure,
+   invoked as `/portfolio-maintain <mode>`.
+3. `portfolio.yaml` and `CEO_DASHBOARD.md` — current portfolio state.
+4. `PORTFOLIO.md` — narrative overview and change log.
+5. `governance/AUTONOMY_POLICY.md` and `governance/COMPANY_CONSTITUTION.md`
+   — the full policy behind `CLAUDE.md`'s summary.
+6. `state/work-queue.yaml` — live work items and evidence.
 
-## Definition of company-level done
+## Standard launch flow
 
-A task is complete only when the relevant code and documentation are on the canonical default branch, required checks pass, the canonical deployment succeeds when applicable, production identity and behavior are verified, external communication is completed when required, and durable evidence is recorded.
+```bash
+cd ~/workspace/portfolio-ops
+claude --add-dir ~/workspace
+```
+
+Then, inside the session:
+
+```
+/portfolio-maintain <mode>      # bootstrap | triage | execute | status | weekly-review
+/goal <completion condition>    # optional: state what "done" means for this run
+```
+
+Start with `/portfolio-maintain status` (read-only, cheapest) if you just
+want current state. Use `bootstrap` only for a first run or a full
+re-baseline; use `triage` to refresh signals; use `execute` to do the
+highest-ROI safe work as Draft PRs; use `weekly-review` for the wider
+weekly sweep.
+
+## Definition of done (this control plane's scope)
+
+A portfolio-maintenance task is complete only when: the relevant finding or
+change is recorded with evidence (not just claimed), any code change is on
+its own branch with a Draft PR opened (never merged by an agent), tests/
+lint/build were actually run in-session, `portfolio.yaml` and
+`CEO_DASHBOARD.md` reflect the outcome, and anything requiring merge,
+deploy, production data mutation, or another item on `CLAUDE.md`'s "never"
+list is surfaced to the Founder as a Decision Required rather than done
+silently.

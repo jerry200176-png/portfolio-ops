@@ -1,0 +1,74 @@
+# Portfolio inventory — live data file. Schema: schemas/portfolio.schema.yaml
+# Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
+# but must stay valid against the schema.
+schema_version: 1
+updated_at: "2026-07-25T00:00:00+08:00"
+projects:
+  - id: alltrue
+    name: AllTrue System
+    local_path: /home/jerry/workspace/AllTrue_System-clean
+    github_repo: jerry200176-png/AllTrue_System
+    forbidden_checkouts:
+      - /home/jerry/alltrue
+    tier: 0
+    lifecycle: production
+    product_type: school/course operations platform (attendance, billing, scheduling)
+    target_users: school staff, instructors, parents/guardians
+    production_status: live
+    business_criticality: high
+    technical_risk: high
+    ux_risk: medium
+    data_sensitivity: high # billing, attendance, PII of minors
+    stack: [php, laravel]
+    deploy_target: raspberry_pi (self-hosted), deploy_authority=.github/workflows/deploy.yml
+    production:
+      version_url: https://daan.lifenet.com.tw/version.json
+      health_url: https://daan.lifenet.com.tw/api/v1/health
+    latest_activity: "2026-07-24"
+    open_p0: 1 # SEC-ALLTRUE-003: public Actions credential exposure containment, PR #1395 open
+    open_p1: 1 # PROD-ALLTRUE-003: director billing counter alert noise, PR #1333 validating CI
+    current_priority: SEC-ALLTRUE-003 containment — repair required CI gates on PR #1395, do not merge without Founder approval
+    next_action: verify PR #1395 required checks (Agent Session Provenance, Presubmit Checks), confirm CI-only credential replacement, surface for Founder merge decision
+    evidence_links:
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1387
+      - https://github.com/jerry200176-png/AllTrue_System/pull/1395
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1007
+
+  - id: sunrise
+    name: Sunrise Cafe
+    local_path: /home/jerry/workspace/sunrise-cafe
+    github_repo: jerry200176-png/sunrise-cafe
+    tier: 0
+    lifecycle: production
+    product_type: cafe booking/ordering platform
+    target_users: customers, cafe staff
+    production_status: live
+    business_criticality: high
+    technical_risk: medium
+    ux_risk: medium
+    data_sensitivity: medium # bookings, contact info, no stored card data
+    stack: [typescript, nextjs, supabase]
+    deploy_target: vercel_supabase, deploy_authority=vercel_git_integration
+    production:
+      version_url: https://sunrise-cafe-six.vercel.app/api/version
+      health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
+    latest_activity: "2026-07-19"
+    open_p0: 0
+    open_p1: 1 # SEC-SUNRISE-002: RLS/rate-limit/backup decision queue, queued
+    current_priority: OPS-SUNRISE-001 — Vercel preview-deployment capacity limited; confirm current status before next release
+    next_action: re-check Vercel Actions/preview capacity, then resume SEC-SUNRISE-002 (RLS, rate limiting, backup posture) with production evidence
+    evidence_links:
+      - https://github.com/jerry200176-png/sunrise-cafe/issues/211
+
+# Non-product infrastructure tracked for context, not scored/tiered as a product.
+meta:
+  - id: portfolio-ops
+    name: Portfolio Ops (this repository)
+    local_path: /home/jerry/workspace/portfolio-ops
+    github_repo: null
+    note: control plane, not a product — excluded from Tier scoring
+  - id: agent-control
+    name: Agent session launcher
+    local_path: /home/jerry/workspace/agent-control
+    github_repo: null
+    note: safe preflight/session launcher used before editing product code

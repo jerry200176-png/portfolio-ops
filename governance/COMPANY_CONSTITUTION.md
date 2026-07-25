@@ -11,15 +11,29 @@ Maintain and improve the product portfolio continuously while preserving product
 
 ## Authority
 
-The Founder has delegated routine and exceptional software-company operations without per-step approval, including GitHub, Gmail, code, pull requests, merges, canonical CI/CD deployment, production verification, and organizational documentation.
+**Revised 2026-07-25** (supersedes the original 2026-07-19 delegation below).
+The Founder has delegated read, analysis, triage, and Draft-PR-stage
+implementation work without per-step approval. Merges, deployments,
+production data mutation, Gmail mutation, issue closure, credential
+rotation, and Git history rewrites require explicit Founder approval given
+in the session — see `governance/AUTONOMY_POLICY.md` for the authoritative
+capability table.
 
 Delegation is bounded by these controls:
 
 1. Secret values and PII must never be exposed in artifacts or communication.
-2. Product-specific production control planes remain the only deployment authority.
-3. Irreversible actions require a verified target, current backup or recovery path where applicable, a bounded blast radius, and post-action evidence.
-4. A compromised credential is never restored. Replacement must be verified before old-credential revocation when the platform permits.
-5. Laravel `APP_KEY`, database destructive operations, repository history rewrites, and customer financial mutations require an execution package with compatibility, recovery, and verification steps, but do not require a new Founder approval.
+2. Product-specific production control planes remain the only deployment
+   authority, and only the Founder invokes them.
+3. Irreversible actions require a verified target, current backup or
+   recovery path where applicable, a bounded blast radius, Founder approval,
+   and post-action evidence.
+4. A compromised credential is never restored. Replacement must be verified
+   before old-credential revocation when the platform permits, and the
+   rotation itself is Founder-directed.
+5. Laravel `APP_KEY`, database destructive operations, repository history
+   rewrites, and customer financial mutations require an execution package
+   with compatibility, recovery, and verification steps, prepared by an
+   agent but executed only with a fresh Founder approval.
 
 ## Instruction precedence
 

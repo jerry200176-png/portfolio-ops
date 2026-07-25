@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/guard_bash.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_github_github__merge_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/deny_tool.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__claude_ai_Gmail__create_draft|mcp__claude_ai_Gmail__update_draft|mcp__claude_ai_Gmail__label_message|mcp__claude_ai_Gmail__label_thread|mcp__claude_ai_Gmail__unlabel_message|mcp__claude_ai_Gmail__unlabel_thread|mcp__claude_ai_Gmail__apply_sensitive_message_label|mcp__claude_ai_Gmail__apply_sensitive_thread_label|mcp__claude_ai_Gmail__create_label|mcp__claude_ai_Gmail__delete_label",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/deny_tool.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
