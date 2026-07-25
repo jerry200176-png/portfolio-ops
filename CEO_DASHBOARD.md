@@ -1,9 +1,55 @@
 # CEO Dashboard
 
-Last updated: 2026-07-25 ~22:00 +08:00 (Claude Code instructions-
-architecture audit merged; Portfolio OS optimization work now stopped —
-next session moves to AllTrue #1401 containment. See the new section
-immediately below, then "2026-07-25 round 2" for prior same-day work).
+Last updated: 2026-07-26 ~07:15 +08:00 (#1387 CONFIRMED live credential
+match, rotation fully prepared and merged — awaiting one Founder trigger;
+#1401 technical containment complete, impact audit run, private
+manual-review checklist prepared. See the new section immediately below.)
+
+## 2026-07-26 — #1387 confirmed match + rotation prepared; #1401 impact audit run
+
+**#1387 — highest-priority open item.** The fingerprint audit (triggered
+from `main` after PR #1421 merged) returned **`MATCH_ROTATION_REQUIRED`**
+for `DB_PASSWORD`: the pre-fix leaked value is still the live production
+database password. Every preparatory/verification step this session can
+do without touching production is now done and merged to `main`:
+
+- Every credential consumer identified (the Laravel app + every CI
+  workflow reading `.env` fresh at SSH-run time — no hardcoded secondary
+  copy exists anywhere).
+- Backup/rollback readiness re-verified with **fresh** evidence (run
+  `30178339123`, today's 6h backup restored cleanly, core tables
+  plausible, test DB cleaned up) — not 3.5-week-old evidence.
+- A rollback-safe rotation workflow (`1387-db-password-rotation.yml`,
+  PR #1424, **merged**) that generates the new password entirely inside
+  one remote SSH session (never printed/logged anywhere), applies it via
+  `ALTER USER` + `.env`, verifies with `mysqladmin ping`, rebuilds config
+  cache, and polls health before declaring success. Dormant until
+  triggered — requires a typed `confirm=ROTATE` input.
+- Minimal Founder runbook (`docs/incidents/1387-rotation-runbook.md`):
+  the Founder never types a credential, only runs one `gh workflow run`
+  command.
+
+**This session did not trigger it.** Per this repo's own
+`OPERATIONS_RUNBOOK.md` §O.2 (DB password rotation requires explicit
+user approval at execution time) and given this is the first live-fire
+run of a brand-new script against the only production instance of a live
+system, the trigger itself is reserved as the one Founder action.
+
+**#1401 — technical containment fully complete.** Production deploy of
+PR #1400 independently confirmed via git ancestry (not just self-reported
+in the issue). Adjacent-endpoint audit found no unfixed instance of the
+pattern. Regression coverage merged and re-confirmed on `main` (56
+tests/195 assertions green). The privacy impact audit was designed,
+merged, and **run once** from `main`: 175 unverified/legacy bindings, 2
+LINE identities spanning multiple families among all-time bindings (0
+among currently-verified) — classified `insufficient-logs`, not
+`confirmed-impact` or `no-evidence-found`, since the 2 flagged identities
+have an equally plausible benign explanation only a human with production
+access can resolve. A private, no-PII manual-review checklist (PR #1425)
+gives that human the exact query and decision tree to do so.
+
+**No family notified, no #1401 closure, no regulatory report — all still
+open, human-only decisions**, per standing instruction.
 
 ## 2026-07-25 — Claude Code instructions-architecture audit (portfolio-ops itself)
 

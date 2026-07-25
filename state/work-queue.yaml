@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-07-25T14:30:00+08:00
+updated_at: 2026-07-26T07:15:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -9,14 +9,18 @@ queue:
     priority: p0
     title: Parent-portal cross-student PII exposure — containment unexecuted
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1401
-    status: fix_merged_containment_unverified
+    status: technical_containment_complete_manual_review_prepared
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1400
     evidence:
       - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): fix PR #1400 is merged"
-      - production-deploy claim for #1400 is self-reported in the issue thread, not independently confirmed this pass (no production data tool in github-triage agent's scope)
-      - issue's own containment checklist (parent notification, evidence retention, exposure-log review) is entirely unchecked
-      - Gmail signal from ~2026-07-24 (reports/2026-07-25/gmail-signals.md) corroborates an incident report consistent with this issue
-    next_action: Founder confirms production deploy of #1400 and executes containment checklist (notification, evidence retention, exposure review) — PII of minors, legal-adjacent, this session does not act unilaterally. Ranked above SEC-ALLTRUE-003's remaining items — this is an active authorization-boundary bug, not historical exposure.
+      - "Production deploy INDEPENDENTLY CONFIRMED (no longer self-reported-only): git merge-base --is-ancestor proves fix commit 7e757c9b is an ancestor of production commit 8b4a30f1 (deployed 2026-07-24T22:13:56+08:00, ~1h23m after the fix)"
+      - "Adjacent-endpoint audit complete: ParentFeedbackController, LearningRecordFeedbackController, ParentPortalController::billingHistory/requestLeave all correctly scope to session's own StudentID — no unfixed instance of the #1401 pattern found"
+      - "Regression coverage added and merged (PR #1422, superseding #1415): Issue1401CrossFamilyLineIsolationTest, 2 tests/9 assertions, re-confirmed passing on main. Combined relevant suite: 56 tests/195 assertions green."
+      - "Impact audit designed, merged (PR #1423, superseding #1416), and RUN once from main (2026-07-25, aggregate-only): 175 unverified/legacy bindings (by campus: 9→71, 11→6, 13→1, 15→21, 16→35, 17→41); 2 LINE identities span multiple families among all-time bindings, 0 among currently-verified bindings; switch-audit-trail and notification-delivery-granularity both structurally absent (insufficient-logs by design, not by this run's outcome)"
+      - "Overall impact classification: insufficient-logs, not confirmed-impact or no-evidence-found — the 2 flagged identities have an equally plausible benign explanation (one family, two different registered phone numbers) that only human PII-handling review can resolve"
+      - "Private manual-review checklist prepared (AllTrue_System PR #1425): exact reproduction query + decision tree for a human with production access to resolve the 2 flagged identities without this session ever seeing the underlying PII"
+      - issue's own containment checklist (parent notification, evidence retention, exposure-log review) is entirely unchecked — Founder-only, legal-adjacent, this session does not act unilaterally
+    next_action: Founder (or designated reviewer) runs the manual-review checklist (AllTrue_System PR #1425) against production for the 2 flagged identities, records the outcome in the closure packet, then makes the notification decision. This session does not notify, close #1401, or submit any regulatory report.
 
   - id: SEC-ALLTRUE-GITGUARDIAN-0717
     product: alltrue
@@ -34,10 +38,15 @@ queue:
     priority: p0
     title: Contain public Actions credential exposure and restore release identity
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1387
-    status: blocked_on_pr_1414_merge
+    status: rotation_prepared_awaiting_founder_trigger
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1395
-    blocked_by: https://github.com/jerry200176-png/AllTrue_System/pull/1414
+    blocked_by: https://github.com/jerry200176-png/AllTrue_System/pull/1424
     evidence:
+      - "2026-07-25/26 CONFIRMED MATCH: PR #1414 (superseded by #1421, merged) fingerprint audit triggered from main (run 30177947909) — DB_PASSWORD returned MATCH_ROTATION_REQUIRED (leaked=1, production=1). The pre-fix leaked value IS still the live production database password. TELEGRAM/APP_KEY/BEARER: not found in either leaked or production data, not applicable to this run."
+      - "Rotation workflow built, reviewed, and merged (PR #1424, .github/workflows/1387-db-password-rotation.yml): workflow_dispatch with a typed confirm=ROTATE gate; takes a pre-rotation mysqldump backup, generates a new password via openssl rand entirely inside one remote SSH session (never printed/logged), applies via ALTER USER + .env update, verifies with mysqladmin ping, runs config:cache (never config:clear), polls /api/v1/health until ok. Not yet triggered."
+      - "Fresh backup-restore verification re-run 2026-07-25 (run 30178339123, passed): latest 6h backup (alltrue_6h_2026-07-26_0500.sql.gz) restored cleanly; Student 1015, StudentClass 1969, ClassSession 17821, User 142, Campus 13 rows — all above expected minimums; test DB cleaned up."
+      - "Every credential consumer identified: the Laravel app (config/database.php via env('DB_PASSWORD')) plus every workflow that reads .env fresh at SSH-run time (deploy.yml, backup-restore-test.yml, slow-query-report.yml, teacher-signin-recovery.yml, migration-dryrun.yml, and others) — no hardcoded secondary copy of the credential exists anywhere in the codebase or as a GitHub secret."
+      - "Minimal Founder runbook: docs/incidents/1387-rotation-runbook.md in AllTrue_System. No credential is typed by the Founder — the one action is running the workflow with confirm=ROTATE."
       - "2026-07-25 ~16:20 (Founder-approved): identified credential architecture — production DB_PASSWORD lives only in Pi backend/.env, never a GitHub secret; leaked value was a hard-coded literal, not sourced from any secret; CI_DB_PASSWORD repo secret confirmed dead/retired per AllTrue's own OPERATIONS_RUNBOOK.md, unused by any active workflow post-fix"
       - "opened AllTrue_System PR #1414 (Draft, not merged): extends the SEC-ALLTRUE-001 fingerprint-comparison pattern to DB_PASSWORD; tests pass (4/4); cannot be triggered yet because GitHub requires workflow_dispatch workflows to exist on the default branch before they can run — blocked on Founder merging #1414 (product-repo merge is outside this session's approval scope)"
       - "GitHub personal Security log query attempted (action:repo.access) — no API surface exists for personal accounts (confirmed 404 on 3 endpoint shapes); unavailable evidence, Founder must check https://github.com/settings/security-log directly"
@@ -49,7 +58,7 @@ queue:
       - credential rotation/invalidation of the exposed DB password at any real point of use is STILL NOT confirmed anywhere in the issue/PR thread — this is the one remaining blocker to clean closure (unlike the separate, closed SEC-ALLTRUE-001 which had explicit rotation-audit evidence)
       - unauthorized-use assessment (incident card §18): no positive evidence of compromise found in the surfaces this session can check (public health endpoints, collaborator list, fork count); DB/provider audit logs and GitHub's own audit log were NOT checked (no tool access) — absence of evidence, not evidence of absence
       - exposed CI credential is treated as compromised; no secret value was copied into this evidence file or the incident status card
-    next_action: "NOT READY TO CLOSE (revised recommendation). Founder merges PR #1414 (or otherwise gets its workflow onto main) and triggers it — that single action resolves the last blocking condition. 4 of 5 Founder-specified closure conditions are now met (repo private, replacement verified, Actions-log exposure removed, evidence documented); only credential-reuse confirmation remains open, and it is blocked on a GitHub platform constraint, not further investigation this session can perform. Issue 1387 stays open; this session does not close it."
+    next_action: "NOT READY TO CLOSE — confirmed match, rotation prepared and awaiting the single Founder trigger. The fingerprint audit (run 30177947909) CONFIRMED the pre-fix leaked value is still the live production DB password. Every #1387 exit criterion this session can prepare without touching production is done: consumers identified, backup/rollback freshly verified, rotation workflow built/reviewed/merged (PR #1424, dormant until triggered), minimal runbook written. The ONE remaining action is the Founder running `gh workflow run 1387-db-password-rotation.yml --repo jerry200176-png/AllTrue_System --ref main -f confirm=ROTATE`, then this session re-runs the fingerprint audit once more to confirm no-match. Issue 1387 stays open; this session does not close it."
 
   - id: GH-PORTFOLIO-001
     product: portfolio
