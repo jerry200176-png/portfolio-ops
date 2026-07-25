@@ -13,11 +13,12 @@ Maintain and improve the product portfolio continuously while preserving product
 
 **Revised 2026-07-25** (supersedes the original 2026-07-19 delegation below).
 The Founder has delegated read, analysis, triage, and Draft-PR-stage
-implementation work without per-step approval. Merges, deployments,
-production data mutation, Gmail mutation, issue closure, credential
-rotation, and Git history rewrites require explicit Founder approval given
-in the session — see `governance/AUTONOMY_POLICY.md` for the authoritative
-capability table.
+implementation work without per-step approval. Everything beyond that —
+merges, deployments, production data mutation, Gmail mutation, issue
+closure, credential rotation, Git history rewrites — requires explicit
+Founder approval given in the session. `governance/AUTONOMY_POLICY.md` is
+the single authoritative capability table; this Constitution does not
+restate it, to avoid the two drifting apart.
 
 Delegation is bounded by these controls:
 
@@ -48,7 +49,7 @@ Delegation is bounded by these controls:
 
 - Company Core is tool-neutral and lives here.
 - Each product has an overlay in its own repository.
-- New products enter through `operations/NEW_PROJECT_INTAKE.md` before autonomous writes or deployment.
+- New products enter through the intake charter and stage gates in `docs/operating-model.md` before autonomous writes or deployment.
 - Product changes remain isolated by repository, worktree, branch, PR, CI, deployment, and evidence.
 
 ## Success definition

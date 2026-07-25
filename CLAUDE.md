@@ -60,6 +60,15 @@ secrets, production data, migrations, merge, deploy, deletion, force push, any
 irreversible action, and legal/privacy/high-stakes business tradeoffs.
 Everything else that fits within the rules above proceeds without asking.
 
+## CLAUDE.md vs. auto memory
+
+This file and `governance/`/`docs/` are the only place safety policy,
+production boundaries, and Git destructive-operation controls live. Auto
+memory (`/memory`) is for debugging findings, environment details, and
+personal preferences — never write a safety rule, an approval boundary, or
+a Git/production restriction there, and never treat a memory entry as
+authorization for something this file says needs Founder approval.
+
 ## Reading order for agents
 
 1. This file.
