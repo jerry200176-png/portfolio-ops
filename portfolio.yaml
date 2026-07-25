@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-07-25T16:30:00+08:00"
+updated_at: "2026-07-26T07:15:00+08:00"
 projects:
   - id: alltrue
     name: AllTrue System
@@ -27,7 +27,7 @@ projects:
     latest_activity: "2026-07-25"
     open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (visibility RESOLVED, credential-reuse verification still pending — see work-queue.yaml)
     open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
-    current_priority: SEC-ALLTRUE-1401 — parent-portal cross-student PII exposure (minors); fix merged (PR #1400) but containment checklist (notification, evidence retention, exposure review) entirely unexecuted and production deploy unverified. Ranked above SEC-ALLTRUE-003 — active authorization-boundary bug outranks a now-contained historical exposure.
+    current_priority: SEC-ALLTRUE-003 — CONFIRMED live DB credential match (fingerprint audit MATCH_ROTATION_REQUIRED); rotation fully prepared and merged (PR #1424), awaiting the single Founder trigger. SEC-ALLTRUE-1401's technical containment is now complete (deploy independently confirmed, adjacent-endpoint audit done, regression coverage merged, impact audit run — classified insufficient-logs) with only human-only manual review (PR #1425) and the notification/legal decision left.
     next_action: Founder confirms production deploy of #1400 and executes containment checklist (Founder-only, legal/PII, not execute-mode work); in parallel, Founder merges PR #1414 and triggers its workflow to resolve SEC-ALLTRUE-003's last blocker (credential-reuse confirmation); GitGuardian 2026-07-17 3-secret cluster dedup still unconfirmed
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
