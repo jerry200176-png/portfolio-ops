@@ -1,9 +1,23 @@
 schema_version: 1
-updated_at: 2026-07-19T12:15:00+08:00
+updated_at: 2026-07-24T19:07:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: SEC-ALLTRUE-003
+    product: alltrue
+    priority: p0
+    title: Contain public Actions credential exposure and restore release identity
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1387
+    status: active_containment
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1395
+    evidence:
+      - AllTrue was publicly visible while issue 1387 documented a credential in a public Actions log; repository visibility was restored to private and read-back verified at 2026-07-24T11:04:33Z
+      - exposed CI credential is treated as compromised; no secret value was copied into Company OS evidence
+      - production health was OK, but version endpoint reported 2e715dd1 while main and successful Deploy to Pi run 30088050777 targeted 5911a90
+      - remediation PR 1395 removes the hard-coded CI credential path and requires a runtime CI database password; required Agent Session Provenance and Presubmit Checks were failing as of 2026-07-24T11:06Z
+    next_action: Repair required gates on PR 1395, merge only after the full required suite passes, verify CI-only credential replacement and production revision, then close the canonical incident with non-sensitive evidence.
+
   - id: GH-PORTFOLIO-001
     product: portfolio
     priority: p1
