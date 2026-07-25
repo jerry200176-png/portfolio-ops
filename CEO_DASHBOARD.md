@@ -1,9 +1,48 @@
 # CEO Dashboard
 
-Last updated: 2026-07-25 ~16:30 +08:00 (full AllTrue #1387 containment
-round 2 + Portfolio OS PR #1 merged + hook fix round 2, all Founder-
-approved live in this session — see Work Completed and the new
-"2026-07-25 round 2" section below).
+Last updated: 2026-07-25 ~22:00 +08:00 (Claude Code instructions-
+architecture audit merged; Portfolio OS optimization work now stopped —
+next session moves to AllTrue #1401 containment. See the new section
+immediately below, then "2026-07-25 round 2" for prior same-day work).
+
+## 2026-07-25 — Claude Code instructions-architecture audit (portfolio-ops itself)
+
+Three-phase audit of this repo's own instruction architecture (CLAUDE.md,
+`.claude/rules/`, Skills, Subagents, Hooks/Permissions, auto memory),
+grounded in current official Claude Code docs fetched live this session —
+merged as [PR #6](https://github.com/jerry200176-png/portfolio-ops/pull/6)
+(commit `2492bed`, merge commit `d4ebc66`). Founder-approved after
+re-verifying head commit, file scope, secret scan, and regression tests
+immediately before merge.
+
+- CLAUDE.md was already under the official 200-line guidance and correctly
+  scoped — not blindly shortened; grew +4 lines to close a real gap (no
+  rule previously existed stating safety policy/production boundaries/Git
+  destructive-operation controls must never move to auto memory).
+- Added `.claude/rules/` (didn't exist before): path-scoped conventions for
+  agent definitions and portfolio-state YAML schema — zero fixed context
+  cost, load only on matching files.
+- Added `permissions.deny` to `.claude/settings.json` (6 literal
+  destructive-command patterns) as a defense-in-depth layer alongside the
+  existing `guard_bash.py`/`deny_tool.py` hooks, per official guidance that
+  hook-based Bash pattern-matching is best-effort/fail-open — hooks
+  unchanged, nothing replaced.
+- Collapsed a 3-way redundant restatement of the Never-list (CLAUDE.md,
+  `AUTONOMY_POLICY.md`, `COMPANY_CONSTITUTION.md`) to one authoritative
+  source + one always-on summary + one pointer; trimmed a duplicated
+  procedure block in `docs/operating-model.md`; fixed two dead file
+  references.
+- Verified before merge: hook regression suite green (18 safe + 38
+  dangerous), `settings.json` valid JSON, all 7 read-only agents still
+  lack `Write`/only `repo-maintainer` has it, `/portfolio-maintain status`
+  resolves end-to-end, full diff secret-scanned clean, no product repo /
+  incident evidence / autonomy / merge / deploy / agent-write boundary
+  touched.
+
+**Portfolio OS optimization work stops here for this session** — no
+further Star-cleanup, reference-schema, or provenance-redesign follow-up
+unless a real defect surfaces. Next: AllTrue #1401 containment (single
+Tier-0 item), in `AllTrue_System` only.
 
 ## 2026-07-25 round 2 — AllTrue #1387 containment, Portfolio OS merge, priority reorder
 
