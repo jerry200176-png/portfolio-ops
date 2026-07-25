@@ -53,6 +53,56 @@ _WRAPPER_RE = re.compile(
 
 MAX_UNWRAP_DEPTH = 3
 
+# Descriptive-text-only flags: their entire purpose is free-form human text
+# (commit message, PR/issue body/title) — never a path, ref, or nested
+# command. Scoped narrowly on purpose: this is NOT "any quoted string" or
+# "any heredoc" (that would let e.g. `bash -c "$(cat <<'EOF' ... EOF)"`
+# smuggle a real command past the scan) — only text captured specifically
+# as the value of one of these flags is treated as non-executed.
+_DESC_FLAGS = r"(?:--body|--title|--description|--message|-m|-F|--body-file)"
+
+# Case 1: `<flag> "...text..."` — plain quoted string.
+_DESC_QUOTED_RE = re.compile(
+    rf"{_DESC_FLAGS}(\s*=?\s*)(['\"])((?:\\.|(?!\2).)*)\2", re.DOTALL
+)
+
+# Case 2: `<flag> "$(cat <<'EOF' ... EOF)"` — the heredoc-via-command-
+# substitution shape used by this project's own commit/PR conventions.
+# Requires the flag to directly precede `$(cat <<DELIM`, so a heredoc used
+# for any other purpose (e.g. actually piped into a shell) is untouched.
+_DESC_HEREDOC_RE = re.compile(
+    rf"{_DESC_FLAGS}\s*=?\s*(['\"]?)\$\(\s*cat\s+<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\2[ \t]*\r?\n"
+    r"(.*?\r?\n)"
+    r"[ \t]*\3[ \t]*\)\1",
+    re.DOTALL,
+)
+
+
+def _blank(s: str) -> str:
+    return re.sub(r"[^\n]", " ", s)
+
+
+def _strip_non_executed_text(cmd: str) -> str:
+    """Blank out free-form descriptive text (commit messages, PR/issue
+    bodies/titles) passed to -m/--body/--title/etc., including the
+    heredoc-via-$(cat <<EOF) shape this project's own git conventions use,
+    before dangerous-pattern scanning. Preserves string length/newlines so
+    match spans elsewhere in `cmd` stay meaningful. Deliberately narrow —
+    see module docstring on why full shell parsing is out of scope."""
+
+    def _blank_heredoc(m: "re.Match") -> str:
+        return m.group(0)[: m.start(4) - m.start(0)] + _blank(m.group(4)) + \
+            m.group(0)[m.end(4) - m.start(0):]
+
+    cmd = _DESC_HEREDOC_RE.sub(_blank_heredoc, cmd)
+
+    def _blank_quoted(m: "re.Match") -> str:
+        return m.group(0)[: m.start(3) - m.start(0)] + _blank(m.group(3)) + \
+            m.group(0)[m.end(3) - m.start(0):]
+
+    cmd = _DESC_QUOTED_RE.sub(_blank_quoted, cmd)
+    return cmd
+
 
 def deny(reason: str) -> None:
     print(json.dumps({
@@ -212,12 +262,18 @@ def check_credential_leak(cmd: str) -> None:
 
 
 def check_all(cmd: str, depth: int = 0) -> None:
-    check_git_patterns(cmd)
-    check_deploy_patterns(cmd)
-    check_credential_leak(cmd)
+    scan_cmd = _strip_non_executed_text(cmd)
+    check_git_patterns(scan_cmd)
+    check_deploy_patterns(scan_cmd)
+    check_credential_leak(scan_cmd)
 
     if depth >= MAX_UNWRAP_DEPTH:
         return
+    # Unwrap against the ORIGINAL (unstripped) cmd — a real bash -c payload
+    # is never itself the value of a -m/--body/--title flag, so stripping
+    # has no legitimate reason to touch it, and unwrapping the stripped
+    # version would risk missing a wrapper whose quotes happened to look
+    # like a descriptive flag's.
     for m in _WRAPPER_RE.finditer(cmd):
         inner = m.group(2)
         if inner:

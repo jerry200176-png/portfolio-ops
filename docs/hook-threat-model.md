@@ -16,7 +16,7 @@ dir / session scratchpad, dummy `.env` content, and standalone piping of
 synthetic JSON into the hook scripts (never executing the dangerous command
 itself). The full machine-checked list lives in
 `.claude/hooks/test_guard_bash.py` (run: `python3
-.claude/hooks/test_guard_bash.py`) — 35 dangerous cases, 15 safe cases, plus
+.claude/hooks/test_guard_bash.py`) — 38 dangerous cases, 18 safe cases, plus
 branch-detection and symlink-resolution cases, all passing as of this
 writing.
 
@@ -40,20 +40,40 @@ writing.
 | Credential file via **symlink** | `cat innocuous_name` → symlinks to `.env` | **Bypassed** — filename-text matching only | Fixed — resolves `cat`/`head`/`tail`/`less`/`more` path arguments with `os.path.realpath` and checks the resolved target |
 | GitHub merge tool, synonym server names | `mcp__other_github_server__merge_pull_request` | **Not covered** — matcher was one exact tool name | Fixed — matcher widened to `mcp__.*__(merge_pull_request\|merge_pr)` |
 | Gmail mutation tool name variants | `mcp__claude_ai_Gmail__update_label` | **Bypassed — this tool existed and was simply missing from the original deny list** | Fixed — added, plus defensive coverage for plausible future verbs (send/trash/archive/batch-delete/batch-modify) |
+| PR body / commit message *describing* a dangerous command | `gh pr create --body "$(cat <<'EOF'\nBlocks git reset --hard\nEOF\n)"` | **Bypassed live in an actual session** — unanchored git-destructive patterns matched the literal phrase inside descriptive text, not just real invocations | Fixed — `_strip_non_executed_text` blanks text captured specifically as the value of `-m`/`--body`/`--title`/`--description`/`--message`/`-F`/`--body-file`, including the `$(cat <<'EOF' ... EOF)` shape this project's own commit/PR conventions use, before pattern scanning |
 
-## A false positive found and fixed along the way
+## A false positive found and fixed along the way (two rounds)
 
-Anchoring the new deploy-script patterns naively (matching "make" + anything
-+ "deploy" anywhere in the command) **denied a harmless commit message**:
-`git commit -m "about to make a deploy plan"`. Fixed by anchoring
-deploy/credential patterns to an actual statement-start position (with
-tolerated `sudo`/`env`/`command`/`exec` prefixes) instead of searching
-free-floating text — see `ANCHOR` in `guard_bash.py`. Git-destructive
-patterns (`push --force`, `reset --hard`, etc.) were deliberately **left
-unanchored**: false negatives there are worse than the rare false positive
-of a commit message that happens to contain the literal phrase "git push
---force". This is a conscious tradeoff, not an oversight — a commit message
-containing that exact phrase will be denied; rephrase it if it happens.
+**Round 1**: Anchoring the new deploy-script patterns naively (matching
+"make" + anything + "deploy" anywhere in the command) **denied a harmless
+commit message**: `git commit -m "about to make a deploy plan"`. Fixed by
+anchoring deploy/credential patterns to an actual statement-start position
+(with tolerated `sudo`/`env`/`command`/`exec` prefixes) instead of searching
+free-floating text — see `ANCHOR` in `guard_bash.py`.
+
+**Round 2** (found live, in a real session, not just adversarial testing):
+git-destructive patterns (`push --force`, `reset --hard`, etc.) were
+deliberately left unanchored — false negatives there are worse than a rare
+false positive — but this bit a genuine case: a `gh pr create --body
+"$(cat <<'EOF' ... EOF)"` call whose body *described* the hook's own
+blocking rules, including the literal phrase `git reset --hard`, got denied
+even though nothing would execute. Blanket-stripping all heredocs or all
+quoted strings would reopen a real bypass (`bash -c "$(cat <<'EOF'\ngit
+reset --hard\nEOF\n)"` must still be caught). The fix is deliberately
+narrow: only text captured as the value of a flag whose *entire purpose* is
+free-form human text (`-m`, `--body`, `--title`, `--description`,
+`--message`, `-F`, `--body-file`) is blanked before scanning — never a flag
+that could carry a path, ref, or nested command, and never a bare heredoc
+with no such flag in front of it. `test_guard_bash.py` has explicit
+regression cases for both directions: descriptive text in those flags is
+allowed, and a real dangerous command adjacent to (or disguised inside) one
+of those flags is still denied.
+
+**Known residual gap**: this fix only covers the *named* descriptive flags
+above. A dangerous-looking phrase embedded in an unrelated heredoc (e.g.
+piped to `python3 -` as a string literal, never executed as shell) can
+still be falsely denied — accepted as a rare, safe-direction false positive
+rather than attempting full shell parsing (see "not a sandbox," above).
 
 ## What hooks reliably prevent
 
