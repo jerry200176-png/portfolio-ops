@@ -65,3 +65,7 @@ lint/build were actually run in-session, `portfolio.yaml` and
 deploy, production data mutation, or another item on `CLAUDE.md`'s "never"
 list is surfaced to the Founder as a Decision Required rather than done
 silently.
+
+## GitHub platform governance
+
+Audit outputs: [`docs/github-governance/`](docs/github-governance/README.md) (2026-07 Operator audit).
