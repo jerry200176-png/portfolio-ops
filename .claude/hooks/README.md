@@ -56,3 +56,22 @@ echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' | python3 guar
 echo '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' | python3 guard_bash.py  # expect: deny JSON
 echo '{"tool_name":"mcp__plugin_github_github__merge_pull_request","tool_input":{}}' | python3 deny_tool.py  # expect: deny JSON
 ```
+
+## Portability (Cloud / alternate checkouts)
+
+Hook commands in `../settings.json` must **not** hardcode
+`/home/jerry/workspace/portfolio-ops/...`.
+
+They use:
+
+```bash
+python3 "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/guard_bash.py"
+```
+
+- If Claude Code sets `CLAUDE_PROJECT_DIR`, that absolute project root is used.
+- Otherwise `.` (project cwd) is used — Claude Code project hooks run with the
+  repository root as the working directory.
+
+**Last verified portable form:** 2026-07-27 (Jerry GitHub Operator).
+After merging this change, reload hooks (`/hooks` or new session) before
+trusting live blocking.
