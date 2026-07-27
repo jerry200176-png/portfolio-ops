@@ -168,11 +168,71 @@ def run_happy_path() -> dict[str, Any]:
     }
 
 
+def run_stop_path() -> dict[str, Any]:
+    """Trigger a persisted stop and verify replay preserves the blocked state."""
+    rt = GraphRuntime()
+    steps = [
+        _e(
+            "stop-001",
+            "TASK_CREATED",
+            "intake",
+            "system",
+            "system",
+            head_sha=BASE,
+            conclusion="created",
+            timestamp="2026-07-27T00:11:00Z",
+        ),
+        _e(
+            "stop-002",
+            "NODE_FAILED",
+            "investigator",
+            "agent-investigator-1",
+            "investigator",
+            head_sha=BASE,
+            conclusion="error",
+            evidence={"failure_signature": "repeatable-investigator-failure"},
+            timestamp="2026-07-27T00:12:00Z",
+        ),
+        _e(
+            "stop-003",
+            "NODE_FAILED",
+            "investigator",
+            "agent-investigator-1",
+            "investigator",
+            head_sha=BASE,
+            conclusion="error",
+            evidence={"failure_signature": "repeatable-investigator-failure"},
+            timestamp="2026-07-27T00:13:00Z",
+        ),
+    ]
+
+    results = []
+    for event in steps:
+        result = rt.apply(event)
+        results.append(result.to_dict())
+
+    final = rt.state_for(TASK_ID)
+    replayed = rt.replay(TASK_ID)
+    return {
+        "mode": "dry-run",
+        "stop_reason": "duplicate failure signature",
+        "task_id": TASK_ID,
+        "apply_results": results,
+        "event_trace": rt.event_trace(TASK_ID),
+        "final_state": final.snapshot(),
+        "replayed_state": replayed.snapshot(),
+    }
+
+
 def main() -> int:
-    out = run_happy_path()
+    out = {
+        "happy_path": run_happy_path(),
+        "stop_path": run_stop_path(),
+    }
     json.dump(out, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")
-    final = out["final_state"]
+    final = out["happy_path"]["final_state"]
+    stopped = out["stop_path"]["final_state"]
     ok = (
         final["task_status"] == "closed_success"
         and final["current_node"] == "close"
@@ -181,6 +241,9 @@ def main() -> int:
         and final["builder_actor_id"] == "agent-builder-1"
         and final["reviewer_actor_id"] == "agent-reviewer-2"
         and final["builder_actor_id"] != final["reviewer_actor_id"]
+        and stopped["task_status"] == "blocked"
+        and stopped["stopped"] is True
+        and out["stop_path"]["replayed_state"] == stopped
     )
     return 0 if ok else 1
 

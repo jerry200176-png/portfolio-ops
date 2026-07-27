@@ -26,11 +26,11 @@ Replace the ad-hoc manual flow with a recoverable, auditable graph:
 
 ```
 TASK_CREATED
-  → INVESTIGATED
+  → INVESTIGATION_COMPLETED
   → BUILD_COMPLETED
-  → REVIEWED
-  → HUMAN_APPROVAL_REQUIRED
-  → CLOSED
+  → REVIEW_REJECTED / REVIEW_APPROVED
+  → HUMAN_APPROVED / HUMAN_REJECTED
+  → GRAPH_STOPPED (when the runtime must stop)
 ```
 
 ## Architecture
@@ -51,6 +51,11 @@ reduce / apply_event (reducer)  ──rebuildable TaskState──
 GraphRuntime.apply → ApplyResult + current TaskState
 ```
 
+`GRAPH_STOPPED` is appended when the runtime refuses to continue because of
+retry exhaustion, duplicate failure signatures, or total agent-run budget
+exhaustion. Because the stop is an event, replay rebuilds the same blocked
+state instead of relying on in-memory execution history.
+
 Implementation language: **Python 3** (stdlib only). Package:
 `agent_graph/`. No LangGraph, no orchestration framework.
 
@@ -69,11 +74,15 @@ Implementation language: **Python 3** (stdlib only). Package:
 
 1. Builder and reviewer **must** be different `actor_id`s.
 2. Reviewer **must not** merge (`conclusion=merge` rejected).
-3. Successful close **requires** `HUMAN_APPROVED` for the current `head_sha`.
-4. Changing `head_sha` clears `approved_head_sha` / `human_approved`.
-5. Max retries per node = **2**; identical failure signature twice → stop.
-6. Max total agent runs = **6**.
-7. Events are **append-only**; duplicate `event_id` is idempotent.
+3. `BUILD_COMPLETED` **must** carry a non-empty `head_sha`.
+4. Successful close **requires** `HUMAN_APPROVED` for the current `head_sha`.
+5. `HUMAN_APPROVED` is rejected unless both the event and reduced state carry
+   the same non-empty `head_sha`.
+6. Changing `head_sha` clears `approved_head_sha` / `human_approved`.
+7. Max retries per node = **2**; identical failure signature twice →
+   `GRAPH_STOPPED`.
+8. Max total agent runs = **6**; exhaustion appends `GRAPH_STOPPED`.
+9. Events are **append-only**; duplicate `event_id` is idempotent.
 
 ## Package layout
 

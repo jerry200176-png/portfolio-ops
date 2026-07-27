@@ -33,6 +33,7 @@ def apply_event(state: TaskState, event: Event) -> TaskState:
         failure_signatures=list(state.failure_signatures),
         human_approved=state.human_approved,
         closed=state.closed,
+        stopped=state.stopped,
     )
 
     if event.base_sha is not None:
@@ -101,6 +102,13 @@ def apply_event(state: TaskState, event: Event) -> TaskState:
             new.failure_signatures.append(sig)
         # Stay on same node for retry; status unchanged unless exhausted (validated upstream)
         new.current_node = node
+
+    elif et == "GRAPH_STOPPED":
+        new.current_node = event.node
+        new.task_status = "blocked"
+        new.blocker = (event.evidence or {}).get("blocker") or event.conclusion or "graph_stopped"
+        new.stopped = True
+        new.closed = False
 
     return new
 

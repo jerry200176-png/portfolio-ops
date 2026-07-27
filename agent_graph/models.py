@@ -25,6 +25,7 @@ EVENT_TYPES = (
     "HUMAN_APPROVED",
     "HUMAN_REJECTED",
     "NODE_FAILED",
+    "GRAPH_STOPPED",
 )
 
 # Actor roles
@@ -121,6 +122,7 @@ class TaskState:
     failure_signatures: list[str] = field(default_factory=list)
     human_approved: bool = False
     closed: bool = False
+    stopped: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -143,4 +145,5 @@ class TaskState:
             "failure_signatures": list(self.failure_signatures),
             "human_approved": self.human_approved,
             "closed": self.closed,
+            "stopped": self.stopped,
         }

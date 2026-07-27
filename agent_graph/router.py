@@ -26,6 +26,7 @@ ROUTING_TABLE: dict[str, str] = {
     "HUMAN_APPROVED": "close",
     "HUMAN_REJECTED": "close",
     # NODE_FAILED stays on the same node (retry) unless exhausted — handled specially
+    "GRAPH_STOPPED": "close",
 }
 
 # Which current_node values may accept each event_type
@@ -38,6 +39,7 @@ ALLOWED_FROM: dict[str, frozenset[Optional[str]]] = {
     "HUMAN_APPROVED": frozenset({"human_gate"}),
     "HUMAN_REJECTED": frozenset({"human_gate"}),
     "NODE_FAILED": frozenset({"investigator", "builder", "reviewer"}),
+    "GRAPH_STOPPED": frozenset({"investigator", "builder", "reviewer", "human_gate"}),
 }
 
 # Expected emitting node for each event (must match event.node)
@@ -80,6 +82,9 @@ def validate_transition(state: TaskState, event: Event) -> TransitionResult:
     if state.closed:
         return TransitionResult(False, reason="task already closed")
 
+    if state.stopped and event.event_type != "GRAPH_STOPPED":
+        return TransitionResult(False, reason=f"task blocked: {state.blocker}", blocker=state.blocker)
+
     if state.blocker and event.event_type != "TASK_CREATED":
         # Blocked tasks reject further progress events (except duplicate handled upstream)
         return TransitionResult(False, reason=f"task blocked: {state.blocker}", blocker=state.blocker)
@@ -119,6 +124,9 @@ def validate_transition(state: TaskState, event: Event) -> TransitionResult:
     if event.event_type == "BUILD_COMPLETED" and event.actor_role != "builder":
         return TransitionResult(False, reason="BUILD_COMPLETED requires actor_role=builder")
 
+    if event.event_type == "BUILD_COMPLETED" and not event.head_sha:
+        return TransitionResult(False, reason="BUILD_COMPLETED requires non-empty head_sha")
+
     if event.event_type == "INVESTIGATION_COMPLETED" and event.actor_role != "investigator":
         return TransitionResult(False, reason="INVESTIGATION_COMPLETED requires actor_role=investigator")
 
@@ -136,7 +144,9 @@ def validate_transition(state: TaskState, event: Event) -> TransitionResult:
             return TransitionResult(False, reason="HUMAN_APPROVED requires actor_role=human")
         if not event.head_sha:
             return TransitionResult(False, reason="HUMAN_APPROVED requires head_sha")
-        if state.head_sha and event.head_sha != state.head_sha:
+        if not state.head_sha:
+            return TransitionResult(False, reason="HUMAN_APPROVED requires current non-empty state.head_sha")
+        if event.head_sha != state.head_sha:
             return TransitionResult(
                 False,
                 reason=(
@@ -182,6 +192,9 @@ def validate_transition(state: TaskState, event: Event) -> TransitionResult:
             )
 
         return TransitionResult(True, next_node=node)
+
+    if event.event_type == "GRAPH_STOPPED":
+        return TransitionResult(True, next_node="close")
 
     next_node = route(event.event_type)
     if next_node is None:

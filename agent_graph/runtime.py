@@ -51,6 +51,35 @@ class GraphRuntime:
         """Rebuild state from events only (same as state_for)."""
         return self.state_for(task_id)
 
+    def _build_stop_event(self, triggering_event: Event, state: TaskState, check: TransitionResult) -> Event:
+        """Persist stop conditions so replay reproduces the same blocked state."""
+        retry_count = state.retry_count.get(triggering_event.node, 0)
+        failure_signature = None
+        if triggering_event.evidence:
+            failure_signature = triggering_event.evidence.get("failure_signature")
+        return Event(
+            event_id=f"{triggering_event.event_id}:graph-stopped",
+            task_id=triggering_event.task_id,
+            timestamp=triggering_event.timestamp,
+            event_type="GRAPH_STOPPED",
+            node=triggering_event.node,
+            actor_id="system",
+            actor_role="system",
+            repository=triggering_event.repository,
+            base_sha=state.base_sha or triggering_event.base_sha,
+            head_sha=state.head_sha or triggering_event.head_sha,
+            conclusion="stopped",
+            evidence={
+                "reason": check.reason,
+                "blocker": check.blocker,
+                "failure_signature": failure_signature,
+                "retry_count": retry_count,
+                "agent_run_count": state.agent_run_count,
+                "trigger_event_id": triggering_event.event_id,
+                "trigger_event_type": triggering_event.event_type,
+            },
+        )
+
     def apply(self, event: Event) -> ApplyResult:
         """Validate and append an event. Duplicate event_id is idempotent."""
         if self.store.has(event.event_id):
@@ -76,14 +105,13 @@ class GraphRuntime:
         state = self.state_for(event.task_id)
         check: TransitionResult = validate_transition(state, event)
         if not check.accepted:
-            # Materialize blocker on state for audit visibility without appending
             blocked = TaskState(**{**state.__dict__})
-            if check.blocker:
+            if check.blocker and _is_persisted_stop_blocker(check.blocker):
+                stop_event = self._build_stop_event(event, state, check)
+                self.store.append(stop_event)
+                blocked = self.state_for(event.task_id)
+            elif check.blocker:
                 blocked.blocker = check.blocker
-                if check.blocker.startswith("retry_exhausted") or check.blocker.startswith(
-                    "duplicate_failure"
-                ) or check.blocker == "agent_run_budget_exhausted":
-                    blocked.task_status = "blocked"
             return ApplyResult(
                 accepted=False,
                 duplicate=False,
@@ -127,3 +155,13 @@ class GraphRuntime:
 
     def event_trace(self, task_id: str) -> list[dict[str, Any]]:
         return [e.to_dict() for e in self.store.for_task(task_id)]
+
+
+def _is_persisted_stop_blocker(blocker: Optional[str]) -> bool:
+    if blocker is None:
+        return False
+    return (
+        blocker.startswith("retry_exhausted")
+        or blocker.startswith("duplicate_failure")
+        or blocker == "agent_run_budget_exhausted"
+    )
