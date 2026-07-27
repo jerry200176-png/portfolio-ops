@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/guard_bash.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard_bash.py\"",
             "timeout": 10
           }
         ]
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/deny_tool.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny_tool.py\"",
             "timeout": 5
           }
         ]
@@ -36,7 +36,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/deny_tool.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny_tool.py\"",
             "timeout": 5
           }
         ]
