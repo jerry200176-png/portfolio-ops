@@ -98,3 +98,14 @@ Top systemic problems (evidence-backed):
 - [PERMISSION_GAPS.md](./PERMISSION_GAPS.md)
 - [90_DAY_REMEDIATION_PLAN.md](./90_DAY_REMEDIATION_PLAN.md)
 
+## Engagement deliverables (links)
+
+| Item | URL |
+|---|---|
+| Umbrella Issue | https://github.com/jerry200176-png/portfolio-ops/issues/11 |
+| Audit docs PR | https://github.com/jerry200176-png/portfolio-ops/pull/10 |
+| SECURITY.md PR | https://github.com/jerry200176-png/portfolio-ops/pull/12 |
+| AllTrue provenance concurrency PR | https://github.com/jerry200176-png/AllTrue_System/pull/1458 (CI green; not auto-merged) |
+| Sunrise provenance concurrency PR | https://github.com/jerry200176-png/sunrise-cafe/pull/260 |
+| Phase 0 merge | AllTrue #1451 → `09ea861260b6feca47ebb4bdacea4d5d415d3eb4` |
+| Phase 0 deploy | https://github.com/jerry200176-png/AllTrue_System/actions/runs/30234848351 |
