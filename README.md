@@ -1,5 +1,25 @@
 # Portfolio Ops
 
+Portfolio Ops is the portfolio control plane: company-level governance,
+evidence, approvals, and project health are coordinated here while product
+source remains in its own canonical repository.
+
+The workspace operating model is documented in
+[`docs/workspace-operating-model.md`](docs/workspace-operating-model.md), and
+the research benchmark is in
+[`docs/research/2026-08-company-governance-benchmark.md`](docs/research/2026-08-company-governance-benchmark.md).
+
+Safe workspace scripts:
+
+```bash
+scripts/phase1-inventory-backup.sh <evidence-root> <repo>...
+scripts/phase2-fetch-only.sh <evidence-root> <phase1-evidence> <repo>...
+scripts/phase3-cleanup-proposal.sh <evidence-root> <repo>...
+scripts/portfolio-governance-audit.sh <output.tsv> <repo>...
+```
+
+They do not reset, clean, merge, rebase, prune, remove, move, or delete.
+
 This directory is the portfolio control plane for jerry200176-png's product
 portfolio:
 
