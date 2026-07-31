@@ -1,0 +1,55 @@
+schema_version: 1
+workspace_root: /home/jerry/workspace
+paths:
+  bare_repos: /home/jerry/workspace/repos
+  canonical_checkouts: /home/jerry/workspace
+  active_worktrees: /home/jerry/workspace/worktrees
+  tasks: /home/jerry/workspace/tasks
+  archives: /home/jerry/workspace/archives
+  evidence: /home/jerry/evidence/workspace-admin
+  backups: /home/jerry/evidence/workspace-admin
+  agent_control: /home/jerry/workspace/agent-control
+  control_plane: /home/jerry/workspace/portfolio-ops
+repositories:
+  - id: alltrue-canonical
+    path: /home/jerry/workspace/AllTrue_System-clean
+    role: canonical-checkout
+    remote: https://github.com/jerry200176-png/AllTrue_System.git
+    branch_policy: integration-worktree-only-for-divergence
+    mutation_policy: no-reset-no-clean-no-in-place-rewrite
+    approval_for_archive_or_remove: required
+  - id: alltrue-legacy
+    path: /home/jerry/alltrue
+    role: legacy-checkout
+    remote: https://github.com/jerry200176-png/AllTrue_System.git
+    branch_policy: evidence-and-investigation-only
+    mutation_policy: no-edit
+    approval_for_archive_or_remove: required
+  - id: alltrue-leave-worktree
+    path: /home/jerry/wt/alltrue-leave-1280
+    role: active-worktree
+    remote: https://github.com/jerry200176-png/AllTrue_System.git
+    branch_policy: isolated-task-branch
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
+  - id: sunrise-canonical
+    path: /home/jerry/workspace/sunrise-cafe
+    role: canonical-checkout
+    remote: https://github.com/jerry200176-png/sunrise-cafe.git
+    branch_policy: dedicated-branch-or-worktree
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
+  - id: sunrise-verify-worktree
+    path: /home/jerry/wt/sunrise-verify-fix
+    role: active-worktree
+    remote: https://github.com/jerry200176-png/sunrise-cafe.git
+    branch_policy: isolated-task-branch
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
+  - id: portfolio-ops
+    path: /home/jerry/workspace/portfolio-ops
+    role: control-plane
+    remote: https://github.com/jerry200176-png/portfolio-ops.git
+    branch_policy: dedicated-governance-branch
+    mutation_policy: evidence-first
+    approval_for_archive_or_remove: required

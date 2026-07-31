@@ -81,3 +81,31 @@ meta:
     local_path: /home/jerry/workspace/agent-control
     github_repo: null
     note: safe preflight/session launcher used before editing product code
+
+# Governance profile is maintained separately from product risk scoring.
+governance_baseline:
+  schema_version: 1
+  profile: company-control-plane-v1
+  audit_script: scripts/portfolio-governance-audit.sh
+  latest_evidence: /home/jerry/evidence/workspace-admin/governance-baseline-acceptance/portfolio-governance-audit.tsv
+  required_controls:
+    - README
+    - CONTRIBUTING
+    - SECURITY
+    - CODE_OF_CONDUCT
+    - LICENSE_DECISION
+    - CODEOWNERS
+    - ISSUE_PR_TEMPLATES
+    - CI_DEPENDABOT
+  lifecycle_policy: proposal-only-until-founder-approval
+  integration_policy: high-divergence-worktree-only
+  projects:
+    - id: alltrue
+      governance_score: 8
+      note: canonical checkout passes baseline; legacy checkout remains dirty and divergent
+    - id: sunrise
+      governance_score: 8
+      note: canonical checkout passes baseline; current dirty Dependabot change is preserved
+    - id: portfolio-ops
+      governance_score: 1
+      note: baseline is implemented on the governance branch; legal license and GitHub enforcement remain decisions
