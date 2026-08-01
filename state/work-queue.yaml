@@ -145,6 +145,7 @@ queue:
       - "Draft PR #266 is open from isolated branch agent/platform-opt-sunrise."
       - "Baseline captured at SHA b86235795904dd0cb5231da993d3048ce453aa9c with 13 existing TypeScript diagnostics; no new diagnostic is allowed by the required regression gate."
       - "npm run typecheck:baseline passed; npm test passed with 344 tests passed and 1 skipped across 68 files."
+      - "GitHub PR checks passed: Agent Session Provenance, Lint & Build, Playwright smoke, Vercel Preview Comments, and both Vercel preview contexts."
     root_cause: "TypeScript was configured but had no package command or CI signal, allowing regressions without a baseline."
     non_goals:
       - "Do not hide existing errors with ts-ignore, compiler relaxation, skipLibCheck expansion, or || true."
