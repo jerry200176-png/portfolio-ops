@@ -10,13 +10,20 @@
 - AllTrue #1408 was stale: #1402, #1409, and #1410 are merged. The board is being reconciled before new work is opened.
 - Founder-only gates remain explicit: AllTrue #1401 privacy review, #1387 credential rotation, Sunrise production migrations/paid infrastructure, merges, and deploys.
 - New control matrix: `docs/incident-control-matrix.md`. New evidence report: `reports/2026-08-01/platform-optimization-baseline.md`.
-- Draft PR #18 updates the control plane; product Draft PRs are open for AllTrue #1428 ([#1576](https://github.com/jerry200176-png/AllTrue_System/pull/1576)), AllTrue #1420 ([#1577](https://github.com/jerry200176-png/AllTrue_System/pull/1577)), and Sunrise #261 ([#266](https://github.com/jerry200176-png/sunrise-cafe/pull/266)).
+- Portfolio control-plane PR #27 is merged; AllTrue #1428 ([#1579](https://github.com/jerry200176-png/AllTrue_System/pull/1579)), AllTrue #1420 ([#1580](https://github.com/jerry200176-png/AllTrue_System/pull/1580)), and Sunrise #261 ([#267](https://github.com/jerry200176-png/sunrise-cafe/pull/267)) are merged and live-verified.
+
+### Live release evidence
+
+- AllTrue #1428 PR [#1579](https://github.com/jerry200176-png/AllTrue_System/pull/1579) is merged. Deploy run [30685428337](https://github.com/jerry200176-png/AllTrue_System/actions/runs/30685428337) passed; production `deployment.json` backend SHA was `0fef175a`, health was `ok`, and smoke passed.
+- AllTrue #1420 PR [#1580](https://github.com/jerry200176-png/AllTrue_System/pull/1580) is merged. Deploy run [30685651049](https://github.com/jerry200176-png/AllTrue_System/actions/runs/30685651049) passed database backup, the `security_audit_events` migration, SHA/health checks, and post-merge smoke; production backend SHA is `510f6b2e`.
+- Sunrise #261 PR [#267](https://github.com/jerry200176-png/sunrise-cafe/pull/267) is merged. Deploy run [30685328910](https://github.com/jerry200176-png/sunrise-cafe/actions/runs/30685328910) and read-only verify run [30685328925](https://github.com/jerry200176-png/sunrise-cafe/actions/runs/30685328925) passed for `6605204e`; `/api/version` matches and `/api/booking-health` is `ok`.
+- Existing Sunrise `rate_limit_mode=memory`, `rate_limit_grade=degraded_per_isolate`, and `stripe_enabled=false` remain tracked under #211; they were not silently changed by this release.
 
 ### Current execution order
 
-1. Independent evidence verification for AllTrue #1428, AllTrue #1420, and Sunrise #261 Draft PRs.
+1. Preserve live evidence and update the queue after every production release; never infer runtime state from a green PR alone.
 2. Sunrise #257 live ownership verification (read-only Founder/dashboard evidence; code contract is already on main).
-3. Sunrise #211 RLS/rate-limit code-side hardening, with production migration and paid-plan Founder gates.
+3. Sunrise #211 RLS/rate-limit/backup execution, with production migration and paid-plan Founder gates.
 4. Architecture and UX slices after reliability evidence is green.
 
 Last updated: 2026-08-01 (#1387 remains Founder-triggered; #1401 remains
