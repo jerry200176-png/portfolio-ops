@@ -62,6 +62,9 @@ jobs:
           results_format: sarif
           publish_results: true
       - name: Upload Scorecard results
+        # Pull request workflows intentionally run with a read-only token; SARIF
+        # upload is enabled for scheduled/manual runs with security-events write.
+        if: github.event_name != 'pull_request'
         uses: github/codeql-action/upload-sarif@47be0dbd5113ab1b79fe2dd3f68bdf7e426cdc87 # v3
         with:
           sarif_file: results.sarif
