@@ -27,6 +27,15 @@ Founder-only incident actions remain visible but are not disguised as agent work
 3. Sunrise #211 code-side hardening, #257 deploy ownership, and #261 typecheck baseline.
 4. Architecture and UX epics only after the reliability gates have evidence.
 
+## Draft PR execution evidence
+
+| Slice | Draft PR | Local verification | Live verification |
+|---|---|---|---|
+| AllTrue #1428 runtime deployment identity | [#1576](https://github.com/jerry200176-png/AllTrue_System/pull/1576) | Shell/Node/Python syntax, 3 unit tests, workflow YAML parse, and diff check passed. | Pending Founder-gated deploy and rollback; no production mutation performed. |
+| Sunrise #261 TypeScript baseline | [#266](https://github.com/jerry200176-png/sunrise-cafe/pull/266) | Baseline regression gate passed; Vitest 344 passed/1 skipped; full typecheck reports the 13 documented baseline diagnostics. | CI run and review pending; no production mutation performed. |
+
+The portfolio control-plane update is tracked in [Draft PR #18](https://github.com/jerry200176-png/portfolio-ops/pull/18). These are intentionally Draft PRs: evidence is recorded, but merge, deploy, migration, issue closure, and Founder-only decisions remain out of scope.
+
 ## Handoff
 
 The next implementer should use the isolated worktrees, preserve the original dirty checkouts, work on one repository at a time, and stop each change at Draft PR plus independent evidence verification. Production migrations, paid-plan changes, merge, deploy, issue closure, and legal/privacy decisions require Founder action.

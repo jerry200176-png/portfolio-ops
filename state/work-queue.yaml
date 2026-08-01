@@ -9,18 +9,21 @@ queue:
     priority: p1
     title: Re-baseline platform optimization execution board and recurring-incident controls
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1408
-    status: baseline_complete_next_draft_pr
+    status: draft_prs_open
     evidence:
       - "2026-08-01 fresh local baseline: AllTrue canonical main was clean but 134 commits behind origin/main; Sunrise canonical checkout retained an uncommitted dependabot.yml change and was not touched; portfolio-ops retained untracked reports/codex/ and was not touched."
       - "GitHub read-back: AllTrue #1408 is stale against merged #1402/#1409/#1410; AllTrue #1420/#1428 remain open; Sunrise #239 is an umbrella with #211/#257/#261 still open."
       - "Isolated worktrees created from origin/main for portfolio, AllTrue, and Sunrise so implementation does not overwrite user work."
+      - "Portfolio control-plane Draft PR #18 opened: https://github.com/jerry200176-png/portfolio-ops/pull/18"
+      - "AllTrue Draft PR #1576 opened for #1428: https://github.com/jerry200176-png/AllTrue_System/pull/1576"
+      - "Sunrise Draft PR #266 opened for #261: https://github.com/jerry200176-png/sunrise-cafe/pull/266"
     root_cause: "Execution state was distributed across stale dashboard snapshots, GitHub issues, and product checkouts without a current cross-project evidence checkpoint."
     acceptance:
       - "Current board separates Founder-only actions from agent-owned Draft PR work."
       - "Every next task records evidence, non-goals, tests, rollback, dependency, and Founder gate."
       - "No dirty user checkout is modified or reset."
     rollback: "Revert the portfolio control-plane commit; product repositories are unchanged by this baseline update."
-    next_action: "Commit the baseline report and board updates, then open the first bounded Draft PR from an isolated product worktree."
+    next_action: "Run independent evidence verification on Draft PRs #1576 and #266, then update this queue and dashboard; do not merge or deploy."
 
   - id: SEC-ALLTRUE-1420
     product: alltrue
@@ -39,7 +42,13 @@ queue:
     priority: p1
     title: Expose backend SHA, frontend SHA, and deployed_at for reliable release verification
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1428
-    status: queued_draft_pr
+    status: draft_pr_open
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1576
+    evidence:
+      - "Draft PR #1576 is open from isolated branch agent/platform-opt-alltrue."
+      - "Adds deployment.json with backend_sha, frontend_sha, frontend_build_sha, and deployed_at; smoke/identity probes fail closed on missing or mismatched backend identity."
+      - "Local verification passed: shell syntax, Node syntax, Python compile, 3 unittest cases, workflow YAML parse, and diff check."
+      - "Production endpoint and first live deploy/rollback remain unverified until Founder-gated deployment."
     acceptance:
       - "Backend-only and frontend releases expose independently verifiable identities."
       - "Runbooks and probes stop treating frontend version.json as proof of backend runtime."
@@ -73,7 +82,12 @@ queue:
     priority: p1
     title: Establish a reproducible TypeScript typecheck baseline and CI gate
     source: https://github.com/jerry200176-png/sunrise-cafe/issues/261
-    status: queued_draft_pr
+    status: draft_pr_open
+    implementation: https://github.com/jerry200176-png/sunrise-cafe/pull/266
+    evidence:
+      - "Draft PR #266 is open from isolated branch agent/platform-opt-sunrise."
+      - "Baseline captured at SHA b86235795904dd0cb5231da993d3048ce453aa9c with 13 existing TypeScript diagnostics; no new diagnostic is allowed by the required regression gate."
+      - "npm run typecheck:baseline passed; npm test passed with 344 tests passed and 1 skipped across 68 files."
     acceptance:
       - "Current errors are classified at a recorded SHA."
       - "package.json exposes a repeatable typecheck command."
