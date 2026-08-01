@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: alltrue
+  description: School course-operations platform for attendance, billing, scheduling, and parent communication.
+  annotations:
+    github.com/project-slug: jerry200176-png/AllTrue_System
+    portfolio.company/source-path: /home/jerry/workspace/AllTrue_System-clean
+    portfolio.company/governance-overlay: docs/governance/README.md
+spec:
+  owner: founder
+  lifecycle: production
+  tier: 0
+  dataSensitivity: high
+  deployTarget: raspberry_pi
+  healthUrl: https://daan.lifenet.com.tw/api/v1/health
+  versionUrl: https://daan.lifenet.com.tw/version.json
+  recoveryOwner: founder
+  lastVerifiedAt: "2026-08-01T00:00:00+08:00"
+  evidenceTtlHours: 24

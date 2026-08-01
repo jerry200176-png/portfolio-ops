@@ -1,0 +1,19 @@
+name: Founder decision
+description: Record a decision required for an irreversible or high-risk action.
+title: "[Decision] "
+labels: [decision-required]
+body:
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision required
+      description: State the exact choice and why it cannot be automated safely.
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options and impact
+      description: List options, risks, evidence, and rollback for each option.
+    validations:
+      required: true

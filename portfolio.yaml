@@ -3,6 +3,11 @@
 # but must stay valid against the schema.
 schema_version: 1
 updated_at: "2026-08-01T13:30:00+08:00"
+freshness:
+  p0_evidence_ttl_hours: 24
+  inventory_ttl_days: 7
+  status_ttl_hours: 24
+  stale_policy: "stale evidence cannot close incidents or authorize merge/deploy decisions"
 projects:
   - id: alltrue
     name: AllTrue System
@@ -25,6 +30,9 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-01"
+    last_verified_at: "2026-08-01T00:00:00+08:00"
+    source_commit: "592d08d5c140b6206693f0f03f74f2c92a0c4267"
+    evidence_expires_at: "2026-08-02T00:00:00+08:00"
     open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (visibility RESOLVED, credential-reuse verification still pending — see work-queue.yaml)
     open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
     current_priority: SEC-ALLTRUE-1401 remains the highest-severity incident but its remaining containment and privacy decisions are Founder-only; the highest unblocked engineering follow-up is #1420 auditability plus #1428 deployment identity evidence.
@@ -59,6 +67,9 @@ projects:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
     latest_activity: "2026-08-01"
+    last_verified_at: "2026-08-01T00:00:00+08:00"
+    source_commit: "773ea48ccb4e6c8eb36c7ac0119881a560b8326d"
+    evidence_expires_at: "2026-08-02T00:00:00+08:00"
     open_p0: 2 # OPS-SUNRISE-001: Vercel capacity now confirmed hitting PRODUCTION (escalated); SEC-SUNRISE-002: RLS/rate-limit/backup decided 2026-07-19 but zero execution PRs since — fail-open rate limiting live now
     open_p1: 1 # CI-SUNRISE-PROVENANCE: Agent Session Provenance check failing repeatedly, confirmed on PR #253
     current_priority: SEC-SUNRISE-002 remains the highest unexecuted product risk because fail-open rate limiting and RLS/backup decisions are still not evidenced as shipped; #257 deployment ownership and #261 typecheck are the next bounded engineering slices.
@@ -81,3 +92,36 @@ meta:
     local_path: /home/jerry/workspace/agent-control
     github_repo: null
     note: safe preflight/session launcher used before editing product code
+
+# Governance profile is maintained separately from product risk scoring.
+governance_baseline:
+  schema_version: 1
+  profile: company-control-plane-v1
+  manifest: workspace.manifest.yaml
+  component_contract: catalog/*.yaml
+  last_inventory_at: "2026-08-01T00:00:00+08:00"
+  inventory_rows: 58
+  unresolved_inventory_rows: 8
+  audit_script: scripts/portfolio-governance-audit.sh
+  latest_evidence: /home/jerry/evidence/workspace-admin/governance-baseline-acceptance/portfolio-governance-audit.tsv
+  required_controls:
+    - README
+    - CONTRIBUTING
+    - SECURITY
+    - CODE_OF_CONDUCT
+    - LICENSE_DECISION
+    - CODEOWNERS
+    - ISSUE_PR_TEMPLATES
+    - CI_DEPENDABOT
+  lifecycle_policy: proposal-only-until-founder-approval
+  integration_policy: high-divergence-worktree-only
+  projects:
+    - id: alltrue
+      governance_score: 8
+      note: canonical checkout passes baseline; legacy checkout remains dirty and divergent
+    - id: sunrise
+      governance_score: 8
+      note: canonical checkout passes baseline; current dirty Dependabot change is preserved
+    - id: portfolio-ops
+      governance_score: 1
+      note: baseline is implemented on main-targeted PR #19; one-person maintainer mode keeps approval and CODEOWNER review disabled while CI/security gates remain required
