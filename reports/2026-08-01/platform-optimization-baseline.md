@@ -4,7 +4,17 @@
 
 - Products: `jerry200176-png/AllTrue_System`, `jerry200176-png/sunrise-cafe`
 - Control plane: `portfolio-ops`
-- Mode: read-only triage plus Draft-PR preparation; no merge, deploy, production data mutation, credential rotation, or issue closure.
+- Mode: baseline, isolated implementation, required-CI verification, controlled merge/deploy, and read-only production evidence. Founder-only privacy and credential decisions remain untouched.
+
+## Live execution evidence (2026-08-01)
+
+| Product | Merged change | Production evidence | Rollback evidence |
+|---|---|---|---|
+| AllTrue | #1579 (`0fef175a…`) then #1580 (`510f6b2e…`) | Deploy run [30685651049](https://github.com/jerry200176-png/AllTrue_System/actions/runs/30685651049) passed; backup completed; `security_audit_events` migration passed; read-only smoke passed; `deployment.json` backend SHA and `/api/v1/health` matched. | Workflow rollback path was validated by CI readiness checks; no rollback was needed. |
+| Sunrise | #267 (`6605204e…`) | Deploy run [30685328910](https://github.com/jerry200176-png/sunrise-cafe/actions/runs/30685328910) and read-only verify run [30685328925](https://github.com/jerry200176-png/sunrise-cafe/actions/runs/30685328925) passed; `/api/version` matched and `/api/booking-health` returned `ok`. | No rollback was needed; production deploy completed successfully. |
+| Portfolio | #27 (`4e3968b3…`) | Control-plane checks (validate, CodeQL, Secret scan, OpenSSF Scorecard) passed before merge. | Documentation/YAML-only change; revert is sufficient. |
+
+The live Sunrise health response still reports `rate_limit_mode=memory`, `rate_limit_grade=degraded_per_isolate`, and `stripe_enabled=false`; these remain explicit follow-up evidence for #211.
 
 ## Evidence
 
@@ -31,13 +41,13 @@ Founder-only incident actions remain visible but are not disguised as agent work
 
 | Slice | Draft PR | Local verification | Live verification |
 |---|---|---|---|
-| AllTrue #1428 runtime deployment identity | [#1576](https://github.com/jerry200176-png/AllTrue_System/pull/1576) | Shell/Node/Python syntax, 3 unit tests, workflow YAML parse, and diff check passed. | Pending Founder-gated deploy and rollback; no production mutation performed. |
-| Sunrise #261 TypeScript baseline | [#266](https://github.com/jerry200176-png/sunrise-cafe/pull/266) | Baseline regression gate passed; Vitest 344 passed/1 skipped; full typecheck reports the 13 documented baseline diagnostics. | GitHub Provenance, Lint & Build, Playwright smoke, Vercel comments, and both Vercel preview contexts passed; no production mutation performed. |
+| AllTrue #1428 runtime deployment identity | [#1579](https://github.com/jerry200176-png/AllTrue_System/pull/1579) | Required checks passed; production deploy and SHA/health/smoke evidence recorded above. | Workflow rollback path remained available and was not invoked. |
+| Sunrise #261 TypeScript baseline | [#267](https://github.com/jerry200176-png/sunrise-cafe/pull/267) | Baseline gate passed; Vitest 344 passed/1 skipped; production deploy and read-only verify passed. | Production deploy completed successfully; no rollback was needed. |
 | Sunrise #257 deploy ownership | [#258](https://github.com/jerry200176-png/sunrise-cafe/pull/258) | `npm run verify:production-workflow` passed; current main has read-only verification and one serialized deploy owner. | Vercel project ownership and live behavior require read-only Founder/dashboard verification. |
-| AllTrue #1420 security audit trail | [#1577](https://github.com/jerry200176-png/AllTrue_System/pull/1577) | PHP syntax/static checks passed; GitHub Provenance, ephemeral-MySQL Migration Dry-run, and Rollback readiness passed. PHPUnit/security/UI checks were skipped by changed-area routing. | Production migration, access review, and first event write remain Founder-gated. |
+| AllTrue #1420 security audit trail | [#1580](https://github.com/jerry200176-png/AllTrue_System/pull/1580) | Required checks passed, including PHPStan and full PHPUnit; production backup, migration, deployment identity, and read-only smoke passed. | Normal code revert plus migration rollback procedure remains documented; no rollback was needed. |
 
-The portfolio control-plane update is tracked in [Draft PR #18](https://github.com/jerry200176-png/portfolio-ops/pull/18). These are intentionally Draft PRs: evidence is recorded, but merge, deploy, migration, issue closure, and Founder-only decisions remain out of scope.
+The portfolio control-plane update is merged in [PR #27](https://github.com/jerry200176-png/portfolio-ops/pull/27). The next implementer must append new live evidence after each production release; do not mark #1401, #1387, or #211 complete from deployment health alone.
 
 ## Handoff
 
-The next implementer should use the isolated worktrees, preserve the original dirty checkouts, work on one repository at a time, and stop each change at Draft PR plus independent evidence verification. Production migrations, paid-plan changes, merge, deploy, issue closure, and legal/privacy decisions require Founder action.
+The next implementer should preserve the original dirty checkouts, work on one repository at a time, and follow `triage → baseline audit → single-repo execute → Draft PR → independent evidence verification → merge/deploy → live manifest/health/smoke → dashboard update`. Production migrations, paid-plan changes, issue closure, and legal/privacy decisions remain Founder-gated.
