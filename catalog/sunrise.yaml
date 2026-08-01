@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: sunrise
+  description: Cafe booking and ordering platform with LINE deposits, waitlists, and staff workflows.
+  annotations:
+    github.com/project-slug: jerry200176-png/sunrise-cafe
+    portfolio.company/source-path: /home/jerry/workspace/sunrise-cafe
+    portfolio.company/governance-overlay: docs/governance/OVERLAY.md
+spec:
+  owner: founder
+  lifecycle: production
+  tier: 0
+  dataSensitivity: medium
+  deployTarget: vercel_supabase
+  healthUrl: https://sunrise-cafe-six.vercel.app/api/booking-health
+  versionUrl: https://sunrise-cafe-six.vercel.app/api/version
+  recoveryOwner: founder
+  lastVerifiedAt: "2026-08-01T00:00:00+08:00"
+  evidenceTtlHours: 24

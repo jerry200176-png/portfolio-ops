@@ -19,6 +19,12 @@ The current workspace already follows most of this model. Existing legacy
 paths remain in place until a separate inventory, backup, impact assessment,
 rollback plan, and Founder approval authorize a move or archive.
 
+The machine-readable source of truth is `workspace.manifest.yaml`. Discovery
+also scans the legacy `/home/jerry/wt/` worktree root and direct home-level
+Git roots because existing Git metadata predates the current `workspace/`
+layout. Anything discovered outside the manifest is reported as an inventory
+finding, never treated as an automatic removal target.
+
 ## Ownership boundaries
 
 - `repos/` is the canonical Git object source.
@@ -29,6 +35,9 @@ rollback plan, and Founder approval authorize a move or archive.
   perspective; retention and deletion are Founder decisions.
 - `portfolio-ops` records state, evidence, policy, and decisions. It does not
   contain product source code.
+- Product metadata is normalized through the Backstage-compatible component
+  contract under `catalog/`; Backstage itself is optional and deferred until
+  the portfolio is large enough to justify a portal.
 
 ## Safety gates
 

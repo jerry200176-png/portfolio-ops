@@ -5,10 +5,12 @@
 | Gate | Evidence | Stop condition |
 |---|---|---|
 | Inventory | path, remote, branch, HEAD, ahead/behind, status, worktrees, size, last activity | any repo cannot be identified unambiguously |
+| Contract | manifest, portfolio freshness, and catalog component schema | any required field is absent or duplicated |
 | Backup | bundle verification, working/staged diff, untracked list/archive, SHA-256 | any bundle, archive, or checksum fails |
 | Fetch-only | pre/post HEAD/status/diff/worktree/ref snapshots | fetch tries to merge, rebase, prune, or rewrite |
 | Proposal | keep/archive-candidate/remove-candidate with reason, risk, approval flag | proposal contains an unverified removal target |
 | Verification | tests, shell syntax, diff check, forbidden-operation scan | any required check fails |
+| Enforcement audit | GitHub rulesets/branch protection compared with declarative policy | approval, CODEOWNER, or required-check drift is unreviewed |
 
 ## Mandatory stop conditions
 
@@ -19,6 +21,10 @@ reset/clean, merge/rebase, prune, force-push, deploy, or mutate production.
 
 `prunable` is a review state only. The path, branch, HEAD, existence, process
 references, and backup must be recorded before any Founder decision.
+
+Evidence older than the configured TTL is stale. Stale evidence may remain in
+the archive for historical context, but it cannot authorize closure, merge,
+deployment, or production mutation.
 
 ## Rollback
 
