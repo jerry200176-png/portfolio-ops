@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class GovernanceAuditTests(unittest.TestCase):
     def test_audit_script_is_read_only_in_intent(self):
-        script = (ROOT / "scripts/portfolio-governance-audit.sh").read_text()
+        script = (ROOT / "scripts/portfolio-governance-audit.sh").read_text(encoding="utf-8")
         self.assertIn("git -C \"$repo\" status", script)
         self.assertIn("git -C \"$repo\" remote get-url", script)
         self.assertNotIn("git reset", script)

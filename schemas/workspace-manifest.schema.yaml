@@ -1,10 +1,15 @@
 schema_version: 1
 format: JSON-compatible YAML
-required_fields: [schema_version, workspace_root, paths, repositories]
+required_fields: [schema_version, workspace_root, manifest_owner, last_verified_at, inventory_policy, paths, repositories]
 paths_required: [bare_repos, canonical_checkouts, active_worktrees, tasks, archives, evidence, backups, agent_control, control_plane]
 repository_required: [id, path, role, remote, branch_policy, mutation_policy, approval_for_archive_or_remove]
+inventory_policy_required: [discover_immediate_git_roots, worktree_roots, forbidden_mutations]
+repository_roles: [canonical-checkout, control-plane, active-worktree, legacy-checkout, legacy-worktree]
 rules:
   - canonical_checkouts are stable integration points.
   - active_worktrees are the default location for branch work.
   - archives, evidence, and backups are never auto-deleted.
   - remote synchronization is fetch-only unless a separate approval exists.
+  - discovery roots are scanned read-only and findings are compared with repositories.
+  - an unlisted repository is an inventory finding, never an automatic cleanup target.
+  - mutation policy must include a no-destructive-action boundary for legacy paths.

@@ -1,2 +1,9 @@
 # Governance changes require the Founder/repository owner review.
 * @jerry200176-png
+
+# The owner must review changes that alter the control plane itself.
+/governance/ @jerry200176-png
+/schemas/ @jerry200176-png
+/catalog/ @jerry200176-png
+/scripts/ @jerry200176-png
+/.github/ @jerry200176-png

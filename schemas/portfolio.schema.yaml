@@ -4,6 +4,12 @@
 
 schema_version: 1
 
+freshness_fields:
+  p0_evidence_ttl_hours: {type: int, required: true, min: 1}
+  inventory_ttl_days: {type: int, required: true, min: 1}
+  status_ttl_hours: {type: int, required: true, min: 1}
+  stale_policy: {type: string, required: true}
+
 project_fields:
   id: {type: string, required: true, note: "stable kebab/snake id, used as cross-reference key"}
   name: {type: string, required: true}
@@ -23,6 +29,9 @@ project_fields:
   deploy_target: {type: string, required: true}
   production: {type: object, required: false, fields: [version_url, health_url]}
   latest_activity: {type: date (YYYY-MM-DD), required: true}
+  last_verified_at: {type: datetime, required: true, note: "freshness anchor for current state"}
+  source_commit: {type: string, required: true, note: "exact local or deployed source identity"}
+  evidence_expires_at: {type: datetime, required: true, note: "after expiry, evidence is stale and cannot authorize closure"}
   open_p0: {type: int, required: true}
   open_p1: {type: int, required: true}
   current_priority: {type: string, required: true, note: "one line, references an id in state/work-queue.yaml when applicable"}
