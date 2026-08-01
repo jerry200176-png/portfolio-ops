@@ -2,7 +2,8 @@
 
 Read `AGENTS.md`, `CLAUDE.md`, and the Portfolio Ops company-agent contract
 before acting.
-The Portfolio Ops repository is the company control plane.
+The `/home/jerry/workspace/portfolio-ops` repository is the company control
+plane.
 Use `workspace.manifest.yaml` for inventory and
 `agent-control/bin/agent-start` for isolated worktrees. Do not edit dirty
 canonical checkouts. Follow discover -> research -> plan -> implement ->
