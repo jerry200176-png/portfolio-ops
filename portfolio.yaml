@@ -124,4 +124,4 @@ governance_baseline:
       note: canonical checkout passes baseline; current dirty Dependabot change is preserved
     - id: portfolio-ops
       governance_score: 1
-      note: baseline is implemented on the governance branch; legal license and GitHub enforcement remain decisions
+      note: baseline is implemented on main-targeted PR #19; one-person maintainer mode keeps approval and CODEOWNER review disabled while CI/security gates remain required

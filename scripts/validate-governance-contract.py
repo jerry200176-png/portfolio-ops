@@ -157,12 +157,15 @@ def validate_enforcement_policy(errors: list[str]) -> None:
     policy = load_yaml(path)
     require(
         policy,
-        ("schema_version", "policy_owner", "default_branch", "required_approvals", "require_code_owner_review", "required_review_thread_resolution", "block_force_push", "block_branch_deletion", "allow_bypass_actors", "emergency_bypass", "repositories"),
+        ("schema_version", "policy_owner", "maintainer_model", "default_branch", "required_approvals", "require_code_owner_review", "required_review_thread_resolution", "block_force_push", "block_branch_deletion", "allow_bypass_actors", "emergency_bypass", "repositories"),
         "governance/github-enforcement-policy.yaml",
         errors,
     )
-    if policy.get("required_approvals", 0) < 1:
-        errors.append("governance/github-enforcement-policy.yaml: required_approvals must be at least 1")
+    if policy.get("maintainer_model") == "single_owner":
+        if policy.get("required_approvals") != 0 or policy.get("require_code_owner_review") is not False:
+            errors.append("governance/github-enforcement-policy.yaml: single_owner mode must disable approval and CODEOWNER requirements")
+    elif policy.get("required_approvals", 0) < 1:
+        errors.append("governance/github-enforcement-policy.yaml: required_approvals must be at least 1 unless maintainer_model is single_owner")
     repositories = policy.get("repositories", [])
     if not isinstance(repositories, list) or not repositories:
         errors.append("governance/github-enforcement-policy.yaml.repositories: expected a non-empty list")

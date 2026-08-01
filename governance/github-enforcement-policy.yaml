@@ -1,8 +1,9 @@
 schema_version: 1
 policy_owner: founder
+maintainer_model: single_owner
 default_branch: main
-required_approvals: 1
-require_code_owner_review: true
+required_approvals: 0
+require_code_owner_review: false
 required_review_thread_resolution: true
 block_force_push: true
 block_branch_deletion: true
