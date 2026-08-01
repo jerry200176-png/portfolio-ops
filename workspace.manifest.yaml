@@ -86,6 +86,20 @@ repositories:
     branch_policy: isolated-task-branch
     mutation_policy: preserve-dirty-state-before-sync
     approval_for_archive_or_remove: required
+  - id: alltrue-governance-contract-worktree
+    path: /home/jerry/workspace/worktrees/alltrue-governance-contract-20260801
+    role: active-worktree
+    remote: https://github.com/jerry200176-png/AllTrue_System.git
+    branch_policy: isolated-task-branch
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
+  - id: sunrise-governance-contract-worktree
+    path: /home/jerry/workspace/worktrees/sunrise-governance-contract-20260801
+    role: active-worktree
+    remote: https://github.com/jerry200176-png/sunrise-cafe.git
+    branch_policy: isolated-task-branch
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
   - id: portfolio-governance-baseline-worktree
     path: /home/jerry/workspace/worktrees/portfolio-governance-baseline
     role: active-worktree
