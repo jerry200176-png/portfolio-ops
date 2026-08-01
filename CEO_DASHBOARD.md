@@ -15,8 +15,8 @@
 ### Current execution order
 
 1. Independent evidence verification for AllTrue #1428 and Sunrise #261 Draft PRs.
-2. AllTrue #1420 append-only auditability.
-3. Sunrise #257 read-only verification/deploy ownership.
+2. Sunrise #257 live ownership verification (read-only Founder/dashboard evidence; code contract is already on main).
+3. AllTrue #1420 append-only auditability.
 4. Sunrise #211 RLS/rate-limit code-side hardening, with production migration and paid-plan Founder gates.
 5. Architecture and UX slices after reliability evidence is green.
 

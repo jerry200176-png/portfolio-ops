@@ -71,7 +71,13 @@ queue:
     priority: p1
     title: Make production verification read-only and bind one deploy owner
     source: https://github.com/jerry200176-png/sunrise-cafe/issues/257
-    status: queued_draft_pr
+    status: implemented_needs_founder_dashboard_verification
+    implementation: https://github.com/jerry200176-png/sunrise-cafe/pull/258
+    evidence:
+      - "Current main contains PR #258 (commit 65f9ae7); verify-production.yml is read-only and does not call scripts/orchestrator/deploy.sh."
+      - "production-deploy-migrate.yml is the sole repository-controlled Vercel deploy owner and uses production-deploy-main concurrency."
+      - "Independent npm run verify:production-workflow passed."
+      - "Live Vercel project ownership and production behavior remain read-only Founder/dashboard verification; no deploy was triggered."
     acceptance:
       - "Exactly one workflow owns production deployment."
       - "Verification never redeploys or mutates production."
