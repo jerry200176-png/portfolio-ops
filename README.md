@@ -95,6 +95,10 @@ silently.
 
 Audit outputs: [`docs/github-governance/`](docs/github-governance/README.md) (2026-07 Operator audit).
 
+The gateway source is versioned under [`agent-control/`](agent-control/). Use
+`scripts/install-agent-control.sh --apply` to update the local runtime with
+backup-preserving behavior.
+
 Company context and contract checks:
 
 ```bash

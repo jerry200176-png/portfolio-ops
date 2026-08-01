@@ -26,6 +26,8 @@ jobs:
         run: bash scripts/workspace-inventory.sh "$RUNNER_TEMP/workspace-inventory.tsv" "$GITHUB_WORKSPACE"
       - name: Check shell syntax
         run: bash -n scripts/*.sh
+      - name: Check agent-control shell syntax
+        run: bash -n agent-control/bin/agent-start agent-control/bin/portfolio-agent-start agent-control/bootstrap/*.sh scripts/install-agent-control.sh
       - name: Check whitespace
         run: git diff --check
 
@@ -33,3 +35,5 @@ jobs:
         run: python scripts/validate-company-agent-contract.py
       - name: Validate company context
         run: python scripts/company-context.py --check
+      - name: Validate freshness report
+        run: python scripts/portfolio-freshness.py --now 2026-08-01T12:00:00+00:00 --json-out "$RUNNER_TEMP/portfolio-freshness.json"

@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# Unified Agent Launch Gateway ??Phase 0.5
+# Usage:
+#   agent-start <alltrue|sunrise> <task-id> [--cursor|--codex|--claude|--dry-run]
+#   agent-start --validate-manifest <path>
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -L "$SOURCE" ]]; do
+  _dir="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="${_dir}/${SOURCE}"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
+# shellcheck disable=SC1091
+source "${ROOT}/lib/common.sh"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  agent-start <portfolio-ops|alltrue|sunrise> <task-id> [--cursor|--codex|--claude|--dry-run]
+  agent-start --validate-manifest <manifest.json>
+EOF
+}
+
+if [[ "${1:-}" == "--validate-manifest" ]]; then
+  [[ -n "${2:-}" ]] || fail "manifest path required"
+  validate_manifest_file "$2"
+  exit 0
+fi
+
+[[ $# -ge 2 ]] || { usage; exit 2; }
+PROJECT="$1"; TASK_ID="$2"; shift 2
+CLI=""; DRY_RUN=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --cursor) CLI="cursor" ;;
+    --codex) CLI="codex" ;;
+    --claude) CLI="claude" ;;
+    --dry-run) DRY_RUN=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *) fail "unknown arg: $1" ;;
+  esac
+  shift
+done
+
+assert_project "$PROJECT"
+assert_task_id "$TASK_ID"
+
+BARE="${PROJECT_BARE[$PROJECT]}"
+REMOTE="${PROJECT_REMOTE[$PROJECT]}"
+TASK_ROOT="${PROJECT_TASK_ROOT[$PROJECT]}"
+[[ -d "$BARE" ]] || fail "bare repo missing: $BARE"
+[[ "$(git -C "$BARE" rev-parse --is-bare-repository)" == "true" ]] || fail "not bare: $BARE"
+mkdir -p "$TASK_ROOT" "$SESSIONS_DIR" "$LOGS_DIR"
+
+ok "fetching origin main ??bare"
+git -C "$BARE" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || true
+git -C "$BARE" fetch --prune origin
+git -C "$BARE" fetch origin main:main || true
+BASE_SHA="$(git -C "$BARE" rev-parse refs/remotes/origin/main 2>/dev/null || git -C "$BARE" rev-parse main)"
+BRANCH="chore/task-${TASK_ID}"
+WORKTREE="${TASK_ROOT}/${TASK_ID}"
+
+[[ ! -e "$WORKTREE" ]] || fail "worktree exists: $WORKTREE"
+assert_not_forbidden_path "$WORKTREE"
+assert_task_path "$PROJECT" "$WORKTREE"
+git -C "$BARE" show-ref --verify --quiet "refs/heads/${BRANCH}" && fail "branch exists: $BRANCH"
+
+ok "worktree add $WORKTREE @ ${BASE_SHA:0:12}"
+git -C "$BARE" worktree add -b "$BRANCH" "$WORKTREE" "$BASE_SHA"
+git -C "$WORKTREE" remote set-url origin "$REMOTE" 2>/dev/null || git -C "$WORKTREE" remote add origin "$REMOTE"
+git -C "$WORKTREE" fetch origin --quiet
+
+PREFLIGHT="${WORKTREE}/scripts/agent-preflight.sh"
+[[ -f "$PREFLIGHT" ]] || { git -C "$BARE" worktree remove --force "$WORKTREE"; git -C "$BARE" branch -D "$BRANCH"; fail "preflight missing on main"; }
+
+# Run Phase 0.5 preflight from agent-control bootstrap (does not dirty the worktree).
+# After main ships task-root allowlist, in-tree script remains the Agent re-check path.
+set +e
+if [[ "$PROJECT" == "alltrue" ]]; then
+  ( cd "$WORKTREE" && \
+    AGENT_PREFLIGHT_CONFIG="${ROOT}/bootstrap/alltrue-agent-preflight.config.json" \
+    bash "${ROOT}/bootstrap/alltrue-agent-preflight.sh" )
+  PRE_RC=$?
+elif [[ "$PROJECT" == "sunrise" ]]; then
+  ( cd "$WORKTREE" && bash "${ROOT}/bootstrap/sunrise-agent-preflight.sh" )
+  PRE_RC=$?
+else
+  ( cd "$WORKTREE" && bash "${ROOT}/bootstrap/portfolio-ops-agent-preflight.sh" )
+  PRE_RC=$?
+fi
+set -e
+if [[ $PRE_RC -ne 0 ]]; then
+  git -C "$BARE" worktree remove --force "$WORKTREE" 2>/dev/null || rm -rf "$WORKTREE"
+  git -C "$BARE" branch -D "$BRANCH" 2>/dev/null || true
+  fail "preflight failed ??Agent not started"
+fi
+[[ -z "$(git -C "$WORKTREE" status --porcelain)" ]] || {
+  git -C "$BARE" worktree remove --force "$WORKTREE" 2>/dev/null || rm -rf "$WORKTREE"
+  git -C "$BARE" branch -D "$BRANCH" 2>/dev/null || true
+  fail "worktree dirty after preflight; Agent not started"
+}
+
+SESSION_ID="$(new_session_id)"
+STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+MANIFEST_PATH="${SESSIONS_DIR}/${SESSION_ID}.json"
+mkdir -p "${WORKTREE}/.agent-session"
+
+AGENT_CLI_JSON="null"
+[[ -n "$CLI" ]] && AGENT_CLI_JSON="\"${CLI}\""
+python3 - <<PY
+import json
+obj={
+  "schema_version": "1.0",
+  "session_id": "${SESSION_ID}",
+  "project": "${PROJECT}",
+  "task_id": "${TASK_ID}",
+  "repo_remote": "${REMOTE}",
+  "base_sha": "${BASE_SHA}",
+  "branch": "${BRANCH}",
+  "worktree_path": "${WORKTREE}",
+  "started_at": "${STARTED_AT}",
+  "production_mutation": False,
+  "preflight_result": "pass",
+  "provenance_type": "agent-session",
+  "agent_cli": json.loads('${AGENT_CLI_JSON}'),
+  "gateway_version": "${GATEWAY_VERSION}",
+}
+text=json.dumps(obj, indent=2)+"\n"
+open("${MANIFEST_PATH}","w").write(text)
+open("${WORKTREE}/.agent-session/manifest.json","w").write(text)
+PY
+
+validate_manifest_file "$MANIFEST_PATH"
+append_launch_log "$MANIFEST_PATH"
+
+ok "session_id=${SESSION_ID}"
+ok "worktree=${WORKTREE}"
+ok "manifest=${MANIFEST_PATH}"
+ok "production_mutation=disabled"
+
+if [[ "$DRY_RUN" == "1" || -z "$CLI" ]]; then
+  [[ "$DRY_RUN" == "1" ]] && ok "dry-run: not launching CLI"
+  echo "$WORKTREE"
+  exit 0
+fi
+
+cd "$WORKTREE"
+export ALLTRUE_PRODUCTION_MUTATION=0 SUNRISE_PRODUCTION_MUTATION=0
+export PORTFOLIO_PRODUCTION_MUTATION=0
+export COMPANY_WORKSPACE_ROOT="${COMPANY_WORKSPACE_ROOT:-/home/jerry/workspace}"
+export COMPANY_CONTROL_PLANE_ROOT="${COMPANY_CONTROL_PLANE_ROOT:-/home/jerry/workspace/portfolio-ops}"
+export COMPANY_AGENT_CONTRACT="${COMPANY_AGENT_CONTRACT:-/home/jerry/workspace/portfolio-ops/governance/company-agent-contract.yaml}"
+export AGENT_SESSION_ID="$SESSION_ID" AGENT_TASK_ID="$TASK_ID" AGENT_SESSION_MANIFEST="$MANIFEST_PATH"
+case "$CLI" in
+  cursor)
+    if command -v cursor >/dev/null; then exec cursor .
+    elif command -v agent >/dev/null; then exec agent
+    else fail "cursor/agent not found"; fi ;;
+  codex) command -v codex >/dev/null || fail "codex missing"; exec codex ;;
+  claude) command -v claude >/dev/null || fail "claude missing"; exec claude ;;
+  *) fail "bad cli" ;;
+esac

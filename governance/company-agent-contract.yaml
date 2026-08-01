@@ -23,6 +23,8 @@ agent_entrypoints:
   product_gateway: /home/jerry/workspace/agent-control/bin/agent-start
   supported_projects: [portfolio-ops, alltrue, sunrise]
   default_mode: status
+  gateway_source: agent-control/
+  gateway_installer: scripts/install-agent-control.sh --apply
 
 session_invariants:
   one_repository_per_session: true
