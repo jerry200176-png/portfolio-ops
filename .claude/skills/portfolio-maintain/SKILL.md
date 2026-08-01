@@ -70,3 +70,9 @@ If context is running low mid-run: write a checkpoint (format in
 `docs/evidence-policy.md`) into the relevant `reports/YYYY-MM-DD/` file or
 `state/work-queue.yaml` entry before compacting or ending the session.
 Progress must not live only in chat history.
+
+Company-wide contract: before any mode, also read
+`../../../governance/company-agent-contract.yaml`,
+`../../../docs/agent-operating-loop.md`, and
+`../../../workspace.manifest.yaml`. These define the shared intake, research,
+plan, verification, and learning loop.

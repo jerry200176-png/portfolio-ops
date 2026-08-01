@@ -7,3 +7,5 @@ of this repository, with procedure in
 
 Do not duplicate rules here — if this file and `CLAUDE.md` ever disagree,
 `CLAUDE.md` wins.
+Company-wide contract: read `governance/company-agent-contract.yaml` and
+`docs/agent-operating-loop.md` before acting on a portfolio task.

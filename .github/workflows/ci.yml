@@ -28,3 +28,8 @@ jobs:
         run: bash -n scripts/*.sh
       - name: Check whitespace
         run: git diff --check
+
+      - name: Validate company agent contract
+        run: python scripts/validate-company-agent-contract.py
+      - name: Validate company context
+        run: python scripts/company-context.py --check

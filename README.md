@@ -94,3 +94,21 @@ silently.
 ## GitHub platform governance
 
 Audit outputs: [`docs/github-governance/`](docs/github-governance/README.md) (2026-07 Operator audit).
+
+Company context and contract checks:
+
+```bash
+python scripts/validate-company-agent-contract.py
+python scripts/company-context.py --check
+```
+
+Recommended gateway for a company session:
+
+```bash
+~/workspace/agent-control/bin/portfolio-agent-start --company <task-id> --claude
+```
+
+It creates an isolated Portfolio Ops task worktree, runs preflight, and writes
+a session provenance manifest. Versioned workspace entrypoint sources are in
+`docs/workspace-entrypoints/`; install them with
+`scripts/install-workspace-entrypoints.sh --apply` when needed.
