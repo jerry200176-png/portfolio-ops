@@ -69,6 +69,6 @@ jobs:
         # Pull request workflows intentionally run with a read-only token; SARIF
         # upload is enabled for scheduled/manual runs with security-events write.
         if: github.event_name != 'pull_request'
-        uses: github/codeql-action/upload-sarif@47be0dbd5113ab1b79fe2dd3f68bdf7e426cdc87 # v3
+        uses: github/codeql-action/upload-sarif@a2983b8bed1923f44751c5c43237f479442827b3 # v3
         with:
           sarif_file: results.sarif
