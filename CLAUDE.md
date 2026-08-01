@@ -77,3 +77,7 @@ authorization for something this file says needs Founder approval.
 4. The target product repository's own `AGENTS.md`/`CLAUDE.md`, which owns
    runtime and domain rules — this repo owns portfolio policy and
    prioritization only.
+
+Company-wide contract and operating loop: read
+`governance/company-agent-contract.yaml` and
+`docs/agent-operating-loop.md` before acting.

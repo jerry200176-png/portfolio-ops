@@ -30,3 +30,12 @@ stale (check `updated_at`/`latest_activity`), run `triage` first.
 - Draft PR is the finish line. Merge/deploy are Founder decisions.
 - If a step needs login/OAuth/secrets/production-data/migration/merge/
   deploy/deletion/force-push, stop and surface it — see `../../../CLAUDE.md`.
+
+## Company operating loop requirements
+
+Before implementation, complete discover -> research -> plan. Research the
+specific problem using official or primary material, one mature-company
+practice, and a maintained open-source or starred repository; record fit,
+license, adoption cost, and the hypothesis in a research decision record.
+Link the GitHub plan issue and verification commands. After verification,
+record surprises and prevention rules in a learning record or linked issue.
