@@ -10,18 +10,17 @@
 - AllTrue #1408 was stale: #1402, #1409, and #1410 are merged. The board is being reconciled before new work is opened.
 - Founder-only gates remain explicit: AllTrue #1401 privacy review, #1387 credential rotation, Sunrise production migrations/paid infrastructure, merges, and deploys.
 - New control matrix: `docs/incident-control-matrix.md`. New evidence report: `reports/2026-08-01/platform-optimization-baseline.md`.
-- Draft PR #18 updates the control plane; product Draft PRs are open for AllTrue #1428 ([#1576](https://github.com/jerry200176-png/AllTrue_System/pull/1576)) and Sunrise #261 ([#266](https://github.com/jerry200176-png/sunrise-cafe/pull/266)).
+- Draft PR #18 updates the control plane; product Draft PRs are open for AllTrue #1428 ([#1576](https://github.com/jerry200176-png/AllTrue_System/pull/1576)), AllTrue #1420 ([#1577](https://github.com/jerry200176-png/AllTrue_System/pull/1577)), and Sunrise #261 ([#266](https://github.com/jerry200176-png/sunrise-cafe/pull/266)).
 
 ### Current execution order
 
-1. Independent evidence verification for AllTrue #1428 and Sunrise #261 Draft PRs.
+1. Independent evidence verification for AllTrue #1428, AllTrue #1420, and Sunrise #261 Draft PRs.
 2. Sunrise #257 live ownership verification (read-only Founder/dashboard evidence; code contract is already on main).
-3. AllTrue #1420 append-only auditability.
-4. Sunrise #211 RLS/rate-limit code-side hardening, with production migration and paid-plan Founder gates.
-5. Architecture and UX slices after reliability evidence is green.
+3. Sunrise #211 RLS/rate-limit code-side hardening, with production migration and paid-plan Founder gates.
+4. Architecture and UX slices after reliability evidence is green.
 
 Last updated: 2026-08-01 (#1387 remains Founder-triggered; #1401 remains
-Founder-reviewed; AllTrue #1428 and Sunrise #261 now have Draft PR evidence.
+Founder-reviewed; AllTrue #1428/#1420 and Sunrise #261 now have Draft PR evidence.
 See the current baseline section above.)
 
 ## 2026-07-26 — #1387 confirmed match + rotation prepared; #1401 impact audit run

@@ -16,6 +16,7 @@ queue:
       - "Isolated worktrees created from origin/main for portfolio, AllTrue, and Sunrise so implementation does not overwrite user work."
       - "Portfolio control-plane Draft PR #18 opened: https://github.com/jerry200176-png/portfolio-ops/pull/18"
       - "AllTrue Draft PR #1576 opened for #1428: https://github.com/jerry200176-png/AllTrue_System/pull/1576"
+      - "AllTrue Draft PR #1577 opened for #1420: https://github.com/jerry200176-png/AllTrue_System/pull/1577"
       - "Sunrise Draft PR #266 opened for #261: https://github.com/jerry200176-png/sunrise-cafe/pull/266"
     root_cause: "Execution state was distributed across stale dashboard snapshots, GitHub issues, and product checkouts without a current cross-project evidence checkpoint."
     acceptance:
@@ -23,14 +24,20 @@ queue:
       - "Every next task records evidence, non-goals, tests, rollback, dependency, and Founder gate."
       - "No dirty user checkout is modified or reset."
     rollback: "Revert the portfolio control-plane commit; product repositories are unchanged by this baseline update."
-    next_action: "Run independent evidence verification on Draft PRs #1576 and #266, then update this queue and dashboard; do not merge or deploy."
+    next_action: "Run independent evidence verification on Draft PRs #1576, #1577, and #266, then update this queue and dashboard; do not merge or deploy."
 
   - id: SEC-ALLTRUE-1420
     product: alltrue
     priority: p1
     title: Append-only audit events for parent binding, auth, sibling switch, and notification delivery
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1420
-    status: queued_draft_pr
+    status: draft_pr_open
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1577
+    evidence:
+      - "Draft PR #1577 is open from isolated branch agent/audit-events-alltrue."
+      - "Adds PII-minimized append-only events for parent auth, sibling switches, binding lifecycle, and per-binding LINE delivery outcomes."
+      - "PHP syntax and static diff checks passed; full PHPUnit is unverified because the isolated checkout has no vendor/bin/phpunit."
+      - "Production migration, restricted access review, merge, and deploy remain Founder-gated."
     blocked_by: "Founder approval is required before production migration or data backfill; code/tests can be prepared autonomously."
     acceptance:
       - "Events are structured, append-only, access-restricted, retention-defined, and PII-minimized."
