@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-07-26T07:15:00+08:00"
+updated_at: "2026-08-01T13:30:00+08:00"
 projects:
   - id: alltrue
     name: AllTrue System
@@ -24,11 +24,11 @@ projects:
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-07-25"
+    latest_activity: "2026-08-01"
     open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (visibility RESOLVED, credential-reuse verification still pending — see work-queue.yaml)
     open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
-    current_priority: SEC-ALLTRUE-003 — CONFIRMED live DB credential match (fingerprint audit MATCH_ROTATION_REQUIRED); rotation fully prepared and merged (PR #1424), awaiting the single Founder trigger. SEC-ALLTRUE-1401's technical containment is now complete (deploy independently confirmed, adjacent-endpoint audit done, regression coverage merged, impact audit run — classified insufficient-logs) with only human-only manual review (PR #1425) and the notification/legal decision left.
-    next_action: Founder confirms production deploy of #1400 and executes containment checklist (Founder-only, legal/PII, not execute-mode work); in parallel, Founder merges PR #1414 and triggers its workflow to resolve SEC-ALLTRUE-003's last blocker (credential-reuse confirmation); GitGuardian 2026-07-17 3-secret cluster dedup still unconfirmed
+    current_priority: SEC-ALLTRUE-1401 remains the highest-severity incident but its remaining containment and privacy decisions are Founder-only; the highest unblocked engineering follow-up is #1420 auditability plus #1428 deployment identity evidence.
+    next_action: Preserve the Founder gates for #1401/#1387; execute small rollback-ready Draft PRs for append-only audit events and dual-SHA deployment evidence after the execution board is refreshed.
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -58,11 +58,11 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-07-25"
+    latest_activity: "2026-08-01"
     open_p0: 2 # OPS-SUNRISE-001: Vercel capacity now confirmed hitting PRODUCTION (escalated); SEC-SUNRISE-002: RLS/rate-limit/backup decided 2026-07-19 but zero execution PRs since — fail-open rate limiting live now
     open_p1: 1 # CI-SUNRISE-PROVENANCE: Agent Session Provenance check failing repeatedly, confirmed on PR #253
-    current_priority: OPS-SUNRISE-001 — Vercel deployment-capacity cap now confirmed hitting production deploys directly (not just preview); no GitHub issue tracks this distinctly from #211. SELECTED as the single execute-mode candidate this pass (see 2026-07-25 reordering note below) — highest real recurrence + production impact of the three compared items, even though its durable fix (Vercel plan tier) may ultimately be a Founder billing decision, not pure code.
-    next_action: direct Vercel dashboard/API verification of current capacity (not yet performed); vercel.json already has an ignoreCommand + 7 cron entries (Hobby-plan-tuned across prior PRs #203/#206) — worth a focused look at further reducing build/deploy volume before assuming a plan upgrade is the only lever; open a GitHub issue for the production-impacting cap distinct from #211
+    current_priority: SEC-SUNRISE-002 remains the highest unexecuted product risk because fail-open rate limiting and RLS/backup decisions are still not evidenced as shipped; #257 deployment ownership and #261 typecheck are the next bounded engineering slices.
+    next_action: Prepare Draft PRs from current origin/main for read-only production verification, typecheck baseline/gate, and the code-side portion of #211; leave Vercel billing, Supabase plan, and production migration as Founder gates.
     evidence_links:
       - https://github.com/jerry200176-png/sunrise-cafe/issues/211
       - https://github.com/jerry200176-png/sunrise-cafe/pull/253

@@ -1,5 +1,25 @@
 # CEO Dashboard
 
+> Current baseline: 2026-08-01. The historical entries below are retained as an audit trail; the current priority and execution state are defined by this section and `state/work-queue.yaml`.
+
+## 2026-08-01 — Platform optimization baseline and execution reset
+
+- Both products remain Tier 0 and live.
+- AllTrue canonical `main` was clean but stale locally; implementation now uses an isolated worktree from current `origin/main` (`01a34ae2`). The user's existing checkout was not reset or edited.
+- Sunrise's existing dirty `chore/dependabot-major-policy` checkout was not touched. Its current bounded work is #211 code-side hardening, #257 single deploy ownership, and #261 typecheck baseline.
+- AllTrue #1408 was stale: #1402, #1409, and #1410 are merged. The board is being reconciled before new work is opened.
+- Founder-only gates remain explicit: AllTrue #1401 privacy review, #1387 credential rotation, Sunrise production migrations/paid infrastructure, merges, and deploys.
+- New control matrix: `docs/incident-control-matrix.md`. New evidence report: `reports/2026-08-01/platform-optimization-baseline.md`.
+
+### Current execution order
+
+1. AllTrue #1428 deployment identity evidence.
+2. AllTrue #1420 append-only auditability.
+3. Sunrise #257 read-only verification/deploy ownership.
+4. Sunrise #261 reproducible typecheck baseline.
+5. Sunrise #211 RLS/rate-limit code-side hardening, with production migration and paid-plan Founder gates.
+6. Architecture and UX slices after reliability evidence is green.
+
 Last updated: 2026-07-26 ~07:15 +08:00 (#1387 CONFIRMED live credential
 match, rotation fully prepared and merged — awaiting one Founder trigger;
 #1401 technical containment complete, impact audit run, private

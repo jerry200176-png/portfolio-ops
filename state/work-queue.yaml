@@ -1,9 +1,84 @@
 schema_version: 1
-updated_at: 2026-07-26T07:15:00+08:00
+updated_at: 2026-08-01T13:30:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: PORTFOLIO-OPT-BASELINE-20260801
+    product: portfolio
+    priority: p1
+    title: Re-baseline platform optimization execution board and recurring-incident controls
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1408
+    status: baseline_complete_next_draft_pr
+    evidence:
+      - "2026-08-01 fresh local baseline: AllTrue canonical main was clean but 134 commits behind origin/main; Sunrise canonical checkout retained an uncommitted dependabot.yml change and was not touched; portfolio-ops retained untracked reports/codex/ and was not touched."
+      - "GitHub read-back: AllTrue #1408 is stale against merged #1402/#1409/#1410; AllTrue #1420/#1428 remain open; Sunrise #239 is an umbrella with #211/#257/#261 still open."
+      - "Isolated worktrees created from origin/main for portfolio, AllTrue, and Sunrise so implementation does not overwrite user work."
+    root_cause: "Execution state was distributed across stale dashboard snapshots, GitHub issues, and product checkouts without a current cross-project evidence checkpoint."
+    acceptance:
+      - "Current board separates Founder-only actions from agent-owned Draft PR work."
+      - "Every next task records evidence, non-goals, tests, rollback, dependency, and Founder gate."
+      - "No dirty user checkout is modified or reset."
+    rollback: "Revert the portfolio control-plane commit; product repositories are unchanged by this baseline update."
+    next_action: "Commit the baseline report and board updates, then open the first bounded Draft PR from an isolated product worktree."
+
+  - id: SEC-ALLTRUE-1420
+    product: alltrue
+    priority: p1
+    title: Append-only audit events for parent binding, auth, sibling switch, and notification delivery
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1420
+    status: queued_draft_pr
+    blocked_by: "Founder approval is required before production migration or data backfill; code/tests can be prepared autonomously."
+    acceptance:
+      - "Events are structured, append-only, access-restricted, retention-defined, and PII-minimized."
+      - "Allowed and forbidden sibling switches plus notification binding/delivery outcomes are test-covered."
+      - "No production migration or backfill is executed by the agent."
+
+  - id: OPS-ALLTRUE-1428
+    product: alltrue
+    priority: p1
+    title: Expose backend SHA, frontend SHA, and deployed_at for reliable release verification
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1428
+    status: queued_draft_pr
+    acceptance:
+      - "Backend-only and frontend releases expose independently verifiable identities."
+      - "Runbooks and probes stop treating frontend version.json as proof of backend runtime."
+      - "Regression coverage distinguishes backend-only from full deploys."
+
+  - id: SEC-SUNRISE-002-EXECUTION
+    product: sunrise
+    priority: p0
+    title: Execute the code-side portion of #211 without silently performing paid or production mutations
+    source: https://github.com/jerry200176-png/sunrise-cafe/issues/211
+    status: queued_draft_pr
+    blocked_by: "Supabase plan selection, production migration, and paid infrastructure remain Founder gates."
+    acceptance:
+      - "Rate-limit behavior is explicit and fail-closed or clearly surfaced when degraded."
+      - "RLS migration and admin service-role path have read-only verification steps."
+      - "Backup/restore posture has an evidence record and no unverified claim."
+
+  - id: OPS-SUNRISE-257
+    product: sunrise
+    priority: p1
+    title: Make production verification read-only and bind one deploy owner
+    source: https://github.com/jerry200176-png/sunrise-cafe/issues/257
+    status: queued_draft_pr
+    acceptance:
+      - "Exactly one workflow owns production deployment."
+      - "Verification never redeploys or mutates production."
+      - "Concurrency and static contract tests prevent regression."
+
+  - id: CI-SUNRISE-261
+    product: sunrise
+    priority: p1
+    title: Establish a reproducible TypeScript typecheck baseline and CI gate
+    source: https://github.com/jerry200176-png/sunrise-cafe/issues/261
+    status: queued_draft_pr
+    acceptance:
+      - "Current errors are classified at a recorded SHA."
+      - "package.json exposes a repeatable typecheck command."
+      - "CI runs the gate without @ts-ignore, skipLibCheck expansion, or || true as the final state."
+
   - id: SEC-ALLTRUE-1401
     product: alltrue
     priority: p0
