@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgentSessionManifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "session_id",
+    "project",
+    "task_id",
+    "repo_remote",
+    "base_sha",
+    "branch",
+    "worktree_path",
+    "started_at",
+    "production_mutation",
+    "preflight_result",
+    "provenance_type"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "session_id": { "type": "string", "minLength": 8 },
+    "project": { "type": "string", "enum": ["portfolio-ops", "alltrue", "sunrise"] },
+    "task_id": { "type": "string", "pattern": "^[0-9A-Za-z][0-9A-Za-z._-]{0,63}$" },
+    "repo_remote": { "type": "string" },
+    "base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "branch": { "type": "string" },
+    "worktree_path": { "type": "string" },
+    "started_at": { "type": "string" },
+    "production_mutation": { "type": "boolean", "const": false },
+    "preflight_result": { "type": "string", "enum": ["pass"] },
+    "provenance_type": { "type": "string", "enum": ["agent-session", "human-authored"] },
+    "agent_cli": { "type": ["string", "null"] },
+    "gateway_version": { "type": "string" }
+  },
+  "additionalProperties": false
+}
