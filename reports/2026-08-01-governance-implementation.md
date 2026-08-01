@@ -24,8 +24,9 @@ pruned, moved, removed, deployed, or changed through production controls.
 ## Current inventory observation
 
 The read-only inventory scan found 58 Git candidates: 38 clean, 12 dirty, and
-8 unresolved/unreadable worktree references. These are findings only; no
-lifecycle action was taken.
+8 unresolved/unreadable worktree references. Two new isolated worktrees were
+then created for the reviewed product contract PRs. These are findings and
+review branches only; no lifecycle action was taken against existing trees.
 
 ## Verification
 
@@ -36,13 +37,20 @@ lifecycle action was taken.
 - `scripts/workspace-inventory.sh`: PASS
 - `scripts/github-governance-audit.sh`: PASS; audit output kept outside the
   repository under `/tmp`.
+- Draft governance PR #17 is pushed and remote Governance CI and Security
+  baseline both pass: https://github.com/jerry200176-png/portfolio-ops/pull/17
+- GitHub enforcement applied: AllTrue ruleset, Sunrise `main` protection, and
+  Portfolio Ops `main` ruleset now require one approval, CODEOWNER review,
+  conversation resolution, and required checks with no bypass actors.
+- Product component contract PRs opened for review:
+  - https://github.com/jerry200176-png/AllTrue_System/pull/1573
+  - https://github.com/jerry200176-png/sunrise-cafe/pull/265
 
-## Remaining external decisions
+## Remaining decisions
 
-- Apply `governance/github-enforcement-policy.yaml` to GitHub rulesets after
-  Founder review.
 - Decide how to resolve the eight unreadable/prunable worktree references.
-- Copy or link the component contract into each product repository through
-  separate reviewed PRs; dirty canonical product checkouts were intentionally
-  not modified in this pass.
-- Push and rerun the remote CI checks for the draft governance PR.
+- Review and merge the three draft PRs when Founder approval is given; no PR
+  was merged automatically.
+- Enable repository code-scanning upload when the private Portfolio Ops repo
+  has the required GitHub Advanced Security capability. Until then, PR CodeQL
+  runs analysis with `upload: never`, while Gitleaks and Scorecard gates pass.
