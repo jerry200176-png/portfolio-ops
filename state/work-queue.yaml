@@ -37,6 +37,7 @@ queue:
       - "Draft PR #1577 is open from isolated branch agent/audit-events-alltrue."
       - "Adds PII-minimized append-only events for parent auth, sibling switches, binding lifecycle, and per-binding LINE delivery outcomes."
       - "PHP syntax and static diff checks passed; full PHPUnit is unverified because the isolated checkout has no vendor/bin/phpunit."
+      - "GitHub PR checks passed: Agent Session Provenance, Migration Dry-run against ephemeral MySQL, and Rollback readiness; PHPUnit/security/UI checks were skipped by changed-area routing."
       - "Production migration, restricted access review, merge, and deploy remain Founder-gated."
     blocked_by: "Founder approval is required before production migration or data backfill; code/tests can be prepared autonomously."
     acceptance:
