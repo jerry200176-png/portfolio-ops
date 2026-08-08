@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-07-26T07:15:00+08:00"
+updated_at: "2026-08-08T15:30:00+08:00"
 projects:
   - id: alltrue
     name: AllTrue System
@@ -24,17 +24,19 @@ projects:
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-07-25"
-    open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (visibility RESOLVED, credential-reuse verification still pending — see work-queue.yaml)
-    open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
-    current_priority: SEC-ALLTRUE-003 — CONFIRMED live DB credential match (fingerprint audit MATCH_ROTATION_REQUIRED); rotation fully prepared and merged (PR #1424), awaiting the single Founder trigger. SEC-ALLTRUE-1401's technical containment is now complete (deploy independently confirmed, adjacent-endpoint audit done, regression coverage merged, impact audit run — classified insufficient-logs) with only human-only manual review (PR #1425) and the notification/legal decision left.
-    next_action: Founder confirms production deploy of #1400 and executes containment checklist (Founder-only, legal/PII, not execute-mode work); in parallel, Founder merges PR #1414 and triggers its workflow to resolve SEC-ALLTRUE-003's last blocker (credential-reuse confirmation); GitGuardian 2026-07-17 3-secret cluster dedup still unconfirmed
+    latest_activity: "2026-08-08"
+    open_p0: 3 # SEC-ALLTRUE-GITGUARDIAN-0717 (Telegram bot token: CONFIRMED open+unrotated 6mo, publicly leaked ~5.5mo — Founder rotation decision needed now); SEC-ALLTRUE-1401 (parent-portal cross-student exposure, technical containment done, Founder legal/notification decision left, explicitly non-automatable per issue's 2026-08-07 comment); SEC-ALLTRUE-003 (rotation script bug that broke the 2026-08-07 Founder attempt fixed+merged PR #1709, awaiting Founder re-trigger — see work-queue.yaml)
+    open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed) — not re-checked this pass
+    current_priority: SEC-ALLTRUE-GITGUARDIAN-0717 — a Telegram Bot Token has sat in GitHub secret-scanning as state=open, resolution=null since 2026-02-07 (6 months), publicly_leaked=true (repo was public until 2026-07-25); it has never been rotated. This is now the single most urgent open item — a live, currently-unrotated credential. SEC-ALLTRUE-003's blocker changed: not a Founder-approval gate anymore but a real bug in the rotation script itself (2026-08-07 attempt failed with ALTER USER host mismatch), fixed and merged this pass (PR #1709) — next Founder trigger should succeed. SEC-ALLTRUE-1401 unchanged: technical containment complete, purely a Founder legal/notification decision remains.
+    next_action: "Founder, in order: (1) rotate the leaked Telegram bot token at the provider now (GITGUARDIAN-0717); (2) re-run `1387 DB Password Rotation` workflow (confirm=ROTATE) now that PR #1709 fixed the ALTER USER bug, then re-run the fingerprint audit to confirm SEC-ALLTRUE-003 clears; (3) complete the #1401 manual PII-log review + family notification/legal decision (cannot be automated, see issue #1401's 2026-08-07 comment)."
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
       - https://github.com/jerry200176-png/AllTrue_System/issues/1387
       - https://github.com/jerry200176-png/AllTrue_System/pull/1395
-      - https://github.com/jerry200176-png/AllTrue_System/pull/1414
+      - https://github.com/jerry200176-png/AllTrue_System/pull/1709
+      - https://github.com/jerry200176-png/AllTrue_System/security/secret-scanning/1
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1690
       - https://github.com/jerry200176-png/AllTrue_System/issues/1007
       - reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
       - reports/2026-07-25/github-triage.md
@@ -58,14 +60,15 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-07-25"
-    open_p0: 2 # OPS-SUNRISE-001: Vercel capacity now confirmed hitting PRODUCTION (escalated); SEC-SUNRISE-002: RLS/rate-limit/backup decided 2026-07-19 but zero execution PRs since — fail-open rate limiting live now
-    open_p1: 1 # CI-SUNRISE-PROVENANCE: Agent Session Provenance check failing repeatedly, confirmed on PR #253
-    current_priority: OPS-SUNRISE-001 — Vercel deployment-capacity cap now confirmed hitting production deploys directly (not just preview); no GitHub issue tracks this distinctly from #211. SELECTED as the single execute-mode candidate this pass (see 2026-07-25 reordering note below) — highest real recurrence + production impact of the three compared items, even though its durable fix (Vercel plan tier) may ultimately be a Founder billing decision, not pure code.
-    next_action: direct Vercel dashboard/API verification of current capacity (not yet performed); vercel.json already has an ignoreCommand + 7 cron entries (Hobby-plan-tuned across prior PRs #203/#206) — worth a focused look at further reducing build/deploy volume before assuming a plan upgrade is the only lever; open a GitHub issue for the production-impacting cap distinct from #211
+    latest_activity: "2026-08-08"
+    open_p0: 2 # OPS-SUNRISE-001: not re-verified this pass, carried over from 2026-07-25; SEC-SUNRISE-002 (rate-limit fail-open): PR #276 exists and appears to address this (opened 2026-08-08, title "rate-limit observability + onboarding + Vercel backoff") but its CI is currently RED — confirmed this pass, see evidence
+    open_p1: 1 # CI-SUNRISE-PROVENANCE: not re-verified this pass
+    current_priority: SEC-SUNRISE-002 — PR #276 (2026-08-08) is mid-flight fixing this exact P0 but CI is failing on `src/lib/rate-limit.test.ts`: `TypeError: (0 , __resetMemoryRateLimitForTests) is not a function` (5 tests failing) — the test helper isn't exported from wherever `rate-limit.ts` is supposed to provide it. Not yet root-caused or fixed this pass.
+    next_action: fix the `__resetMemoryRateLimitForTests` export/import mismatch blocking PR #276's CI, get it green, then Founder reviews/merges (fail-open rate limiting is currently live in production while this is open)
     evidence_links:
       - https://github.com/jerry200176-png/sunrise-cafe/issues/211
       - https://github.com/jerry200176-png/sunrise-cafe/pull/253
+      - https://github.com/jerry200176-png/sunrise-cafe/pull/276
       - reports/2026-07-25/github-triage.md
       - reports/2026-07-25/gmail-signals.md
 
