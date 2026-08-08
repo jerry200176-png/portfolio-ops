@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-01T13:30:00+08:00"
+updated_at: "2026-08-08T14:00:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -29,10 +29,10 @@ projects:
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-08-01"
-    last_verified_at: "2026-08-01T00:00:00+08:00"
+    latest_activity: "2026-08-08"
+    last_verified_at: "2026-08-08T00:00:00+08:00"
     source_commit: "592d08d5c140b6206693f0f03f74f2c92a0c4267"
-    evidence_expires_at: "2026-08-02T00:00:00+08:00"
+    evidence_expires_at: "2026-08-09T00:00:00+08:00"
     open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (visibility RESOLVED, credential-reuse verification still pending — see work-queue.yaml)
     open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
     current_priority: SEC-ALLTRUE-1401 remains the highest-severity incident but its remaining containment and privacy decisions are Founder-only; the highest unblocked engineering follow-up is #1420 auditability plus #1428 deployment identity evidence.
@@ -66,10 +66,10 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-08-01"
-    last_verified_at: "2026-08-01T00:00:00+08:00"
-    source_commit: "773ea48ccb4e6c8eb36c7ac0119881a560b8326d"
-    evidence_expires_at: "2026-08-02T00:00:00+08:00"
+    latest_activity: "2026-08-08"
+    last_verified_at: "2026-08-08T00:00:00+08:00"
+    source_commit: "9b5aabdc1ba40e181636a4b18453b2c9b5fe7b87"
+    evidence_expires_at: "2026-08-09T00:00:00+08:00"
     open_p0: 2 # OPS-SUNRISE-001: Vercel capacity now confirmed hitting PRODUCTION (escalated); SEC-SUNRISE-002: RLS/rate-limit/backup decided 2026-07-19 but zero execution PRs since — fail-open rate limiting live now
     open_p1: 1 # CI-SUNRISE-PROVENANCE: Agent Session Provenance check failing repeatedly, confirmed on PR #253
     current_priority: SEC-SUNRISE-002 remains the highest unexecuted product risk because fail-open rate limiting and RLS/backup decisions are still not evidenced as shipped; #257 deployment ownership and #261 typecheck are the next bounded engineering slices.
@@ -92,6 +92,11 @@ meta:
     local_path: /home/jerry/workspace/agent-control
     github_repo: null
     note: safe preflight/session launcher used before editing product code
+  - id: engineering-intelligence
+    name: Engineering Intelligence
+    local_path: /home/jerry/workspace/engineering-intelligence
+    github_repo: jerry200176-png/engineering-intelligence
+    note: 工程情報管線 — 監控 AI coding agent / CI/CD security / governance 相關來源，產出每日/週報與候選提案。2026-08-08 首次真實 LLM 分析完成（104/105 項，Groq Llama 3.1 8B），PR #1 待合併
 
 # Governance profile is maintained separately from product risk scoring.
 governance_baseline:
@@ -99,7 +104,7 @@ governance_baseline:
   profile: company-control-plane-v1
   manifest: workspace.manifest.yaml
   component_contract: catalog/*.yaml
-  last_inventory_at: "2026-08-01T00:00:00+08:00"
+  last_inventory_at: "2026-08-08T00:00:00+08:00"
   inventory_rows: 58
   unresolved_inventory_rows: 8
   audit_script: scripts/portfolio-governance-audit.sh
