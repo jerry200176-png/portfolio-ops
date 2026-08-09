@@ -5,5 +5,9 @@ convention. The authoritative operating rules live in `CLAUDE.md` at the root
 of this repository, with procedure in
 `.claude/skills/portfolio-maintain/SKILL.md`. Read both before acting.
 
+All local and cloud agents should also load `governance/AGENT_BOOTSTRAP.md`.
+It is the compact cross-agent contract; the detailed authority remains in
+`governance/` and this repository's `CLAUDE.md`.
+
 Do not duplicate rules here — if this file and `CLAUDE.md` ever disagree,
 `CLAUDE.md` wins.
