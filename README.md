@@ -58,7 +58,9 @@ which granted broader autonomy; that grant was revoked 2026-07-25 — see
 4. `PORTFOLIO.md` — narrative overview and change log.
 5. `governance/AUTONOMY_POLICY.md` and `governance/COMPANY_CONSTITUTION.md`
    — the full policy behind `CLAUDE.md`'s summary.
-6. `state/work-queue.yaml` — live work items and evidence.
+6. `governance/repository-governance.yaml` — fleet policy and required agent
+   adapters/enforcement.
+7. `state/work-queue.yaml` — live work items and evidence.
 
 ## Standard launch flow
 
@@ -79,6 +81,13 @@ want current state. Use `bootstrap` only for a first run or a full
 re-baseline; use `triage` to refresh signals; use `execute` to do the
 highest-ROI safe work as Draft PRs; use `weekly-review` for the wider
 weekly sweep.
+
+From Ubuntu, `governance-audit` audits GitHub enforcement without writing.
+`governance-onboard owner/repo --dry-run` previews a new project; `--apply`
+creates an isolated onboarding worktree with the pinned ExoProtocol governance
+core and only missing adapters. After that bootstrap PR merges,
+`governance-onboard owner/repo --apply --enable-ci` adds the Exo CI workflow as
+a separate reviewable change.
 
 ## Definition of done (this control plane's scope)
 

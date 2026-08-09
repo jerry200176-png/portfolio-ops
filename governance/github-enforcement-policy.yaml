@@ -4,7 +4,7 @@ maintainer_model: single_owner
 default_branch: main
 required_approvals: 0
 require_code_owner_review: false
-required_review_thread_resolution: true
+required_review_thread_resolution: false
 block_force_push: true
 block_branch_deletion: true
 allow_bypass_actors: []

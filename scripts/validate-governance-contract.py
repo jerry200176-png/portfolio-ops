@@ -121,6 +121,23 @@ def validate_portfolio(errors: list[str], check_paths: bool) -> None:
         if check_paths and isinstance(project.get("local_path"), str) and not Path(project["local_path"]).exists():
             errors.append(f"{label}: local_path does not exist: {project['local_path']}")
 
+    meta = portfolio.get("meta", [])
+    if not isinstance(meta, list):
+        errors.append("portfolio.yaml.meta: expected a list")
+    else:
+        meta_ids: set[str] = set()
+        for index, item in enumerate(meta):
+            label = f"portfolio.yaml.meta[{index}]"
+            if not isinstance(item, dict):
+                errors.append(f"{label}: expected a mapping")
+                continue
+            require(item, ("id", "name"), label, errors)
+            meta_id = item.get("id")
+            if meta_id in meta_ids:
+                errors.append(f"{label}: duplicate id {meta_id}")
+            if meta_id:
+                meta_ids.add(meta_id)
+
 
 def validate_catalog(errors: list[str]) -> None:
     catalog_dir = ROOT / "catalog"

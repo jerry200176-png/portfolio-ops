@@ -1,9 +1,16 @@
 schema_version: 1
 contract_id: company-agent-operating-contract
 version: 1.0.0
-maintainer_model: single_owner
+policy_version: "2026-08-08.1"
+owner: jerry200176-png
 company_name: Jerry Software Portfolio
 workspace_root: /home/jerry/workspace
+canonical_policy: governance/AGENT_BOOTSTRAP.md
+constitution: governance/COMPANY_CONSTITUTION.md
+autonomy_policy: governance/AUTONOMY_POLICY.md
+fleet_manifest: governance/repository-governance.yaml
+
+maintainer_model: single_owner
 
 control_plane:
   repository: jerry200176-png/portfolio-ops
@@ -116,3 +123,34 @@ github_records:
   verification: pr_check_and_evidence_record
   decision: founder_decision_record
   weekly_health: scheduled_governance_report
+
+agents:
+  - cursor
+  - codex
+  - claude-code
+  - cubelv
+
+required_controls:
+  local:
+    - identify_repository_branch_worktree_scope_and_risk
+    - use_agent_control_or_governance_onboard
+    - preserve_existing_repository_instructions
+  remote:
+    - pull_request_required
+    - independent_human_review_required
+    - force_push_blocked
+    - branch_deletion_blocked
+    - provenance_or_exo_session_required
+
+cloud_boundary:
+  local_home_visible: false
+  enforcement_source: committed_repository_files_and_github_rulesets
+  bypass_actors: []
+
+irreversible_actions:
+  founder_approval_required:
+    - merge
+    - deploy
+    - production_data_mutation
+    - credential_rotation_or_revocation
+    - git_history_rewrite

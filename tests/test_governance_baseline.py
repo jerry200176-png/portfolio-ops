@@ -1,4 +1,5 @@
 from pathlib import Path
+import importlib.util
 import re
 import subprocess
 import sys
@@ -6,6 +7,15 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_ruleset_module():
+    path = ROOT / "scripts" / "apply-github-baseline-rulesets.py"
+    spec = importlib.util.spec_from_file_location("apply_rulesets", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class GovernanceBaselineTests(unittest.TestCase):
@@ -79,6 +89,21 @@ class GovernanceBaselineTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_existing_ruleset_drift_is_blocked_by_default(self):
+        module = load_ruleset_module()
+        desired = module.payload()
+        self.assertEqual(desired["rules"][2]["parameters"]["required_approving_review_count"], 0)
+        self.assertFalse(desired["rules"][2]["parameters"]["require_last_push_approval"])
+        self.assertFalse(desired["rules"][2]["parameters"]["required_review_thread_resolution"])
+        drifted = {**desired, "rules": [{"type": "deletion"}]}
+        self.assertEqual(module.existing_action(drifted, desired, False), "blocked")
+        self.assertEqual(module.existing_action(drifted, desired, True), "updated")
+        self.assertEqual(module.existing_action(desired, desired, False), "unchanged")
+
+    def test_remote_governance_policy_does_not_require_human_review(self):
+        policy = (ROOT / "governance" / "repository-governance.yaml").read_text(encoding="utf-8")
+        self.assertIn("require_human_review: false", policy)
 
 
 if __name__ == "__main__":

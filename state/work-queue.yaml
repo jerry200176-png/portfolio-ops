@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-08-01T13:25:00+08:00
+updated_at: 2026-08-09T10:22:46+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -183,21 +183,24 @@ queue:
     priority: p0
     title: GitGuardian 3-secret cluster (Telegram Bot Token, Laravel APP_KEY, Bearer Token) — dedup unconfirmed
     source: gmail:GitGuardian-alerts-2026-07-17
-    status: unresolved_pending_confirmation
+    status: telegram_leg_rotated_and_resolved_appkey_bearer_unconfirmed
     evidence:
       - "GitGuardian sent 3 alerts on 2026-07-17 (reports/2026-07-25/gmail-signals.md); not yet confirmed whether these are the same candidates already rotated and closed under SEC-ALLTRUE-001 (which confirmed TELEGRAM, APP_KEY, and BEARER were different from historical leaked candidates) or a new, separate exposure"
-      - github-triage agent could not resolve this — no direct secret-scanning pull performed yet against current AllTrue state
-    next_action: run GitHub secret-scanning directly against AllTrue_System and diff fingerprints/timestamps against the SEC-ALLTRUE-001 closure evidence before scoring as new work or marking covered. Treated as P0 pending this confirmation given the exposure type (bot token, app key, bearer token) if not already covered.
+      - "2026-08-08: ran `gh api repos/jerry200176-png/AllTrue_System/secret-scanning/alerts` — exactly 1 alert total (not 3): #1, secret_type=telegram_bot_token, first detected 2026-02-07 in commit 245b8a5d, path `AllTrue (3).sql` line 136 (a committed database dump file). Repo was public until 2026-07-25 per SEC-ALLTRUE-003 evidence above, so this token was publicly exposed for ~5.5 months before rotation. GitHub secret-scanning did not surface any APP_KEY or Bearer Token alert — those two GitGuardian findings are either not in GitHub's default detection patterns, were caught only via Actions-log exposure (a different surface than repo content, matching the SEC-ALLTRUE-003 pattern) rather than committed file content, or are already resolved/superseded; still not confirmed which."
+      - "2026-08-08 (same day, later): Founder had an engineer rotate the Telegram bot token at the provider (revoke + reissue). Confirmed via chat, not independently re-verified against Telegram's API (using the old or new credential to test is not this session's call). Marked alert #1 `resolved`/`revoked` via `gh api -X PATCH .../secret-scanning/alerts/1` with a resolution_comment recording the provider-side rotation and Founder confirmation."
+    next_action: "Only the APP_KEY and Bearer Token legs of the original 3-alert GitGuardian cluster remain unconfirmed — GitHub's own scanner didn't surface them, so confirming/denying those needs either a GitGuardian re-scan or manual review of the original 2026-07-17 alert emails against current state. Not blocking; lower urgency now that the confirmed live leak (Telegram token) is closed."
 
   - id: SEC-ALLTRUE-003
     product: alltrue
     priority: p0
     title: Contain public Actions credential exposure and restore release identity
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1387
-    status: rotation_prepared_awaiting_founder_trigger
+    status: rotation_script_fixed_awaiting_founder_retrigger
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1395
     blocked_by: https://github.com/jerry200176-png/AllTrue_System/pull/1424
     evidence:
+      - "2026-08-07 Founder triggered `1387 DB Password Rotation` (run 31139300080, workflow_dispatch) — FAILED: `ERROR 1396 (HY000): Operation ALTER USER failed`. Root cause: script authenticates via `-h 127.0.0.1` (matches the `@'127.0.0.1'`/`@'%'` grant row) but hardcoded `ALTER USER '<name>'@'localhost'` — a different, evidently nonexistent, account row to MySQL."
+      - "2026-08-08: root cause diagnosed and fixed in AllTrue_System PR #1709 (merged, commit 1fac1143), switching to `ALTER USER CURRENT_USER()` so the statement always targets whichever account actually authenticated the connection. Script-only change; the rotation itself was NOT triggered by this session (Founder-only action, per AllTrue's own workflow name/gate). Fix has only static/syntax verification (YAML parse, documented MySQL syntax) — no end-to-end test was possible without performing the real Founder-only rotation."
       - "2026-07-25/26 CONFIRMED MATCH: PR #1414 (superseded by #1421, merged) fingerprint audit triggered from main (run 30177947909) — DB_PASSWORD returned MATCH_ROTATION_REQUIRED (leaked=1, production=1). The pre-fix leaked value IS still the live production database password. TELEGRAM/APP_KEY/BEARER: not found in either leaked or production data, not applicable to this run."
       - "Rotation workflow built, reviewed, and merged (PR #1424, .github/workflows/1387-db-password-rotation.yml): workflow_dispatch with a typed confirm=ROTATE gate; takes a pre-rotation mysqldump backup, generates a new password via openssl rand entirely inside one remote SSH session (never printed/logged), applies via ALTER USER + .env update, verifies with mysqladmin ping, runs config:cache (never config:clear), polls /api/v1/health until ok. Not yet triggered."
       - "Fresh backup-restore verification re-run 2026-07-25 (run 30178339123, passed): latest 6h backup (alltrue_6h_2026-07-26_0500.sql.gz) restored cleanly; Student 1015, StudentClass 1969, ClassSession 17821, User 142, Campus 13 rows — all above expected minimums; test DB cleaned up."
@@ -325,12 +328,13 @@ queue:
     priority: p0
     title: Supabase RLS/rate-limit/backup — Founder decisions made but unexecuted
     source: https://github.com/jerry200176-png/sunrise-cafe/issues/211
-    status: decided_not_executed
+    status: partial_execution_pr_open
     evidence:
       - "Founder decisions FD-1...FD-6 (RLS, rate limiting, backup posture) were recorded 2026-07-19 in issue #211"
-      - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): confirmed via PR search — ZERO execution PRs exist referencing #211 or its decision items since 2026-07-19"
+      - "2026-08-09: Sunrise PR #276 at commit e1b2c82 restores the rate-limit memory fallback, Edge-safe hashing, and auth guards; Agent Session Provenance, Lint & Build, and Playwright smoke all passed. The Draft PR is not merged or deployed."
+      - "RLS application status and backup/restore posture remain unconfirmed; the rate-limit production runtime remains unchanged until Founder review, merge, and the normal deployment path."
       - "current production state: fail-open rate limiting confirmed live (booking-health endpoint reports rate_limit_mode=memory, rate_limit_grade=degraded_per_isolate); backup posture unconfirmed; RLS application status unconfirmed"
-    next_action: reclassified from "queued" (implies not-yet-decided) to "decided_not_executed" (implies live unaddressed risk) — highest-ROI Sunrise engineering work available for next execute-mode pass, since the decision-making step is already done and only implementation remains
+    next_action: Founder reviews/merges PR #276 after confirming production-risk acceptance; then prepare separate, rollback-ready RLS and backup evidence work, with all production migration and paid-plan actions remaining Founder-gated
 
   - id: CI-SUNRISE-PROVENANCE
     product: sunrise
@@ -397,7 +401,7 @@ queue:
       - "merge attempted, BLOCKED by a second, legitimate blocker: AllTrue's required 'Agent Session Provenance' check correctly failed because this PR's branch (built via ad hoc git clone in scratchpad) carries no .agent-session/manifest.json or human-authored.json — a genuine governance gate, not a bug. This session declined to fabricate a manifest or force-merge past 'admin enforcement' branch protection without clear authorization."
       - "Founder decision (given live): merge PR #1414 manually via GitHub UI/admin. This session leaves it open, unmerged."
       - "side finding: this same provenance-gate pattern likely explains Sunrise's recurring CI-SUNRISE-PROVENANCE failures on PR #253 too (not independently confirmed this pass)"
-    next_action: Founder merges PR #1414 manually (GitHub UI/admin — bypassing this specific gate is the Founder's call), then runs `gh workflow run db-password-fingerprint-audit.yml --repo jerry200176-png/AllTrue_System` — this is the single action that resolves SEC-ALLTRUE-003's last open question
+    next_action: Founder re-runs `1387 DB Password Rotation` (workflow_dispatch, confirm=ROTATE) now that the 2026-08-07 ALTER-USER-host-mismatch failure is fixed (PR #1709); on success, re-run the fingerprint audit workflow to confirm MATCH_ROTATION_REQUIRED clears — this is the single action that resolves SEC-ALLTRUE-003's last open question. (PR #1414 note is now stale/superseded — the fingerprint-audit gate question it referenced is no longer the blocker; the rotation script bug was.)
 
   - id: MAIL-PORTFOLIO-001
     product: portfolio
