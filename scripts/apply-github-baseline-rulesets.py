@@ -36,11 +36,11 @@ def payload() -> dict[str, Any]:
             {
                 "type": "pull_request",
                 "parameters": {
-                    "required_approving_review_count": 1,
-                    "dismiss_stale_reviews_on_push": True,
+                    "required_approving_review_count": 0,
+                    "dismiss_stale_reviews_on_push": False,
                     "require_code_owner_review": False,
-                    "require_last_push_approval": True,
-                    "required_review_thread_resolution": True,
+                    "require_last_push_approval": False,
+                    "required_review_thread_resolution": False,
                     "required_reviewers": [],
                     "allowed_merge_methods": ["merge", "squash", "rebase"],
                 },
