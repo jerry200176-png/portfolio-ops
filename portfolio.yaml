@@ -101,12 +101,6 @@ meta:
     github_repo: jerry200176-png/engineering-intelligence
     note: 工程情報管線 — 監控 AI coding agent / CI/CD security / governance 相關來源，產出每日/週報與候選提案。2026-08-08 首次真實 LLM 分析完成（104/105 項，Groq Llama 3.1 8B），PR #1 待合併
 
-  - id: engineering-intelligence
-    name: Engineering Intelligence
-    local_path: /home/jerry/workspace/engineering-intelligence
-    github_repo: jerry200176-png/engineering-intelligence
-    note: 工程情報管線 — 監控 AI coding agent / CI/CD security / governance 相關來源，產出每日/週報與候選提案。2026-08-08 首次真實 LLM 分析完成（104/105 項，Groq Llama 3.1 8B），PR #1 待合併
-
 # Governance profile is maintained separately from product risk scoring.
 governance_baseline:
   schema_version: 1

@@ -21,6 +21,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "governance" / "repository-governance.yaml"
 RULESET_NAME = "portfolio-governance-main"
+RULESET_FIELDS = ("name", "target", "enforcement", "conditions", "rules", "bypass_actors")
 
 
 def payload() -> dict[str, Any]:
@@ -69,11 +70,35 @@ def gh_json(repo: str, *args: str, body: dict[str, Any] | None = None) -> Any | 
         return {}
 
 
+def ruleset_fingerprint(value: dict[str, Any]) -> str:
+    """Compare only the declarative fields, ignoring GitHub-generated metadata."""
+    return json.dumps(
+        {field: value.get(field) for field in RULESET_FIELDS},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def existing_action(existing: dict[str, Any], desired: dict[str, Any], replace_existing: bool) -> str:
+    """Return a safe plan for an existing named ruleset."""
+    if ruleset_fingerprint(existing) == ruleset_fingerprint(desired):
+        return "unchanged"
+    return "updated" if replace_existing else "blocked"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", action="append", help="Apply only this owner/repo")
     parser.add_argument("--apply", action="store_true", help="Write the ruleset to GitHub")
+    parser.add_argument(
+        "--replace-existing",
+        action="store_true",
+        help="Allow --apply to replace an existing ruleset whose declarative fields drift",
+    )
     args = parser.parse_args()
+
+    if args.replace_existing and not args.apply:
+        parser.error("--replace-existing requires --apply")
 
     data = yaml.safe_load(MANIFEST.read_text())
     entries = data["repositories"]
@@ -81,6 +106,7 @@ def main() -> int:
         entries = [entry for entry in entries if entry["github_repo"] in args.repo]
 
     rule_payload = payload()
+    plans: list[tuple[dict[str, Any], str, dict[str, Any] | None, dict[str, Any] | None]] = []
     for entry in entries:
         repo = entry["github_repo"]
         if not args.apply:
@@ -89,12 +115,31 @@ def main() -> int:
 
         existing = gh_json(repo, f"repos/{repo}/rulesets") or []
         match = next((item for item in existing if item.get("name") == RULESET_NAME), None)
-        if match:
-            result = gh_json(repo, "--method", "PUT", f"repos/{repo}/rulesets/{match['id']}", body=rule_payload)
-            action = "updated"
-        else:
+        if not match:
+            plans.append((entry, "created", None, None))
+            continue
+
+        detail = gh_json(repo, f"repos/{repo}/rulesets/{match['id']}") or match
+        action = existing_action(detail, rule_payload, args.replace_existing)
+        if action == "blocked":
+            print(
+                f"BLOCKED {repo}: existing {RULESET_NAME} differs; "
+                "refusing to overwrite without --replace-existing",
+                file=sys.stderr,
+            )
+            return 2
+        plans.append((entry, action, match, detail))
+
+    for entry, action, match, _detail in plans:
+        repo = entry["github_repo"]
+        if action == "unchanged":
+            print(f"VERIFIED {repo}: unchanged {RULESET_NAME}")
+            continue
+        if action == "created":
             result = gh_json(repo, "--method", "POST", f"repos/{repo}/rulesets", body=rule_payload)
-            action = "created"
+        else:
+            assert match is not None
+            result = gh_json(repo, "--method", "PUT", f"repos/{repo}/rulesets/{match['id']}", body=rule_payload)
         if result is None:
             return 1
         print(f"APPLIED {repo}: {action} {RULESET_NAME}")

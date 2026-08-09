@@ -1,4 +1,5 @@
 from pathlib import Path
+import importlib.util
 import re
 import subprocess
 import sys
@@ -6,6 +7,15 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_ruleset_module():
+    path = ROOT / "scripts" / "apply-github-baseline-rulesets.py"
+    spec = importlib.util.spec_from_file_location("apply_rulesets", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class GovernanceBaselineTests(unittest.TestCase):
@@ -79,6 +89,14 @@ class GovernanceBaselineTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_existing_ruleset_drift_is_blocked_by_default(self):
+        module = load_ruleset_module()
+        desired = module.payload()
+        drifted = {**desired, "rules": [{"type": "deletion"}]}
+        self.assertEqual(module.existing_action(drifted, desired, False), "blocked")
+        self.assertEqual(module.existing_action(drifted, desired, True), "updated")
+        self.assertEqual(module.existing_action(desired, desired, False), "unchanged")
 
 
 if __name__ == "__main__":

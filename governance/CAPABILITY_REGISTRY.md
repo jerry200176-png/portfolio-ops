@@ -1,6 +1,6 @@
 # Capability registry
 
-**Last verified:** 2026-08-08
+**Last verified:** 2026-08-09
 
 | Capability | Status | Evidence | Review cadence |
 |---|---|---|---|
@@ -11,8 +11,8 @@
 | Gmail write/organize | Proven | Created and applied `AI Company/Security/P0` to four selected GitGuardian messages | Weekly |
 | Local git | Proven | Canonical checkouts and isolated governance worktrees were inspected; existing user changes were preserved | Daily |
 | Codex scheduled automation | Proven | Daily loop, weekly governance review, and P0/P1 watch created and rendered in the app | Weekly |
-| GitHub baseline governance rulesets | Proven | `portfolio-governance-main` active on all 7 GitHub repositories; PR review, deletion, and force-push controls verified via GitHub API | Weekly |
-| ExoProtocol 0.2.3 pilot | Proven | Isolated `engineering-intelligence` onboarding worktree: `exo doctor` and `exo audit` pass; generated adapters/CI require Draft-PR review before adoption | Per repo rollout |
+| GitHub baseline governance rulesets | Partial | Read-only audit confirms `portfolio-governance-main` is active on all 7 repositories, but AllTrue currently has no required human review; four repositories still miss one or more declared adapters. Existing ruleset drift is report-only until an explicit replacement decision. | Weekly |
+| ExoProtocol 0.2.3 pilot | Partial | Isolated `engineering-intelligence` pilot evidence exists; the Exo workflow is not present across the seven-repository fleet and generated adapters/CI remain Draft-PR work. | Per repo rollout |
 | AllTrue production mutation | Unverified | Use repository capability registry and canonical workflow only | Before use |
 | Sunrise production mutation | Partial | Vercel integration exists; recent failed deployments require fresh verification | Before use |
 
