@@ -1,0 +1,20 @@
+type: object
+required:
+  - schema_version
+  - contract_id
+  - version
+  - maintainer_model
+  - control_plane
+  - agent_entrypoints
+  - session_invariants
+  - project_intake
+  - delivery_loop
+  - research_policy
+  - verification_policy
+  - learning_policy
+  - github_records
+properties:
+  schema_version: {type: integer}
+  contract_id: {type: string}
+  version: {type: string}
+  maintainer_model: {type: string}

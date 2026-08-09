@@ -4,6 +4,162 @@ wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: PORTFOLIO-OPT-BASELINE-20260801
+    product: portfolio
+    priority: p1
+    title: Re-baseline platform optimization execution board and recurring-incident controls
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1408
+    status: live_verified_followups_open
+    evidence:
+      - "2026-08-01 fresh local baseline: AllTrue canonical main was clean but 134 commits behind origin/main; Sunrise canonical checkout retained an uncommitted dependabot.yml change and was not touched; portfolio-ops retained untracked reports/codex/ and was not touched."
+      - "GitHub read-back: AllTrue #1408 is stale against merged #1402/#1409/#1410; AllTrue #1420/#1428 remain open; Sunrise #239 is an umbrella with #211/#257/#261 still open."
+      - "Isolated worktrees created from origin/main for portfolio, AllTrue, and Sunrise so implementation does not overwrite user work."
+      - "Portfolio control-plane PR #27 merged after validate, CodeQL, Secret scan, and OpenSSF Scorecard passed: https://github.com/jerry200176-png/portfolio-ops/pull/27"
+      - "AllTrue #1428 PR #1579 merged and live-verified at 0fef175a; deploy run 30685428337 passed SHA/health/smoke evidence."
+      - "AllTrue #1420 PR #1580 merged and live-verified at 510f6b2e; deploy run 30685651049 passed backup, migration, SHA/health, and smoke evidence."
+      - "Sunrise #261 PR #267 merged and live-verified at 6605204e; deploy run 30685328910 and verify run 30685328925 passed."
+    root_cause: "Execution state was distributed across stale dashboard snapshots, GitHub issues, and product checkouts without a current cross-project evidence checkpoint."
+    non_goals:
+      - "Do not merge, deploy, migrate production, close incidents, or modify the user's dirty checkouts."
+    tests:
+      - "Parse portfolio.yaml and state/work-queue.yaml; compile portfolio tests."
+    dependencies:
+      - "GitHub issue/PR read-back and isolated worktrees from current origin/main."
+    founder_gate: "Founder retains merge, deploy, production-data, credential, and privacy/legal decisions."
+    acceptance:
+      - "Current board separates Founder-only actions from agent-owned Draft PR work."
+      - "Every next task records evidence, non-goals, tests, rollback, dependency, and Founder gate."
+      - "No dirty user checkout is modified or reset."
+    rollback: "Revert the portfolio control-plane commit; product repositories are unchanged by this baseline update."
+    next_action: "Keep live evidence fresh; execute Sunrise #211 code-side hardening next, preserving paid-plan and production migration Founder gates."
+
+  - id: SEC-ALLTRUE-1420
+    product: alltrue
+    priority: p1
+    title: Append-only audit events for parent binding, auth, sibling switch, and notification delivery
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1420
+    status: merged_live_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1580
+    evidence:
+      - "PR #1580 merged at 510f6b2e after required CI, PHPStan, full PHPUnit, ephemeral-MySQL migration dry-run, and rollback readiness passed."
+      - "Adds PII-minimized append-only events for parent auth, sibling switches, binding lifecycle, and per-binding LINE delivery outcomes."
+      - "Production deploy run 30685651049 backed up the database, applied the one pending security_audit_events migration, and passed read-only smoke."
+      - "Live deployment.json backend_sha=510f6b2e098325bcc85dadf8ba4eabb38a65ea11; /api/v1/health returned status=ok."
+      - "Restricted query access review remains a follow-up; no public audit API was added."
+    blocked_by: "Founder approval is required before production migration or data backfill; code/tests can be prepared autonomously."
+    root_cause: "Parent auth/sibling switching and notification delivery lack a durable, PII-safe correlation trail."
+    non_goals:
+      - "No production migration execution, access-grant change, raw PII logging, or public audit API."
+    tests:
+      - "PHP syntax/static checks; HMAC reference and metadata PII tests; parent LINE auth feature assertions; GitHub ephemeral-MySQL migration dry-run."
+    rollback: "Revert the Draft PR and use the migration rollback procedure only if a Founder-authorized migration was applied."
+    dependencies:
+      - "Security review, production migration window, restricted query-role decision."
+    founder_gate: "Founder retains retention/access policy and privacy decisions; the reviewed merge/deploy and migration evidence are complete."
+    acceptance:
+      - "Events are structured, append-only, access-restricted, retention-defined, and PII-minimized."
+      - "Allowed and forbidden sibling switches plus notification binding/delivery outcomes are test-covered."
+      - "No production migration or backfill is executed by the agent."
+
+  - id: OPS-ALLTRUE-1428
+    product: alltrue
+    priority: p1
+    title: Expose backend SHA, frontend SHA, and deployed_at for reliable release verification
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1428
+    status: merged_live_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1579
+    evidence:
+      - "PR #1579 merged at 0fef175a after required CI, PHPStan, PHPUnit, Vite build, UI smoke, and rollback readiness passed."
+      - "Adds deployment.json with backend_sha, frontend_sha, frontend_build_sha, and deployed_at; smoke/identity probes fail closed on missing or mismatched backend identity."
+      - "Local verification passed: shell syntax, Node syntax, Python compile, 3 unittest cases, workflow YAML parse, and diff check."
+      - "Deploy run 30685428337 passed; production deployment.json backend_sha=0fef175a and /api/v1/health status=ok were independently read back."
+    root_cause: "Frontend-only version.json was used as if it proved backend runtime identity during backend-only releases."
+    non_goals:
+      - "No production deploy, framework rewrite, database migration, or change to legacy version.json compatibility."
+    tests:
+      - "Node/bash/Python syntax; manifest unit tests; workflow YAML parse; smoke/identity contract review."
+    rollback: "Revert the Draft PR; the workflow rollback path rewrites deployment.json to the previous backend SHA."
+    dependencies:
+      - "Founder-gated first live deploy and rollback verification."
+    founder_gate: "Founder retains future merge/deploy approval and rollback decisions; first live evidence is complete."
+    acceptance:
+      - "Backend-only and frontend releases expose independently verifiable identities."
+      - "Runbooks and probes stop treating frontend version.json as proof of backend runtime."
+      - "Regression coverage distinguishes backend-only from full deploys."
+
+  - id: SEC-SUNRISE-002-EXECUTION
+    product: sunrise
+    priority: p0
+    title: Execute the code-side portion of #211 without silently performing paid or production mutations
+    source: https://github.com/jerry200176-png/sunrise-cafe/issues/211
+    status: queued_draft_pr
+    blocked_by: "Supabase plan selection, production migration, and paid infrastructure remain Founder gates."
+    root_cause: "Rate limiting, RLS execution, and backup/restore posture are not all evidenced in production despite prior decisions."
+    non_goals:
+      - "No paid-plan purchase, production migration, data mutation, credential change, or silent fail-open acceptance."
+    tests:
+      - "Anonymous negative/admin positive RLS tests; rate-limit degraded-mode tests; backup restore evidence and read-only probes."
+    rollback: "Keep code-side changes in Draft PR; production migration/backups use Founder-approved rollback and restore runbooks."
+    dependencies:
+      - "Founder decision on Supabase plan, migration window, and backup destination/restore authority."
+    founder_gate: "Founder approves paid infrastructure, production migration, backup/restore execution, merge, and deploy."
+    acceptance:
+      - "Rate-limit behavior is explicit and fail-closed or clearly surfaced when degraded."
+      - "RLS migration and admin service-role path have read-only verification steps."
+      - "Backup/restore posture has an evidence record and no unverified claim."
+
+  - id: OPS-SUNRISE-257
+    product: sunrise
+    priority: p1
+    title: Make production verification read-only and bind one deploy owner
+    source: https://github.com/jerry200176-png/sunrise-cafe/issues/257
+    status: implemented_needs_founder_dashboard_verification
+    implementation: https://github.com/jerry200176-png/sunrise-cafe/pull/258
+    evidence:
+      - "Current main contains PR #258 (commit 65f9ae7); verify-production.yml is read-only and does not call scripts/orchestrator/deploy.sh."
+      - "production-deploy-migrate.yml is the sole repository-controlled Vercel deploy owner and uses production-deploy-main concurrency."
+      - "Independent npm run verify:production-workflow passed."
+      - "Live Vercel project ownership and production behavior remain read-only Founder/dashboard verification; no deploy was triggered."
+    root_cause: "Verification previously competed with the deploy workflow and could trigger a second production writer."
+    non_goals:
+      - "No Vercel dashboard mutation, redeploy, quota upgrade, or production config change by the agent."
+    tests:
+      - "npm run verify:production-workflow; read-only workflow contract review."
+    rollback: "Revert the existing implementation only through a reviewed PR; do not re-enable verification-side deploy calls."
+    dependencies:
+      - "Founder read-only dashboard confirmation of the serving Vercel project."
+    founder_gate: "Founder performs dashboard verification and retains merge/deploy authority."
+    acceptance:
+      - "Exactly one workflow owns production deployment."
+      - "Verification never redeploys or mutates production."
+      - "Concurrency and static contract tests prevent regression."
+
+  - id: CI-SUNRISE-261
+    product: sunrise
+    priority: p1
+    title: Establish a reproducible TypeScript typecheck baseline and CI gate
+    source: https://github.com/jerry200176-png/sunrise-cafe/issues/261
+    status: merged_live_verified
+    implementation: https://github.com/jerry200176-png/sunrise-cafe/pull/267
+    evidence:
+      - "PR #267 merged at 6605204e after provenance, lint/build, Playwright smoke, and preview checks passed."
+      - "Baseline captured at SHA b86235795904dd0cb5231da993d3048ce453aa9c with 13 existing TypeScript diagnostics; no new diagnostic is allowed by the required regression gate."
+      - "npm run typecheck:baseline passed; npm test passed with 344 tests passed and 1 skipped across 68 files."
+      - "Production deploy run 30685328910 and read-only verify run 30685328925 passed; /api/version matched 6605204e and /api/booking-health returned ok."
+    root_cause: "TypeScript was configured but had no package command or CI signal, allowing regressions without a baseline."
+    non_goals:
+      - "Do not hide existing errors with ts-ignore, compiler relaxation, skipLibCheck expansion, or || true."
+    tests:
+      - "npm run typecheck (advisory expected failure on baseline); npm run typecheck:baseline; npm test."
+    rollback: "Revert the Draft PR; no production behavior or data is changed."
+    dependencies:
+      - "Follow-up PRs to burn down the 13 recorded diagnostics."
+    founder_gate: "Founder/reviewer approves required-gate policy changes after the baseline is reduced."
+    acceptance:
+      - "Current errors are classified at a recorded SHA."
+      - "package.json exposes a repeatable typecheck command."
+      - "CI runs the gate without @ts-ignore, skipLibCheck expansion, or || true as the final state."
+
   - id: SEC-ALLTRUE-1401
     product: alltrue
     priority: p0

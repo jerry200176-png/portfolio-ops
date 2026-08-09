@@ -1,0 +1,26 @@
+name: Governance defect
+description: Report a reproducible defect in the control plane or its evidence.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is wrong, and which path or project is affected?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Provide commands, evidence paths, and timestamps. Never include secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Expected verification
+      description: What result would show that this is fixed?
+    validations:
+      required: true
