@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-08-08T15:28:00+08:00
+updated_at: 2026-08-09T10:22:46+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -328,12 +328,13 @@ queue:
     priority: p0
     title: Supabase RLS/rate-limit/backup — Founder decisions made but unexecuted
     source: https://github.com/jerry200176-png/sunrise-cafe/issues/211
-    status: decided_not_executed
+    status: partial_execution_pr_open
     evidence:
       - "Founder decisions FD-1...FD-6 (RLS, rate limiting, backup posture) were recorded 2026-07-19 in issue #211"
-      - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): confirmed via PR search — ZERO execution PRs exist referencing #211 or its decision items since 2026-07-19"
+      - "2026-08-09: Sunrise PR #276 at commit e1b2c82 restores the rate-limit memory fallback, Edge-safe hashing, and auth guards; Agent Session Provenance, Lint & Build, and Playwright smoke all passed. The Draft PR is not merged or deployed."
+      - "RLS application status and backup/restore posture remain unconfirmed; the rate-limit production runtime remains unchanged until Founder review, merge, and the normal deployment path."
       - "current production state: fail-open rate limiting confirmed live (booking-health endpoint reports rate_limit_mode=memory, rate_limit_grade=degraded_per_isolate); backup posture unconfirmed; RLS application status unconfirmed"
-    next_action: reclassified from "queued" (implies not-yet-decided) to "decided_not_executed" (implies live unaddressed risk) — highest-ROI Sunrise engineering work available for next execute-mode pass, since the decision-making step is already done and only implementation remains
+    next_action: Founder reviews/merges PR #276 after confirming production-risk acceptance; then prepare separate, rollback-ready RLS and backup evidence work, with all production migration and paid-plan actions remaining Founder-gated
 
   - id: CI-SUNRISE-PROVENANCE
     product: sunrise
