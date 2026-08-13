@@ -5,7 +5,7 @@
 # confidence: how directly this maps to a real, current portfolio problem —
 # not a popularity score.
 schema_version: 1
-updated_at: "2026-08-08T19:00:00+08:00"
+updated_at: "2026-08-13T20:48:31+08:00"
 
 entries:
   # ── Curated additions and pilots ───────────────────────────────────
@@ -134,6 +134,26 @@ entries:
     license: MIT
     confidence: medium
     status: pilot
+
+  - repo: OpenBMB/ChatDev
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops]
+    use_for: "Evaluated for its 'virtual software company' concept (CEO/CPO/CTO/Programmer/Reviewer/Tester avatars). The reusable idea, not the tool: chatdev1.0's visualizer/app.py replays structured session logs into a role-based timeline — a pattern for turning agent-control's sessions/ manifests into a status view, instead of the current text-only CEO_DASHBOARD.md"
+    maintenance_status: "main branch moved to ChatDev 2.0 (a zero-code multi-agent platform); the 'virtual company' visualizer and CEO/CTO/Programmer roles only exist on the legacy chatdev1.0 branch, which is not actively developed"
+    license: Apache-2.0
+    confidence: low
+    status: rejected
+    rejection_reason: Core product is spec-to-codebase multi-agent generation, which solves a problem this portfolio doesn't have — portfolio-ops maintains existing repos, it doesn't generate new ones from a prompt. Not adopting the tool or its code; only the log-replay visualizer pattern is worth a from-scratch prototype, tracked as a pilot idea in the 2026-08 governance benchmark doc.
+
+  - repo: geekan/MetaGPT
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops]
+    use_for: "Reference for 'encoding SOPs into agent prompts' as an explicit, named design pattern — the closest existing OSS framing of what governance/company-agent-contract.yaml and AGENT_BOOTSTRAP.md already do by hand for this portfolio"
+    maintenance_status: "active; org migrated to FoundationAgents/MetaGPT, geekan/MetaGPT redirects there"
+    license: MIT
+    confidence: low
+    status: rejected
+    rejection_reason: Same category as ChatDev — a one-shot spec-to-codebase generator, not a fleet-maintenance or governance tool. No adoption target; kept only as vocabulary/framing reference for how this repo already describes its own SOP encoding.
 
   - repo: open-policy-agent/conftest
     category: Security & Governance

@@ -63,3 +63,31 @@ support dependency hygiene. GitHub documents
 and [rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets).
 [OpenSSF Scorecard](https://www.scorecard.dev/) provides a useful security
 posture benchmark.
+
+## Addendum — 2026-08-13: "AI software company" agent frameworks scanned
+
+Prompted by a Founder question about existing open-source tools that role-play
+a software company (SOP, governance, security, backup, a UI showing multiple
+"employees"), two well-known multi-agent frameworks were checked:
+[OpenBMB/ChatDev](https://github.com/OpenBMB/ChatDev) and
+[geekan/MetaGPT](https://github.com/geekan/MetaGPT). Both are one-shot
+spec-to-codebase generators — CEO/CTO/Programmer-style agents that take a
+requirement and produce a new project — not tools for maintaining an existing
+portfolio, so neither is adopted; recorded as `rejected` in
+`reference-repositories.yaml` with reasoning.
+
+Two ideas from them are worth carrying forward without adopting the tools:
+
+- **MetaGPT's framing of "SOP encoded into agent prompts"** is the same thing
+  `governance/company-agent-contract.yaml` and `AGENT_BOOTSTRAP.md` already do
+  by hand; useful as shared vocabulary, not as new capability.
+- **ChatDev 1.0's `visualizer/app.py`** (legacy `chatdev1.0` branch only —
+  the current `main` branch moved to a "ChatDev 2.0" zero-code platform and
+  dropped the virtual-company UI) replays structured session logs into a
+  role-based timeline. `agent-control/sessions/*.json` already captures
+  per-session provenance (session id, task, branch, worktree, timestamps);
+  a from-scratch, small local view that renders those manifests as a
+  role/status timeline would give the "see the employees working" experience
+  the Founder asked for, without adopting ChatDev's code or its production
+  wiring. Not built in this pass — tracked here as a pilot idea, not a
+  commitment.
