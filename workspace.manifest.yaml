@@ -113,4 +113,32 @@ repositories:
     remote: https://github.com/jerry200176-png/portfolio-ops.git
     branch_policy: dedicated-governance-branch
     mutation_policy: evidence-first
+  - id: engineering-intelligence-canonical
+    path: /home/jerry/workspace/engineering-intelligence
+    role: canonical-checkout
+    remote: https://github.com/jerry200176-png/engineering-intelligence.git
+    branch_policy: dedicated-branch-or-worktree
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
+  - id: korea-trip-plan-canonical
+    path: /home/jerry/workspace/korea-trip-plan
+    role: canonical-checkout
+    remote: https://github.com/jerry200176-png/korea-trip-plan.git
+    branch_policy: dedicated-branch-or-worktree
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
+  - id: income-statement-app-canonical
+    path: /home/jerry/workspace/income-statement-app
+    role: canonical-checkout
+    remote: https://github.com/jerry200176-png/income-statement-app.git
+    branch_policy: dedicated-branch-or-worktree
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
+  - id: income-statement-app-releases-canonical
+    path: /home/jerry/workspace/income-statement-app-releases
+    role: canonical-checkout
+    remote: https://github.com/jerry200176-png/income-statement-app-releases.git
+    branch_policy: dedicated-branch-or-worktree
+    mutation_policy: preserve-dirty-state-before-sync
+    approval_for_archive_or_remove: required
     approval_for_archive_or_remove: required
