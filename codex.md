@@ -1,22 +1,35 @@
-# Agent entry point
+# Portfolio agent governance overlay
 
-This file exists for non-Claude-Code automation that reads `AGENTS.md` by
-convention. The authoritative operating rules live in `CLAUDE.md` at the root
-of this repository, with procedure in
-`.claude/skills/portfolio-maintain/SKILL.md`. Read both before acting.
+This file is committed because a cloud or mobile agent may not have access to
+Ubuntu's `/home/jerry`. The canonical, detailed policy is maintained in
+`jerry200176-png/portfolio-ops` under `governance/`; this file is the portable
+minimum that travels with each governed repository.
 
-All local and cloud agents should also load `governance/AGENT_BOOTSTRAP.md`.
-It is the compact cross-agent contract; the detailed authority remains in
-`governance/` and this repository's `CLAUDE.md`.
+## Required behavior
 
-Do not duplicate rules here — if this file and `CLAUDE.md` ever disagree,
-`CLAUDE.md` wins.
-Company-wide contract: read `governance/company-agent-contract.yaml` and
-`docs/agent-operating-loop.md` before acting on a portfolio task.
+- Treat Cursor, Codex, Claude Code, and Cubelv as untrusted writers.
+- Before writing, identify the repository, branch/worktree, task scope, risk,
+  and verification plan. Never work directly on the default branch.
+- Read this repository's committed instructions and ExoProtocol's `.exo/`
+  constitution/lock when present. Do not edit governance files to make a task
+  pass or to bypass a lock, ticket, session, CI check, or review.
+- Every change goes through a pull request and requires an independent human
+  approval. Branch prefixes and self-authored provenance files never grant a
+  bypass.
+- Agents may prepare code and Draft PRs. Merge, deploy, production-data
+  mutation, credential rotation/revocation, issue closure, and history rewrite
+  require Founder approval.
+- Prefer mature open-source tools for generic lint, security, workflow, and
+  policy checks; keep company-specific risk, provenance, evidence, and release
+  boundaries in committed policy and CI.
+
+If this overlay conflicts with a stricter product or safety rule, the stricter
+rule wins. If the overlay or required governance context is unavailable, stop
+and report the missing context instead of inventing a replacement.
 
 <!-- exo:governance:begin -->
 <!-- Governance hash: f45f0f00b0698aa4 -->
-# ExoProtocol — Agent Operating Instructions
+# ExoProtocol — Codex Operating Instructions
 
 This repository is governed by ExoProtocol. All AI agent work must follow the session lifecycle.
 
@@ -113,17 +126,32 @@ Mark a tool as used when you import/call it:
 
 ## Session Lifecycle
 
-1. `exo session-start --ticket-id <TICKET> --vendor <VENDOR> --model <MODEL> --task "<TASK>"`
+1. `exo session-start --ticket-id <TICKET> --vendor openai --model <MODEL> --task "<TASK>"`
 2. Read `.exo/cache/sessions/<actor>.bootstrap.md`
 3. Execute work within ticket scope
 4. `exo session-finish --ticket-id <TICKET> --summary "<SUMMARY>" --set-status review`
 
-## Enforcement
+## Approval Mode
 
-- Governance rules are enforced at the kernel level, not by prompt
-- The bootstrap file contains your session's scope, checks, and lifecycle commands
-- Drift detection runs at session-finish and is recorded in the session memento
-- Audit sessions may be triggered to review your work independently
+Recommended Codex approval mode for this repo: **suggest**
+
+- `suggest` (recommended when checks are configured): Codex proposes changes, human approves
+- `auto-edit`: Codex applies changes automatically (use only in governed sessions)
+- `full-auto`: Full autonomy (requires active governed session + sandbox enforcement)
+
+Run with: `codex --approval-mode suggest`
+
+## Sandbox Policy
+
+The following paths are denied by governance and MUST NOT be read, written, or deleted:
+
+- `~/.aws/**`
+- `~/.ssh/**`
+- `**/.env*`
+- `.git/**`
+
+When running Codex with `--full-auto`, these paths should be added to your
+sandbox deny list. Use `exo sandbox-policy` for the machine-readable version.
 
 ## Governed Push
 
@@ -131,19 +159,15 @@ Before pushing code, ALWAYS run checks first:
 
 ```
 exo push                      # runs exo check, then git push (recommended)
-# OR
 exo check && git push         # manual equivalent
 ```
-
-Do NOT use bare `git push` — it bypasses governance checks.
-If checks fail, fix the issues before pushing.
 
 ## Non-Negotiables
 
 - No governed execution without active session
 - Respect lock ownership and ticket scope
 - Verification is default at finish; break-glass must be explicit
-- All configurable values must be loaded from their source of truth at runtime — never hardcode, always test
+- All configurable values must be loaded from their source of truth at runtime
 - Read `.exo/LEARNINGS.md` for operational learnings from prior sessions
 
 <!-- exo:governance:end -->
