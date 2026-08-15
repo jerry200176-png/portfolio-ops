@@ -39,3 +39,6 @@ practice, and a maintained open-source or starred repository; record fit,
 license, adoption cost, and the hypothesis in a research decision record.
 Link the GitHub plan issue and verification commands. After verification,
 record surprises and prevention rules in a learning record or linked issue.
+If the item is T0 docs or T1 with automated checks, follow
+`docs/verify-retry-loop.md` and attach a verify-retry record before handing
+off to `evidence-verifier`.

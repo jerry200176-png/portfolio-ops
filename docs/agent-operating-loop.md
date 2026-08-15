@@ -37,6 +37,12 @@ secret/dependency checks, and a read-only production verification plan. Finish
 at a Draft PR with evidence, risk, rollback, and unverified items; independent
 evidence review re-derives the claims.
 
+For eligible T0/T1 work whose success is a re-runnable command, run the inner
+verify-retry loop in `docs/verify-retry-loop.md` before calling verify done:
+machine-checkable acceptance, implementer/reviewer split, bounded retries,
+and a `docs/templates/verify-retry-record.md`. A green inner loop still
+finishes at a Draft PR. It does not authorize merge or deploy.
+
 After a failure, incident, or surprise, record root cause, add a regression
 guard, update the prevention rule and reference pattern, and link the GitHub
 issue or PR. Merge, deploy, production data changes, credentials, deletion,

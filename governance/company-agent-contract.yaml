@@ -103,6 +103,10 @@ verification_policy:
     - independent_evidence_review
     - production_readonly_verification_plan
   stale_evidence_must_be_marked: true
+  inner_loop:
+    doc: docs/verify-retry-loop.md
+    record: docs/templates/verify-retry-record.md
+    does_not_authorize_founder_actions: true
 
 learning_policy:
   required_after_failure_or_incident:
