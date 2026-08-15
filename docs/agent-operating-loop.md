@@ -35,18 +35,20 @@ Use one repository, one task branch, an isolated worktree, and a session
 manifest. Run focused tests, lint/typecheck, build when applicable,
 secret/dependency checks, and a read-only production verification plan. Finish
 at a Draft PR with evidence, risk, rollback, and unverified items; independent
-evidence review re-derives the claims.
+evidence review re-derives the claims. After **required** GitHub checks are
+green, squash-merge R0–R2 per `docs/fleet-merge-policy.md`. R3 merge, extra
+production mutation, credentials, Gmail, issue close, and history rewrite
+stay Founder-gated.
 
 For eligible T0/T1 work whose success is a re-runnable command, run the inner
 verify-retry loop in `docs/verify-retry-loop.md` before calling verify done:
 machine-checkable acceptance, implementer/reviewer split, bounded retries,
-and a `docs/templates/verify-retry-record.md`. A green inner loop still
-finishes at a Draft PR. It does not authorize merge or deploy.
+and a `docs/templates/verify-retry-record.md`. A green inner loop is not by
+itself a merge; GitHub required checks are.
 
 After a failure, incident, or surprise, record root cause, add a regression
 guard, update the prevention rule and reference pattern, and link the GitHub
-issue or PR. Merge, deploy, production data changes, credentials, deletion,
-and history rewrites remain explicit Founder decisions.
+issue or PR.
 
 ## New project intake
 

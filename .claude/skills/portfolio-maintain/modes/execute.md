@@ -1,8 +1,10 @@
 # Mode: execute
 
-Do the highest-ROI safe work, as Draft PRs. Requires a reasonably fresh
-`triage` pass first — if `state/work-queue.yaml` / `portfolio.yaml` look
-stale (check `updated_at`/`latest_activity`), run `triage` first.
+Do the highest-ROI safe work, as PRs that merge when required checks are
+green (R0–R2). R3 and extra production mutation stay Founder-gated.
+Requires a reasonably fresh `triage` pass first — if
+`state/work-queue.yaml` / `portfolio.yaml` look stale (check
+`updated_at`/`latest_activity`), run `triage` first.
 
 ## Steps
 
@@ -27,9 +29,10 @@ stale (check `updated_at`/`latest_activity`), run `triage` first.
 
 - One `repo-maintainer` per repository at a time; never mix repos in a
   branch/PR.
-- Draft PR is the finish line. Merge/deploy are Founder decisions.
-- If a step needs login/OAuth/secrets/production-data/migration/merge/
-  deploy/deletion/force-push, stop and surface it — see `../../../CLAUDE.md`.
+- After required checks are green, squash-merge R0–R2. Never `--admin`.
+  Never extra-deploy, rotate credentials, or execute Repair Manifests.
+- If a step needs login/OAuth/secrets/production-data repair/R3 merge/
+  extra-deploy/deletion/force-push, stop and surface it — see `../../../CLAUDE.md`.
 
 ## Company operating loop requirements
 

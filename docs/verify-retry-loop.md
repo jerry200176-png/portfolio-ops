@@ -2,15 +2,16 @@
 
 This is an inner loop on `implement -> verify` for **eligible** work. It does
 not replace `docs/agent-operating-loop.md`, ExoProtocol, or
-`governance/AUTONOMY_POLICY.md`. Merge, deploy, production data mutation,
-mail send, credential changes, and history rewrites stay Founder-gated even
-when this loop is green.
+`governance/AUTONOMY_POLICY.md`. Merge of R0–R2 after required GitHub checks
+follows `docs/fleet-merge-policy.md`. Deploy outside the product
+default-branch workflow, production data mutation, mail send, credential
+changes, and history rewrites stay Founder-gated even when this loop is green.
 
 The maturity idea (spec, independent checker, auto retry, run record) is
 adapted from Captain Balung's public map
 [遠航七階](https://captain-balung-blog.ghost.io/seven-stages-ai-agent-workflow/).
 That article is a map, not a runnable SOP. Do not copy its ceremony, and do
-not read "human leaves the loop" as permission to merge.
+not read "human leaves the loop" as permission to skip GitHub required checks.
 
 ## Eligibility
 
@@ -104,7 +105,8 @@ The first use of this loop is the patch that adds it. Checks:
 
 1. `docs/verify-retry-loop.md` and `docs/templates/verify-retry-record.md` exist.
 2. `docs/agent-operating-loop.md` links here.
-3. This file still forbids Founder-gated actions (`merge`, `deploy`).
+3. This file still forbids extra production mutation (`deploy` outside
+   default-branch workflow). Merge follows `docs/fleet-merge-policy.md`.
 4. Attribution to the source article remains.
 5. `git diff --check`
 6. `python3 scripts/validate-company-agent-contract.py`

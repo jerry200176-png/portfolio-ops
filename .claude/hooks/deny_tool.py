@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """PreToolUse hook that unconditionally denies whichever tool the settings.json
-matcher routed here. Used for tools that are never autonomous in this
-portfolio (merge_pull_request, Gmail mutation tools) regardless of arguments.
+matcher routed here. Used for Gmail mutation tools that are never autonomous
+in this portfolio, regardless of arguments.
 
 Standalone test:
-  echo '{"tool_name":"mcp__plugin_github_github__merge_pull_request","tool_input":{}}' | python3 deny_tool.py
+  echo '{"tool_name":"mcp__claude_ai_Gmail__send_message","tool_input":{}}' | python3 deny_tool.py
 """
 import json
 import sys

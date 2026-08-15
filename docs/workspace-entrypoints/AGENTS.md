@@ -11,7 +11,8 @@ Before changing any repository, read:
 Use `/home/jerry/workspace/agent-control/bin/agent-start` for isolated task
 worktrees. Follow discover -> research -> plan -> implement -> verify -> review
 -> learn. Eligible T0/T1 work uses the inner loop in
-`docs/verify-retry-loop.md`. Record plans and evidence in GitHub and in the control plane. This is
-a single-owner company: no second reviewer is required, while Founder-only
-production, deploy, deletion, credential, and history-rewrite boundaries stay
+`docs/verify-retry-loop.md`. After required GitHub checks, squash-merge
+R0–R2 (`docs/fleet-merge-policy.md`). Record plans and evidence in GitHub and in the control plane. This is
+a single-owner company: no second human reviewer is required. Founder-only
+R3, extra deploy, deletion, credential, and history-rewrite boundaries stay
 explicit.

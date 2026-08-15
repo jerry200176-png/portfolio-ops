@@ -11,10 +11,10 @@ it holds the safety boundaries and Git rules that apply regardless of mode.
 This file dispatches to a mode; each mode file holds its own procedure so
 you only load what you need.
 
-**Default posture**: this skill never merges, deploys, or modifies
-production data on its own. Every mode below stops at Draft PR / report /
-recommendation and hands mutation decisions to the Founder. See
-`governance/AUTONOMY_POLICY.md`.
+**Default posture**: execute through a PR, then squash-merge R0–R2 when
+required GitHub checks are green (`docs/fleet-merge-policy.md`). Do not
+deploy outside the product default-branch workflow, mutate production data,
+or rotate credentials. See `governance/AUTONOMY_POLICY.md`.
 
 ## Modes
 
@@ -26,7 +26,7 @@ safe default).
 |---|---|---|
 | `bootstrap` | First-run or re-baseline: scan local + GitHub repos, populate/refresh `portfolio.yaml`, tier everything | `modes/bootstrap.md` |
 | `triage` | Refresh GitHub + Gmail signals for Tier 0/1 projects, update `state/work-queue.yaml` | `modes/triage.md` |
-| `execute` | Run baseline audits and do the highest-ROI safe work as Draft PRs | `modes/execute.md` |
+| `execute` | Run baseline audits and do the highest-ROI safe work as PRs, then merge R0–R2 when checks are green | `modes/execute.md` |
 | `status` | Read-only: summarize current `portfolio.yaml` / `CEO_DASHBOARD.md` / today's reports, no mutation, no new agent dispatch | `modes/status.md` |
 | `weekly-review` | Everything in `triage` + `status`, plus security posture, dependency health, delivery signals, governance drift, stale-work cleanup | `modes/weekly-review.md` |
 

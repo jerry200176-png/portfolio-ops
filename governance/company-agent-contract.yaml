@@ -1,7 +1,7 @@
 schema_version: 1
 contract_id: company-agent-operating-contract
 version: 1.0.0
-policy_version: "2026-08-08.1"
+policy_version: "2026-08-15.1"
 owner: jerry200176-png
 company_name: Jerry Software Portfolio
 workspace_root: /home/jerry/workspace
@@ -141,7 +141,7 @@ required_controls:
     - preserve_existing_repository_instructions
   remote:
     - pull_request_required
-    - independent_human_review_required
+    - required_status_checks_before_merge
     - force_push_blocked
     - branch_deletion_blocked
     - provenance_or_exo_session_required
@@ -153,8 +153,12 @@ cloud_boundary:
 
 irreversible_actions:
   founder_approval_required:
-    - merge
-    - deploy
+    - r3_merge
+    - deploy_outside_default_branch_workflow
     - production_data_mutation
     - credential_rotation_or_revocation
     - git_history_rewrite
+    - close_github_issue
+    - gmail_mutation
+  agent_after_required_checks:
+    - r0_r1_r2_squash_merge
