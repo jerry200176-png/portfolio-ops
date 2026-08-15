@@ -12,8 +12,9 @@ discover -> research -> plan -> implement -> verify -> review -> learn
 ```
 
 Eligible T0/T1 work runs the inner verify-retry loop in
-`docs/verify-retry-loop.md` before verify is done. A green inner loop does
-not authorize merge or deploy.
+`docs/verify-retry-loop.md` before verify is done. R0–R2 squash-merge after
+required GitHub checks (`docs/fleet-merge-policy.md`). Extra production
+mutation stays Founder-gated.
 
 The Portfolio Ops repository is the company control plane. Record the plan,
 evidence, verification result, and learning record in GitHub and the control

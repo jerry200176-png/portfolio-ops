@@ -21,10 +21,11 @@ Tier 0 first, then Tier 1, then Tier 2. One repo, one branch/worktree, per
 
 ## Finish state
 
-- Commit, push the branch, open a **Draft** PR using
-  `../../../../docs/templates/draft-pr-description.md`.
-- Never merge. Never deploy.
-- If CI cannot run: say so plainly in the PR, do not claim completion, and
+- Commit, push the branch, open a PR using
+  `../../../../docs/templates/draft-pr-description.md` with `Risk-Class`.
+- After required GitHub checks are green, squash-merge R0–R2
+  (`docs/fleet-merge-policy.md`). Never `--admin`. Never extra-deploy.
+- If CI cannot run: say so plainly in the PR, do not merge, and
   propose the smallest unblock step.
 
 ## First-round scope

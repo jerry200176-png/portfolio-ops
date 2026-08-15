@@ -13,11 +13,10 @@ after this install).
   pnpm run deploy`), and commands that dump a credential-shaped file
   (`.env`, `*.pem`, `id_rsa`, `credentials.json`) to stdout or toward an
   external host via curl/scp/rsync.
-- `deny_tool.py` — matcher on specific MCP tool names (`merge_pull_request`,
-  and the Gmail mutation tools: create_draft, update_draft, label/unlabel
-  message/thread, apply_sensitive_*_label, create_label, delete_label).
-  Unconditional deny — those tools are never autonomous here, regardless of
-  arguments.
+- `deny_tool.py` — matcher on Gmail mutation MCP tool names
+  (create_draft, send_message, trash, archive, …). Unconditional deny —
+  those tools are never autonomous here. R0–R2 GitHub merge is allowed
+  after required checks (`docs/fleet-merge-policy.md`); do not hook-deny it.
 
 No `jq` on this machine, so both hooks are plain Python 3 reading/writing
 the hook JSON protocol directly (stdlib only, no dependencies).
@@ -54,7 +53,7 @@ Or pipe-test a single case directly:
 ```bash
 echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' | python3 guard_bash.py   # expect: no output
 echo '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' | python3 guard_bash.py  # expect: deny JSON
-echo '{"tool_name":"mcp__plugin_github_github__merge_pull_request","tool_input":{}}' | python3 deny_tool.py  # expect: deny JSON
+echo '{"tool_name":"mcp__claude_ai_Gmail__send_message","tool_input":{}}' | python3 deny_tool.py  # expect: deny JSON
 ```
 
 ## Portability (Cloud / alternate checkouts)

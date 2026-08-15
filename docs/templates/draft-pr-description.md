@@ -1,9 +1,13 @@
-# Draft PR description — template
+# PR description — template
 
-Every PR opened by an agent is a Draft PR and uses this shape. Never merge
-it — that's a Founder decision (`governance/AUTONOMY_POLICY.md`).
+Every agent PR uses this shape. After required GitHub checks are green,
+squash-merge R0–R2 (`docs/fleet-merge-policy.md`). Do not `--admin`. R3
+stays Founder-gated.
 
 ```markdown
+## Risk-Class
+R0 | R1 | R2 | R3
+
 ## Evidence
 <What was observed, where, and how — link issues/logs/production evidence.>
 

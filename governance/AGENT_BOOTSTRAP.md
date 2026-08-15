@@ -27,9 +27,10 @@ target product repository's own `AGENTS.md`/`CLAUDE.md`.
    governance only for company-specific risk, evidence, provenance, approval,
    and deployment boundaries.
 6. Never claim a change is complete without the relevant diff, test/CI result,
-   and (for release work) deployment and smoke evidence. Merges, deployments,
-   production data mutation, credential changes, and other irreversible
-   actions remain Founder-controlled.
+   and (for release work) deployment and smoke evidence. R0–R2 squash-merge
+   after required checks is fleet-autonomous (`governance/AUTONOMY_POLICY.md`).
+   Deploy outside the product default-branch workflow, production data
+   mutation, credential changes, and history rewrites remain Founder-controlled.
 
 ## Enforcement boundary
 
