@@ -13,10 +13,9 @@ after this install).
   pnpm run deploy`), and commands that dump a credential-shaped file
   (`.env`, `*.pem`, `id_rsa`, `credentials.json`) to stdout or toward an
   external host via curl/scp/rsync.
-- `deny_tool.py` — matcher on Gmail mutation MCP tool names
-  (create_draft, send_message, trash, archive, …). Unconditional deny —
-  those tools are never autonomous here. R0–R2 GitHub merge is allowed
-  after required checks (`docs/fleet-merge-policy.md`); do not hook-deny it.
+- `deny_tool.py` — matcher on Gmail **trash/delete** MCP tool names.
+  Send, reply, draft, and label are allowed (`governance/AUTONOMY_POLICY.md`).
+  GitHub merge is allowed after required checks; do not hook-deny it.
 
 No `jq` on this machine, so both hooks are plain Python 3 reading/writing
 the hook JSON protocol directly (stdlib only, no dependencies).

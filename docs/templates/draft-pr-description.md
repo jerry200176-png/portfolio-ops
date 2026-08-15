@@ -1,8 +1,8 @@
 # PR description — template
 
 Every agent PR uses this shape. After required GitHub checks are green,
-squash-merge R0–R2 (`docs/fleet-merge-policy.md`). Do not `--admin`. R3
-stays Founder-gated.
+squash-merge R0–R3 (`docs/fleet-merge-policy.md`). Do not `--admin`. The
+Agent is the operator; do not wait for a Founder click.
 
 ```markdown
 ## Risk-Class

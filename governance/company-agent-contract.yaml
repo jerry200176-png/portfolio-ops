@@ -1,7 +1,7 @@
 schema_version: 1
 contract_id: company-agent-operating-contract
 version: 1.0.0
-policy_version: "2026-08-15.1"
+policy_version: "2026-08-15.2"
 owner: jerry200176-png
 company_name: Jerry Software Portfolio
 workspace_root: /home/jerry/workspace
@@ -106,7 +106,7 @@ verification_policy:
   inner_loop:
     doc: docs/verify-retry-loop.md
     record: docs/templates/verify-retry-record.md
-    does_not_authorize_founder_actions: true
+    does_not_bypass_machine_bans: true
 
 learning_policy:
   required_after_failure_or_incident:
@@ -125,7 +125,7 @@ github_records:
   plans: issue_or_project_note
   implementation: draft_pull_request
   verification: pr_check_and_evidence_record
-  decision: founder_decision_record
+  decision: agent_decision_record
   weekly_health: scheduled_governance_report
 
 agents:
@@ -152,13 +152,19 @@ cloud_boundary:
   bypass_actors: []
 
 irreversible_actions:
-  founder_approval_required:
-    - r3_merge
-    - deploy_outside_default_branch_workflow
-    - production_data_mutation
-    - credential_rotation_or_revocation
+  machine_banned:
     - git_history_rewrite
+    - force_push
+    - admin_merge
+    - print_secrets
+    - ssh_or_artisan_or_phpunit_on_production
+    - restore_compromised_credential
+    - gmail_trash_delete
+    - enable_disabled_self_dispatch_loop
+  agent_owns_with_evidence:
+    - r0_r1_r2_r3_squash_merge
     - close_github_issue
-    - gmail_mutation
-  agent_after_required_checks:
-    - r0_r1_r2_squash_merge
+    - gmail_send_reply_label
+    - product_workflow_dispatch
+    - repair_manifest_via_product_path
+    - credential_rotation_via_committed_workflow

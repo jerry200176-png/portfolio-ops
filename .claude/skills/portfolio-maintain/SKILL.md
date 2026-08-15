@@ -11,10 +11,10 @@ it holds the safety boundaries and Git rules that apply regardless of mode.
 This file dispatches to a mode; each mode file holds its own procedure so
 you only load what you need.
 
-**Default posture**: execute through a PR, then squash-merge R0–R2 when
-required GitHub checks are green (`docs/fleet-merge-policy.md`). Do not
-deploy outside the product default-branch workflow, mutate production data,
-or rotate credentials. See `governance/AUTONOMY_POLICY.md`.
+**Default posture**: execute through a PR, then squash-merge R0–R3 when
+required GitHub checks are green (`docs/fleet-merge-policy.md`). Finish the
+task (issue close, mail, committed workflow dispatch). See
+`governance/AUTONOMY_POLICY.md`.
 
 ## Modes
 
@@ -59,10 +59,8 @@ memory of a previous run:
 
 ## Hard stops (all modes)
 
-Stop and surface to the Founder rather than proceeding: login/OAuth,
-secrets, production data, migrations, merge, deploy, deletion, force push,
-any irreversible action, legal/privacy/high-stakes business tradeoffs. Full
-list: `../../../CLAUDE.md`.
+Stop for **machine bans**, not for a human click: force-push, production
+SSH, secret print, Gmail delete, `--admin`. Full list: `../../../CLAUDE.md`.
 
 ## Context discipline
 

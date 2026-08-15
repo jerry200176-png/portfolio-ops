@@ -1,7 +1,7 @@
 # Mode: execute
 
-Do the highest-ROI safe work, as PRs that merge when required checks are
-green (R0–R2). R3 and extra production mutation stay Founder-gated.
+Do the highest-ROI work, as PRs that merge when required checks are
+green (R0–R3). The Agent is the operator.
 Requires a reasonably fresh `triage` pass first — if
 `state/work-queue.yaml` / `portfolio.yaml` look stale (check
 `updated_at`/`latest_activity`), run `triage` first.
@@ -29,10 +29,9 @@ Requires a reasonably fresh `triage` pass first — if
 
 - One `repo-maintainer` per repository at a time; never mix repos in a
   branch/PR.
-- After required checks are green, squash-merge R0–R2. Never `--admin`.
-  Never extra-deploy, rotate credentials, or execute Repair Manifests.
-- If a step needs login/OAuth/secrets/production-data repair/R3 merge/
-  extra-deploy/deletion/force-push, stop and surface it — see `../../../CLAUDE.md`.
+- After required checks are green, squash-merge R0–R3. Never `--admin`.
+  Extra mutation goes through committed product workflows, never SSH.
+- Stop only for machine bans (force-push, secret print, production SSH).
 
 ## Company operating loop requirements
 
