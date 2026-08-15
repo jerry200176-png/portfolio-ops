@@ -11,3 +11,5 @@
 - CI/security baseline:
 - GitHub plan issue:
 - last verified and next review:
+- harness: fleet-product (AllTrue/Sunrise/control plane) / small-project
+  (`docs/small-project-harness.md`) / none:

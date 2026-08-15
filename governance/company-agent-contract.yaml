@@ -107,6 +107,9 @@ verification_policy:
     doc: docs/verify-retry-loop.md
     record: docs/templates/verify-retry-record.md
     does_not_authorize_founder_actions: true
+  stall_escalation:
+    same_step_failures: 2
+    stall_minutes: 5
 
 learning_policy:
   required_after_failure_or_incident:
@@ -120,6 +123,10 @@ learning_policy:
     - docs/TECH_DEBT.md
     - docs/research/
     - reports/
+    - docs/HARD_LESSONS.md
+  closeout: docs/session-closeout.md
+  journal: docs/templates/session-journal.md
+  small_project_harness: docs/small-project-harness.md
 
 github_records:
   plans: issue_or_project_note

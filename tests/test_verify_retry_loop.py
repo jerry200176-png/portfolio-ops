@@ -16,6 +16,7 @@ class VerifyRetryLoopTests(unittest.TestCase):
             "## Eligibility",
             "## Generate / review split",
             "## Stop-loss",
+            "## Stall escalation",
             "Founder-gated",
             "captain-balung-blog.ghost.io/seven-stages-ai-agent-workflow",
             "docs/templates/verify-retry-record.md",

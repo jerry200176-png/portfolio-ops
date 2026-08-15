@@ -41,4 +41,5 @@ Link the GitHub plan issue and verification commands. After verification,
 record surprises and prevention rules in a learning record or linked issue.
 If the item is T0 docs or T1 with automated checks, follow
 `docs/verify-retry-loop.md` and attach a verify-retry record before handing
-off to `evidence-verifier`.
+off to `evidence-verifier`. Stall twice or five minutes: stop and ask.
+On 收工, follow `docs/session-closeout.md`.

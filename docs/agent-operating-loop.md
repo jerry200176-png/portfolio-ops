@@ -43,14 +43,25 @@ machine-checkable acceptance, implementer/reviewer split, bounded retries,
 and a `docs/templates/verify-retry-record.md`. A green inner loop still
 finishes at a Draft PR. It does not authorize merge or deploy.
 
+## Stall escalation
+
+Stop and ask the Founder when the same step fails twice in a row, or the
+same gate is stuck for five minutes (long installs, builds, and tests are
+not stalls). Do not keep retrying in silence.
+
 After a failure, incident, or surprise, record root cause, add a regression
 guard, update the prevention rule and reference pattern, and link the GitHub
-issue or PR. Merge, deploy, production data changes, credentials, deletion,
+issue or PR. Promote a one-line hard lesson when `docs/HARD_LESSONS.md`
+says to. Merge, deploy, production data changes, credentials, deletion,
 and history rewrites remain explicit Founder decisions.
+
+When the Founder says 收工 / close out, follow `docs/session-closeout.md`.
 
 ## New project intake
 
 Register the repository, owner, lifecycle, tier, data sensitivity, deploy
 target, health/version endpoints, backup/recovery owner, source-of-truth paths,
 governance overlay, CI/security baseline, GitHub plan issue, and next review in
-the manifest and catalog before implementation begins.
+the manifest and catalog before implementation begins. New small tools that
+are not AllTrue, Sunrise, or this control plane also follow
+`docs/small-project-harness.md`.
