@@ -61,8 +61,8 @@ jobs:
 
       - name: Run governed checks
         run: |
-          npm test
-          npm run lint
-          pytest
-          python -m pytest
-          python3 -m pytest
+          if [ -f package.json ]; then npm test && npm run lint; fi
+          if [ -f pytest.ini ] || [ -f pyproject.toml ] || compgen -G "tests/test_*.py" > /dev/null 2>&1; then
+            pip install -q pytest
+            python3 -m pytest
+          fi
