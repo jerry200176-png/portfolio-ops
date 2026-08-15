@@ -11,6 +11,10 @@ The required operating loop is:
 discover -> research -> plan -> implement -> verify -> review -> learn
 ```
 
+Eligible T0/T1 work runs the inner verify-retry loop in
+`docs/verify-retry-loop.md` before verify is done. A green inner loop does
+not authorize merge or deploy.
+
 The Portfolio Ops repository is the company control plane. Record the plan,
 evidence, verification result, and learning record in GitHub and the control
 plane. Do not start from a dirty canonical checkout.

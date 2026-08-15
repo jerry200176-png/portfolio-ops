@@ -10,7 +10,8 @@ Before changing any repository, read:
 
 Use `/home/jerry/workspace/agent-control/bin/agent-start` for isolated task
 worktrees. Follow discover -> research -> plan -> implement -> verify -> review
--> learn. Record plans and evidence in GitHub and in the control plane. This is
+-> learn. Eligible T0/T1 work uses the inner loop in
+`docs/verify-retry-loop.md`. Record plans and evidence in GitHub and in the control plane. This is
 a single-owner company: no second reviewer is required, while Founder-only
 production, deploy, deletion, credential, and history-rewrite boundaries stay
 explicit.
