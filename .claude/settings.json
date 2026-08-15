@@ -22,7 +22,7 @@
         ]
       },
       {
-        "matcher": "mcp__claude_ai_Gmail__(create_draft|update_draft|label_message|label_thread|unlabel_message|unlabel_thread|apply_sensitive_message_label|apply_sensitive_thread_label|create_label|update_label|delete_label|send_message|send_draft|trash_message|untrash_message|delete_message|delete_thread|archive_message|batch_delete_messages|batch_modify_messages)",
+        "matcher": "mcp__claude_ai_Gmail__(trash_message|untrash_message|delete_message|delete_thread|batch_delete_messages)",
         "hooks": [
           {
             "type": "command",

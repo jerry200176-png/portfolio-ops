@@ -16,4 +16,4 @@
 
 ## Risk and rollback
 
-## Remaining unverified items / Founder decisions
+## Remaining unverified items

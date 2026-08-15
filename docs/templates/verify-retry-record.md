@@ -14,4 +14,4 @@
 - Independent review: who/what re-ran the checks, and the result:
 - Exhausted?: no / yes — why stop:
 - Draft PR:
-- Founder-gated leftover (merge/deploy/other): still required
+- Leftover (machine-banned or no machine path):

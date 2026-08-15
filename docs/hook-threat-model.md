@@ -5,7 +5,7 @@
 wired via `.claude/settings.json` PreToolUse hooks. They are **not a
 sandbox** — see `docs/security-boundaries.md` for what actually bounds
 agent behavior (tool-list restriction per agent, this repo's `CLAUDE.md`
-rules, and the Founder as the final approval gate). This document records
+rules, GitHub rulesets, and machine bans in `AUTONOMY_POLICY.md`). This document records
 the adversarial testing performed, what was found and fixed, and — just as
 important — what remains unfixable by a textual hook and must be covered by
 something else.

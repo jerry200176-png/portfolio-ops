@@ -2,10 +2,10 @@
 
 This is an inner loop on `implement -> verify` for **eligible** work. It does
 not replace `docs/agent-operating-loop.md`, ExoProtocol, or
-`governance/AUTONOMY_POLICY.md`. Merge of R0–R2 after required GitHub checks
-follows `docs/fleet-merge-policy.md`. Deploy outside the product
-default-branch workflow, production data mutation, mail send, credential
-changes, and history rewrites stay Founder-gated even when this loop is green.
+`governance/AUTONOMY_POLICY.md`. Merge of R0–R3 after required GitHub checks
+follows `docs/fleet-merge-policy.md`. A green inner loop is not by itself a
+merge; GitHub required checks are. History rewrite, `--admin`, secret
+print, and production SSH stay machine-banned even when this loop is green.
 
 The maturity idea (spec, independent checker, auto retry, run record) is
 adapted from Captain Balung's public map
@@ -25,7 +25,8 @@ Use this loop only when **all** of the following are true:
 
 Do **not** use it for T2/T3 product, auth, PII, billing, migrations, CI
 rewrites, or any irreversible action. If the checker cannot be written as
-commands, stay on the outer loop: implement once, human or Founder reviews.
+commands, stay on the outer loop: implement once, then merge after required
+GitHub checks.
 
 First pilot class: **portfolio-ops T0 docs** (this repository's `docs/` and
 templates only, no `.github/` workflow edits unless the task is explicitly
@@ -91,8 +92,8 @@ green is a stop, not a retry.
 ## Stop-loss
 
 Default: **3** implement attempts. Exhaustion is a successful use of the
-loop: it proved the spec or the checks are wrong. Record that and ask the
-Founder or rewrite the spec; do not burn a fourth attempt.
+loop: it proved the spec or the checks are wrong. Record that and rewrite
+the spec; do not burn a fourth attempt.
 
 ## Record
 
@@ -105,8 +106,8 @@ The first use of this loop is the patch that adds it. Checks:
 
 1. `docs/verify-retry-loop.md` and `docs/templates/verify-retry-record.md` exist.
 2. `docs/agent-operating-loop.md` links here.
-3. This file still forbids extra production mutation (`deploy` outside
-   default-branch workflow). Merge follows `docs/fleet-merge-policy.md`.
+3. This file still forbids production SSH / force-push / `--admin`. Merge
+   follows `docs/fleet-merge-policy.md`.
 4. Attribution to the source article remains.
 5. `git diff --check`
 6. `python3 scripts/validate-company-agent-contract.py`
