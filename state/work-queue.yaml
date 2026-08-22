@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-08-09T10:22:46+08:00
+updated_at: 2026-08-22T13:20:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -165,7 +165,7 @@ queue:
     priority: p0
     title: Parent-portal cross-student PII exposure — containment unexecuted
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1401
-    status: technical_containment_complete_manual_review_prepared
+    status: completed
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1400
     evidence:
       - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): fix PR #1400 is merged"
@@ -176,26 +176,28 @@ queue:
       - "Overall impact classification: insufficient-logs, not confirmed-impact or no-evidence-found — the 2 flagged identities have an equally plausible benign explanation (one family, two different registered phone numbers) that only human PII-handling review can resolve"
       - "Private manual-review checklist prepared (AllTrue_System PR #1425): exact reproduction query + decision tree for a human with production access to resolve the 2 flagged identities without this session ever seeing the underlying PII"
       - issue's own containment checklist (parent notification, evidence retention, exposure-log review) is entirely unchecked — Founder-only, legal-adjacent, this session does not act unilaterally
-    next_action: Founder (or designated reviewer) runs the manual-review checklist (AllTrue_System PR #1425) against production for the 2 flagged identities, records the outcome in the closure packet, then makes the notification decision. This session does not notify, close #1401, or submit any regulatory report.
+      - "2026-08-22 GitHub read-back: issue #1401 is CLOSED (state_reason completed, closed 2026-08-08). Owner confirmed the 5 flagged identities were test artifacts; no confirmed cross-family exposure; parent notification not required."
+    next_action: none — resolved, closed 2026-08-08
 
   - id: SEC-ALLTRUE-GITGUARDIAN-0717
     product: alltrue
     priority: p0
     title: GitGuardian 3-secret cluster (Telegram Bot Token, Laravel APP_KEY, Bearer Token) — dedup unconfirmed
     source: gmail:GitGuardian-alerts-2026-07-17
-    status: telegram_leg_rotated_and_resolved_appkey_bearer_unconfirmed
+    status: completed
     evidence:
       - "GitGuardian sent 3 alerts on 2026-07-17 (reports/2026-07-25/gmail-signals.md); not yet confirmed whether these are the same candidates already rotated and closed under SEC-ALLTRUE-001 (which confirmed TELEGRAM, APP_KEY, and BEARER were different from historical leaked candidates) or a new, separate exposure"
       - "2026-08-08: ran `gh api repos/jerry200176-png/AllTrue_System/secret-scanning/alerts` — exactly 1 alert total (not 3): #1, secret_type=telegram_bot_token, first detected 2026-02-07 in commit 245b8a5d, path `AllTrue (3).sql` line 136 (a committed database dump file). Repo was public until 2026-07-25 per SEC-ALLTRUE-003 evidence above, so this token was publicly exposed for ~5.5 months before rotation. GitHub secret-scanning did not surface any APP_KEY or Bearer Token alert — those two GitGuardian findings are either not in GitHub's default detection patterns, were caught only via Actions-log exposure (a different surface than repo content, matching the SEC-ALLTRUE-003 pattern) rather than committed file content, or are already resolved/superseded; still not confirmed which."
       - "2026-08-08 (same day, later): Founder had an engineer rotate the Telegram bot token at the provider (revoke + reissue). Confirmed via chat, not independently re-verified against Telegram's API (using the old or new credential to test is not this session's call). Marked alert #1 `resolved`/`revoked` via `gh api -X PATCH .../secret-scanning/alerts/1` with a resolution_comment recording the provider-side rotation and Founder confirmation."
-    next_action: "Only the APP_KEY and Bearer Token legs of the original 3-alert GitGuardian cluster remain unconfirmed — GitHub's own scanner didn't surface them, so confirming/denying those needs either a GitGuardian re-scan or manual review of the original 2026-07-17 alert emails against current state. Not blocking; lower urgency now that the confirmed live leak (Telegram token) is closed."
+      - "2026-08-22: re-ran `credential-fingerprint-audit.yml` (run 32553859280). Result: TELEGRAM DIFFERENT, APP_KEY DIFFERENT, BEARER DIFFERENT (leaked vs. current production) — the leaked APP_KEY and Bearer Token values from the 2026-07-17 GitGuardian alerts are confirmed NOT live in production. No rotation needed for those two legs."
+    next_action: none — resolved, all 3 legs confirmed not live (Telegram rotated at provider; APP_KEY/Bearer confirmed different from production)
 
   - id: SEC-ALLTRUE-003
     product: alltrue
     priority: p0
     title: Contain public Actions credential exposure and restore release identity
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1387
-    status: rotation_script_fixed_awaiting_founder_retrigger
+    status: rotation_confirmed_awaiting_manual_php_fpm_reload
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/1395
     blocked_by: https://github.com/jerry200176-png/AllTrue_System/pull/1424
     evidence:
@@ -217,7 +219,7 @@ queue:
       - credential rotation/invalidation of the exposed DB password at any real point of use is STILL NOT confirmed anywhere in the issue/PR thread — this is the one remaining blocker to clean closure (unlike the separate, closed SEC-ALLTRUE-001 which had explicit rotation-audit evidence)
       - unauthorized-use assessment (incident card §18): no positive evidence of compromise found in the surfaces this session can check (public health endpoints, collaborator list, fork count); DB/provider audit logs and GitHub's own audit log were NOT checked (no tool access) — absence of evidence, not evidence of absence
       - exposed CI credential is treated as compromised; no secret value was copied into this evidence file or the incident status card
-    next_action: "NOT READY TO CLOSE — confirmed match, rotation prepared and awaiting the single Founder trigger. The fingerprint audit (run 30177947909) CONFIRMED the pre-fix leaked value is still the live production DB password. Every #1387 exit criterion this session can prepare without touching production is done: consumers identified, backup/rollback freshly verified, rotation workflow built/reviewed/merged (PR #1424, dormant until triggered), minimal runbook written. The ONE remaining action is the Founder running `gh workflow run 1387-db-password-rotation.yml --repo jerry200176-png/AllTrue_System --ref main -f confirm=ROTATE`, then this session re-runs the fingerprint audit once more to confirm no-match. Issue 1387 stays open; this session does not close it."
+    next_action: "2026-08-22: Founder explicitly authorized this session to trigger rotation. Ran `gh workflow run 1387-db-password-rotation.yml --ref main -f confirm=ROTATE` (run 32553899675) — job succeeded, new password generated/applied/verified via mysqladmin ping, /api/health confirmed ok post-rotation. Re-ran 'DB Password Fingerprint Audit — issue' (run 32553999392): DB_PASSWORD now DIFFERENT (leaked vs. production) — rotation CONFIRMED effective, no longer a live exposure. ONE manual follow-up remains: the rotation script could not reload php8.2-fpm (no passwordless sudo on the Pi) — annotation says 'MANUAL FOLLOW-UP REQUIRED: run sudo service php8.2-fpm reload on the Pi now.' Founder or someone with Pi sudo access must run that one command; this session cannot SSH the Pi (R6)."
 
   - id: GH-PORTFOLIO-001
     product: portfolio
@@ -251,20 +253,22 @@ queue:
     priority: p1
     title: "Billing calculation bug: 0/2998 vs 3000 discrepancy"
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1096
-    status: open_no_pr
+    status: completed
     evidence:
       - "2026-07-25 GitHub triage (reports/2026-07-25/github-triage.md): open, no PR attached, concrete reproducible numeric discrepancy reported"
-    next_action: candidate for next execute-mode Draft PR once P0 items clear
+      - "2026-08-22: issue #1096 (in-app #190) is CLOSED. Root cause: MonthlyBillingService::summarizePeriod() fell back to stale StudentClass.Charge when zero billable sessions existed in window, and separately undercounted sessions against calendar-month boundaries. Fixed in PR #1561 (merged 2026-08-01), now counts billable sessions in the real invoice period. Re-verified live against SC2026/SC2027: both compute charge=3000 correctly. The 2 bad payment_reports rows (#978, #979) were already voided by staff 2026-07-07, before the code fix. No outstanding action."
+    next_action: none — resolved
 
   - id: DEC-ALLTRUE-1100
     product: alltrue
     priority: p1
     title: A/B package overlap — product decision needed, not a code defect
     source: https://github.com/jerry200176-png/AllTrue_System/issues/1100
-    status: needs_founder_product_decision
+    status: completed
     evidence:
       - "2026-07-25 GitHub triage: needs Founder/PM input on intended package behavior before any PR is drafted"
-    next_action: leave queued; do not treat as engineering work until decision is made
+      - "2026-08-22: issue #1100 is CLOSED (completed 2026-07-29). Founder took the recommended Option 2 (alert + duplicate guard, no silent date shifting), shipped in merged PR #1498."
+    next_action: none — resolved
 
   - id: SEC-ALLTRUE-001
     product: alltrue
@@ -309,7 +313,7 @@ queue:
     priority: p0
     title: Restore Sunrise deployment capacity — now confirmed hitting production
     source: gmail:vercel-failed-production-deployment
-    status: root_cause_confirmed_awaiting_founder_dashboard_action
+    status: appears_resolved_needs_founder_vercel_dashboard_confirm
     evidence:
       - production health/version endpoints confirmed current this pass (2026-07-25) — deployed commit 9ac7da6f IS current origin/main HEAD (verified via git merge-base --is-ancestor), production is not behind despite a stale local checkout
       - GitHub production deploy and Verify Production completed successfully for 773ea48 at 2026-07-19T03:56:29Z
@@ -321,20 +325,22 @@ queue:
       - "MIXED CAUSE: primary = Vercel configuration problem (duplicate project linkage); secondary/compounding = GitHub automation problem (verify-production.yml's auto-redeploy-on-drift fires more under quota pressure, not less, since it cannot distinguish throttled from stuck)"
       - "existing mitigations (ignoreCommand, PR #203/#206 cron tuning) address build-minute waste and cron frequency, NOT the deployment-count cap — ignoreCommand only skips the build step, after the deployment record is already quota-counted"
       - "production impact so far: latent risk + wasted CI signal, not confirmed downtime — production has stayed current throughout"
-    next_action: "Founder logs into Vercel dashboard, identifies which project serves sunrise-cafe-six.vercel.app, and disconnects/deletes the duplicate project(s) (sunrise-cafe-pklg at minimum, plus the abandoned legacy/workspace ones) — likely cuts deployment count 50%+ immediately with zero code change. In parallel: fix verify-production.yml to back off (not retrigger) on deploy_rate_limited, and rate-limit the auto-redeploy trigger. Do NOT upgrade to Vercel Pro before fixing the duplication and remeasuring — Pro would mask the bug, not fix it."
+    next_action: "2026-08-22: Gmail search for GitGuardian/vercel failure alerts (30d window) found no new production-deploy-failure emails; ~15 dependabot PRs (#284-#296) since 8/9 all show normal 'Vercel Building'/skip-preview-on-bot-PR comments, no quota errors. Production /api/health and booking-health both currently ok. This looks resolved (or no longer actively hitting the cap), but this session did not independently verify inside the Vercel dashboard whether the duplicate-project cleanup was actually done — Founder should do a 30-second dashboard check to confirm no duplicate sunrise-cafe-pklg project remains, then this item can close."
 
   - id: SEC-SUNRISE-002
     product: sunrise
     priority: p0
     title: Supabase RLS/rate-limit/backup — Founder decisions made but unexecuted
     source: https://github.com/jerry200176-png/sunrise-cafe/issues/211
-    status: partial_execution_pr_open
+    status: code_and_rls_done_three_items_need_founder_external_action
     evidence:
       - "Founder decisions FD-1...FD-6 (RLS, rate limiting, backup posture) were recorded 2026-07-19 in issue #211"
-      - "2026-08-09: Sunrise PR #276 at commit e1b2c82 restores the rate-limit memory fallback, Edge-safe hashing, and auth guards; Agent Session Provenance, Lint & Build, and Playwright smoke all passed. The Draft PR is not merged or deployed."
-      - "RLS application status and backup/restore posture remain unconfirmed; the rate-limit production runtime remains unchanged until Founder review, merge, and the normal deployment path."
-      - "current production state: fail-open rate limiting confirmed live (booking-health endpoint reports rate_limit_mode=memory, rate_limit_grade=degraded_per_isolate); backup posture unconfirmed; RLS application status unconfirmed"
-    next_action: Founder reviews/merges PR #276 after confirming production-risk acceptance; then prepare separate, rollback-ready RLS and backup evidence work, with all production migration and paid-plan actions remaining Founder-gated
+      - "2026-08-09: Sunrise PR #276 (rate-limit memory fallback, Edge-safe hashing, auth guards) MERGED to main."
+      - "FD-3 (apply migration-rls-catalog-read-only.sql on prod): CONFIRMED DONE — PR #212/#229/#230 (all merged) applied '20260715-rls-catalog-read-only' via the Production maturity migrate workflow; APPLY_OK, ledger row present."
+      - "2026-08-22 live check: https://sunrise-cafe-six.vercel.app/api/booking-health returns {ok:true, rate_limit_mode:memory, rate_limit_grade:degraded_per_isolate, stripe_enabled:false} — matches documented fail-safe behavior (not a bug) when Upstash isn't configured."
+      - "FD-1 (Supabase Pro/automated backups) and FD-2 (Upstash rate-limit config) are external paid-service signups — cannot be completed by an agent, need Founder to create the account/plan and hand over env vars."
+      - "FD-4 (refund policy), FD-5 (Stripe/LINE Pay go-live), FD-6 (dual-listing) are business/product decisions, not yet implemented in code; FD-5's suggested default (wait 2 weeks for KPI baseline) is satisfied by default since stripe_enabled is still false."
+    next_action: "Three items need the Founder personally, not code: (1) FD-1 enable Supabase Pro backups in the Supabase dashboard, (2) FD-2 sign up for Upstash and hand the REST URL/token to be set as Vercel env vars, (3) FD-4 confirm the refund policy wording (suggested default: >=48h before reservation = auto-refund, inside 48h = staff review) so it can be implemented in code. FD-3/rate-limit code are done; FD-5/FD-6 need no action (staying at current defaults)."
 
   - id: CI-SUNRISE-PROVENANCE
     product: sunrise
@@ -394,8 +400,9 @@ queue:
     priority: p0
     title: DB-password fingerprint audit tool built, awaiting Founder merge to run
     source: https://github.com/jerry200176-png/AllTrue_System/pull/1414
-    status: draft_pr_open_blocked_on_founder_manual_merge
+    status: completed
     evidence:
+      - "2026-08-22: PR #1414 was auto-closed 2026-07-25 (branch-naming CI gate, sec/ prefix not allowed) and superseded by identical-content PR #1421, which merged. The DB Password Fingerprint Audit workflow it added is live and was used this session (see SEC-ALLTRUE-003) to confirm rotation. No further action on this item."
       - "extends SEC-ALLTRUE-001's fingerprint-comparison pattern to DB_PASSWORD (scripts/credential-fingerprint-audit.py + new workflow_dispatch workflow db-password-fingerprint-audit.yml); 4/4 tests pass; diff contains only synthetic fixture values"
       - "2026-07-25 ~17:00: independent review completed against Founder's checklist (permissions, secret handling, logs/outputs/artifacts/cache, injection, error paths, match-only output) — PASSED, safe to merge on all content dimensions"
       - "merge attempted, BLOCKED by a second, legitimate blocker: AllTrue's required 'Agent Session Provenance' check correctly failed because this PR's branch (built via ad hoc git clone in scratchpad) carries no .agent-session/manifest.json or human-authored.json — a genuine governance gate, not a bug. This session declined to fabricate a manifest or force-merge past 'admin enforcement' branch protection without clear authorization."
