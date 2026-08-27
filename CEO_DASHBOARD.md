@@ -22,6 +22,9 @@
 - A read-only `scripts/release-evidence.py` check is now available to compare
   the formal version/health endpoints against the expected commit; green CI
   alone is explicitly insufficient for release closure.
+- The 10:53 +08:00 release-gate check returned health HTTP 200 but a SHA
+  mismatch (`5e659805` serving versus PR #2086 `4af00816` expected), confirming
+  that the fix is not deployed. Evidence: `reports/2026-08-27/alltrue-release-gate-2086.md`.
 - Next tracked product risk: issue #2002, cross-date rescheduled sessions can
   occupy availability while being absent from the teacher calendar. A
   contract proposal and test matrix are recorded; implementation requires a

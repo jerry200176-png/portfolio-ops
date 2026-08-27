@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-27T10:50:52+08:00"
+updated_at: "2026-08-27T10:53:30+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,9 +30,9 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-27"
-    last_verified_at: "2026-08-27T10:47:21+08:00"
+    last_verified_at: "2026-08-27T10:53:30+08:00"
     source_commit: "5e6598052299386bbf13e12ae320b90186022348"
-    evidence_expires_at: "2026-08-28T10:47:21+08:00"
+    evidence_expires_at: "2026-08-28T10:53:30+08:00"
     open_p0: 0
     open_p1: 33
     current_priority: OPS-ALLTRUE-2086 — 新店 8 堂合約的手動排課流程已完成根因修正與回歸驗證，PR #2086 CI 全綠但尚待獨立審核；正式環境目前仍是 5e659805，8/29 唯讀檢查可建立且剩餘 1 堂。
