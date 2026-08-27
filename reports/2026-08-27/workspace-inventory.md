@@ -30,6 +30,15 @@ The read-only governance audit also passed 8/8 required controls for AllTrue,
 `LICENSE` artifact; that is tracked as a separate control-plane improvement,
 not silently fabricated during this inventory refresh.
 
+## Cleanup proposal artifact
+
+The existing proposal-only tool was run against the three canonical/control
+repositories. Its checksummed output is stored at
+`/home/jerry/evidence/workspace-admin/phase3-cleanup-proposal/20260827T021924Z/`.
+It proposes no automatic deletion: any unresolved or legacy path still needs
+ownership, backup/recovery verification, and explicit approval before a later
+archive or removal operation.
+
 ## Closed-loop rule
 
 The folder problem is now represented as data instead of being silently
