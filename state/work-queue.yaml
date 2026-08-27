@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-08-27T10:36:40+08:00
+updated_at: 2026-08-27T10:50:52+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -15,7 +15,7 @@ queue:
       - "Production read-only check for StudentClass 2081, Xindian campus, 2026-08-29 13:00 returned can_add=true, conflict_type=none, and one available session; this session did not write production data."
       - "The original frontend opened a check for today's date before the director selected 8/29; without request ordering protection, an older 422 could overwrite the newer valid result."
       - "PR #2086 adds request-version protection, next-valid-date defaults, a retry action, and a Feature Test covering seven attended sessions plus cancelled leave dates."
-      - "CI run 33031809442 passed PHPUnit Feature & Unit Tests, Vite Frontend Build, Golden scenarios, PHPStan, UI Smoke, security scans, and governance gates."
+      - "Current CI run 33033523696 passed PHPUnit Feature & Unit Tests, Vite Frontend Build, Golden scenarios, PHPStan, UI Smoke, security scans, and governance gates; the page-level delayed-422 Playwright regression also passed in the targeted local run."
     root_cause: "The backend check was already able to accept the eighth future session, but the director-facing modal had an invalid initial date and allowed out-of-order check responses to replace the current decision."
     non_goals:
       - "Do not directly mutate production attendance, ClassSession, StudentClass, billing, or payment data."
