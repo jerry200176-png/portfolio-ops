@@ -15,9 +15,9 @@
   contains the latest-only response guard, correct next-session date
   selection, retryable conflict UI, and a real Vue page-level Playwright
   regression for the delayed-422 race. Its latest head `cfc5a1f6` also cancels
-  superseded requests; local 304/304 unit tests and the targeted Playwright
-  regression pass. The latest remote CI is still revalidating, and the PR is
-  open with no independent review and is not deployed.
+  superseded requests; local 304/304 unit tests, the targeted Playwright
+  regression, and remote CI run `33035364530` pass. The PR is open with no
+  independent review and is not deployed.
 - AllTrue PR [#2085](https://github.com/jerry200176-png/AllTrue_System/pull/2085)
   adds a clear 44px mobile touch target for director dashboard actions. Local
   lint, 303/303 unit tests, and 120/120 UI Foundation cases pass; remote run

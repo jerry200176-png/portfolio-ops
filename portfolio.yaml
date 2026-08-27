@@ -35,8 +35,8 @@ projects:
     evidence_expires_at: "2026-08-28T10:53:30+08:00"
     open_p0: 0
     open_p1: 34
-    current_priority: OPS-ALLTRUE-2086 — 新店 8 堂合約的手動排課流程已完成根因修正與回歸驗證，最新取消過期請求補強正在重新跑 CI；正式環境目前仍是 5e659805，8/29 唯讀檢查可建立且剩餘 1 堂。
-    next_action: "完成 PR #2086 最新 head 的 CI 重驗與獨立審核後再合併；部署工作流完成後，以 version.json、health 與 8/29 唯讀檢查做發布驗收，再將主任實際操作結果回寫 Portfolio。"
+    current_priority: OPS-ALLTRUE-2086 — 新店 8 堂合約的手動排課流程已完成根因修正與回歸驗證，最新取消過期請求補強的 CI 已全綠但尚待獨立審核；正式環境目前仍是 5e659805，8/29 唯讀檢查可建立且剩餘 1 堂。
+    next_action: "完成 PR #2086 最新 head 的獨立審核後再合併；部署工作流完成後，以 version.json、health 與 8/29 唯讀檢查做發布驗收，再將主任實際操作結果回寫 Portfolio。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
