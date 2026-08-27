@@ -1,7 +1,7 @@
 schema_version: 1
 workspace_root: /home/jerry/workspace
 manifest_owner: /home/jerry/workspace/portfolio-ops
-last_verified_at: "2026-08-01T00:00:00+08:00"
+last_verified_at: "2026-08-27T10:04:18+08:00"
 inventory_policy:
   discover_immediate_git_roots:
     - /home/jerry/workspace
@@ -29,6 +29,18 @@ paths:
   backups: /home/jerry/evidence/workspace-admin
   agent_control: /home/jerry/workspace/agent-control
   control_plane: /home/jerry/workspace/portfolio-ops
+inventory_observation:
+  generated_at: "2026-08-27T10:04:18+08:00"
+  source_report: reports/2026-08-27/workspace-inventory.md
+  candidate_rows: 222
+  unresolved_rows: 8
+  discovery_roots:
+    - /home/jerry/workspace
+    - /home/jerry/wt
+    - /home/jerry
+    - /home/jerry/workspace/tasks/alltrue
+    - /home/jerry/workspace/tasks/portfolio-ops
+  policy: "classify and preserve first; archive, remove, move, reset, clean, or prune only with explicit approval"
 repositories:
   - id: alltrue-canonical
     path: /home/jerry/workspace/AllTrue_System-clean

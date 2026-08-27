@@ -1,9 +1,42 @@
 schema_version: 1
-updated_at: 2026-08-22T13:20:00+08:00
+updated_at: 2026-08-27T10:04:18+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: OPS-ALLTRUE-2086
+    product: alltrue
+    priority: p1
+    title: Resolve Xindian eighth-session booking failure through the real director workflow
+    source: https://github.com/jerry200176-png/AllTrue_System/pull/2086
+    status: ready_for_independent_review
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2086
+    evidence:
+      - "Production read-only check for StudentClass 2081, Xindian campus, 2026-08-29 13:00 returned can_add=true, conflict_type=none, and one available session; this session did not write production data."
+      - "The original frontend opened a check for today's date before the director selected 8/29; without request ordering protection, an older 422 could overwrite the newer valid result."
+      - "PR #2086 adds request-version protection, next-valid-date defaults, a retry action, and a Feature Test covering seven attended sessions plus cancelled leave dates."
+      - "CI run 33031809442 passed PHPUnit Feature & Unit Tests, Vite Frontend Build, Golden scenarios, PHPStan, UI Smoke, security scans, and governance gates."
+    root_cause: "The backend check was already able to accept the eighth future session, but the director-facing modal had an invalid initial date and allowed out-of-order check responses to replace the current decision."
+    non_goals:
+      - "Do not directly mutate production attendance, ClassSession, StudentClass, billing, or payment data."
+      - "Do not bypass independent review or deploy controls for a scheduling and billing-adjacent change."
+    tests:
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run test:unit"
+      - "npm --prefix frontend run build"
+      - "npm --prefix frontend run test:e2e:ui-foundation -- ui-foundation-pages.spec.js"
+      - "CI PHPUnit Feature & Unit Tests (run 33031809442)"
+    rollback: "Revert the deployed PR commit through the normal production deploy workflow; no data migration is included."
+    dependencies:
+      - "Independent review of PR #2086."
+      - "Post-merge deploy workflow and production read-only smoke."
+    founder_gate: "Founder/reviewer retains merge and production deploy authority; production data correction, if later required, must use a separately approved audited workflow."
+    acceptance:
+      - "Director can open the modal, receive the latest check for the selected date, and retry a transient failure without leaving the page."
+      - "The eighth session is accepted when the contract has one remaining entitlement and cancelled leave rows are excluded from used capacity."
+      - "After deployment, production version identity and a read-only 8/29 check match the reviewed commit."
+    next_action: "Obtain independent review, merge only after required checks remain green, then verify production before asking the director to retry."
+
   - id: PORTFOLIO-OPT-BASELINE-20260801
     product: portfolio
     priority: p1
