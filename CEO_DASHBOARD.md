@@ -20,6 +20,10 @@
   adds a clear 44px mobile touch target for director dashboard actions. Local
   lint, 303/303 unit tests, and 120/120 UI Foundation cases pass; remote run
   33034901065 also passed. Independent review is still required.
+- Dependabot currently reports three open `laravel/framework` advisories on
+  the production backend (one high, two medium); the lockfile resolves
+  `8.x-dev`. This is tracked as a separate security upgrade plan and must not
+  be mixed into the attendance fix.
 - No production attendance, billing, schedule, or account data was mutated
   by this work. The deployed version therefore remains the source of truth
   until the PR is independently reviewed, merged, deployed, and verified.

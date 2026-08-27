@@ -34,7 +34,7 @@ projects:
     source_commit: "5e6598052299386bbf13e12ae320b90186022348"
     evidence_expires_at: "2026-08-28T10:53:30+08:00"
     open_p0: 0
-    open_p1: 33
+    open_p1: 34
     current_priority: OPS-ALLTRUE-2086 — 新店 8 堂合約的手動排課流程已完成根因修正與回歸驗證，PR #2086 CI 全綠但尚待獨立審核；正式環境目前仍是 5e659805，8/29 唯讀檢查可建立且剩餘 1 堂。
     next_action: "完成 PR #2086 的獨立審核與合併；部署工作流完成後，以 version.json、health 與 8/29 唯讀檢查做發布驗收，再將主任實際操作結果回寫工作佇列。"
     evidence_links:
@@ -47,6 +47,7 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1690
       - https://github.com/jerry200176-png/AllTrue_System/issues/1007
       - https://github.com/jerry200176-png/AllTrue_System/pull/2086
+      - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
       - reports/2026-07-25/alltrue-sec-1387-incident-status-card.md

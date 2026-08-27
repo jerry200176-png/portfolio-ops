@@ -98,6 +98,35 @@ queue:
       - "Production version identity and smoke evidence match the reviewed commit after deployment."
     next_action: "Wait for remote checks, obtain independent review, then coordinate a single reviewed AllTrue deployment with post-deploy evidence."
 
+  - id: SEC-ALLTRUE-DEPENDABOT-20260827
+    product: alltrue
+    priority: p1
+    title: Resolve open Laravel framework security alerts before the next compatible release
+    source: https://github.com/jerry200176-png/AllTrue_System/security/dependabot
+    status: needs_security_review_and_upgrade_plan
+    evidence:
+      - "GitHub Dependabot read-back on 2026-08-27 reports three open laravel/framework alerts: #4 high severity (CRLF injection in the default email rule), #3 medium severity (file validation bypass), and #5 medium severity (temporary signed URL path confusion)."
+      - "backend/composer.json requires laravel/framework ^8.75 and backend/composer.lock resolves 8.x-dev at 863d9289; the alert remediation versions are outside the current major and cannot be applied as a blind patch."
+      - "The warning was observed during a normal branch push; no dependency files or production environment were changed by this triage."
+    root_cause: "The production backend remains on an old Laravel major and its lockfile permits a development framework build, leaving the application exposed to open framework advisories and without a reviewed upgrade compatibility boundary."
+    non_goals:
+      - "Do not run a blind composer update, change the lockfile, or upgrade the framework inside the attendance/billing incident PR."
+      - "Do not deploy, migrate production, or suppress the alerts without a reachability and compatibility decision."
+    tests:
+      - "Read-only Dependabot alert inventory and composer.json/composer.lock version audit."
+      - "Future isolated upgrade PR must run composer audit, PHP syntax/static checks, full PHPUnit, frontend build/UI smoke, and production rollback-readiness checks."
+    rollback: "Future framework upgrade must be a separately reviewed PR with the prior composer.lock and application release SHA retained for normal deployment rollback."
+    dependencies:
+      - "Security reachability review for the three advisories and confirmation of the supported Laravel target."
+      - "Compatibility plan for PHP 8.2, Laravel application APIs, Sanctum, Excel, Sentry, and existing production workflows."
+      - "Independent review and Founder approval before merge/deploy."
+    founder_gate: "Founder/reviewer retains framework upgrade, production deploy, and any emergency mitigation authority."
+    acceptance:
+      - "All three alerts are fixed, explicitly risk-accepted with expiry, or otherwise resolved with evidence."
+      - "The lockfile uses a supported stable framework release rather than an unreviewed development build."
+      - "All attendance, billing, scheduling, authentication, and notification regression suites pass before release."
+    next_action: "Perform reachability and compatibility review, then open a dedicated dependency-upgrade PR separate from #2086 and #2085."
+
   - id: PORTFOLIO-OPT-BASELINE-20260801
     product: portfolio
     priority: p1
