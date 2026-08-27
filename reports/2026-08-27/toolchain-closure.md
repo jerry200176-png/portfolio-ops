@@ -13,6 +13,7 @@ stronger multi-layer loop:
 | Frontend correctness | Vitest, Vite build, Playwright UI smoke | Component behavior, build integrity, and real-page interaction coverage |
 | Supply-chain/security | gitleaks, Composer/npm audit, governance and security workflows | Prevent secret and dependency regressions from entering release paths |
 | Release identity | `version.json`, `deployment.json`, health/smoke workflows | Prove what is serving after merge, rather than trusting a green PR |
+| Release evidence automation | `scripts/release-evidence.py` + `tests/test_release_evidence.py` | Read-only, machine-readable proof that health is good and the serving SHA matches the intended release |
 | Recovery | rollback-readiness checks and guarded operation workflows | Keep data repairs and production mutations explicit, reversible, and audited |
 
 ## Current gap to close
@@ -35,7 +36,8 @@ proves the director's newer successful date remains actionable.
    decision modal gets request ordering, cancellation, retry, and structured
    error display by default.
 3. Use Portfolio freshness as a required release input: stale evidence blocks
-   closure claims and deployment authorization, while a fresh report links the
-   exact PR, CI run, production identity, and post-deploy smoke.
+   closure claims and deployment authorization. Run `scripts/release-evidence.py`
+   after deployment so a fresh report links the exact PR, CI run, production
+   identity, and post-deploy smoke.
 4. Keep folder cleanup proposal-only until each legacy or dirty worktree has an
    owner, recoverability evidence, and explicit archive/remove approval.
