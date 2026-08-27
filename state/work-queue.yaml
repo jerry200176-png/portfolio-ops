@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-08-27T10:04:18+08:00
+updated_at: 2026-08-27T10:36:40+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -36,6 +36,34 @@ queue:
       - "The eighth session is accepted when the contract has one remaining entitlement and cancelled leave rows are excluded from used capacity."
       - "After deployment, production version identity and a read-only 8/29 check match the reviewed commit."
     next_action: "Obtain independent review, merge only after required checks remain green, then verify production before asking the director to retry."
+
+  - id: OPS-ALLTRUE-2002
+    product: alltrue
+    priority: p1
+    title: Make cross-date rescheduled sessions visible in the teacher calendar
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/2002
+    status: needs_design_and_founder_gate
+    evidence:
+      - "Issue #2002 reports a live-shaped case where schedules contains a rescheduled-to scheduled row for a cross-date move, but the corresponding ClassSession is absent; the calendar therefore shows a false free slot while availability reads the schedule row as busy."
+      - "Current ClassSessionController read-side repair only handles same-day ranges and explicitly skips a cross-date original_schedule_id chain to avoid creating a duplicate ghost occurrence."
+      - "Existing tests cover stale same-day exception occupancy and cross-date schedule write deferral, but do not prove the teacher calendar read model renders or safely resolves a cross-date scheduled exception with no materialized ClassSession."
+    root_cause: "The scheduling and calendar read models still have different completeness boundaries for legacy cross-date reschedule chains: schedules can be authoritative for occupancy while ClassSession remains the calendar display source."
+    non_goals:
+      - "Do not bulk-materialize or mutate production sessions from a read-only investigation."
+      - "Do not choose between rendering a projection and materializing a ClassSession until duplicate/stale-chain semantics are specified and reviewed."
+    tests:
+      - "Read-only source audit of ClassSessionController, ScheduleController, ScheduleGuardService, and calendar projection merge tests."
+      - "Existing backend regression coverage: StaleScheduleExceptionBusyTest and ScheduleStoreOrphanPreventionTest."
+    rollback: "No product change in this queue entry; any future implementation must use an isolated PR with an explicit rollback plan and post-deploy calendar/availability verification."
+    dependencies:
+      - "Architecture decision: canonical display contract for cross-date reschedule targets (projection versus safe idempotent materialization)."
+      - "Independent review and Founder approval before scheduling/read-model production changes."
+    founder_gate: "Founder/reviewer must approve the contract and production rollout; any data repair remains a separately audited operation."
+    acceptance:
+      - "A valid cross-date rescheduled target appears exactly once in the teacher calendar and remains consistent with availability occupancy."
+      - "Stale, cancelled, duplicate, and makeup-only schedule rows remain hidden or classified according to the reviewed contract."
+      - "A regression test proves no false-free slot and no duplicate calendar occurrence."
+    next_action: "Prepare a small architecture/test proposal, then request the Founder gate before implementation."
 
   - id: PORTFOLIO-OPT-BASELINE-20260801
     product: portfolio
