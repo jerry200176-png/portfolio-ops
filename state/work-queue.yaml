@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-08-27T11:02:04+08:00
+updated_at: 2026-08-27T11:08:50+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -9,7 +9,7 @@ queue:
     priority: p1
     title: Resolve Xindian eighth-session booking failure through the real director workflow
     source: https://github.com/jerry200176-png/AllTrue_System/pull/2086
-    status: ready_for_independent_review
+    status: ci_revalidating_before_independent_review
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2086
     evidence:
       - "Production read-only check for StudentClass 2081, Xindian campus, 2026-08-29 13:00 returned can_add=true, conflict_type=none, and one available session; this session did not write production data."
@@ -17,6 +17,8 @@ queue:
       - "PR #2086 adds request-version protection, next-valid-date defaults, a retry action, and a Feature Test covering seven attended sessions plus cancelled leave dates."
       - "Current CI run 33033523696 passed PHPUnit Feature & Unit Tests, Vite Frontend Build, Golden scenarios, PHPStan, UI Smoke, security scans, and governance gates; the page-level delayed-422 Playwright regression also passed in the targeted local run."
       - "Read-only release gate at 2026-08-27 10:53:30 +08:00: health HTTP 200/ok, but serving SHA 5e659805 does not match PR #2086 head 4af00816; release gate failed as expected and no production state was changed."
+      - "Latest head cfc5a1f6 adds AbortController cancellation for superseded manual/quick-add checks and cancellation on modal close/unmount; local 304/304 unit tests and the targeted Playwright race test passed."
+      - "After cfc5a1f6, required CI run 33035364530 is revalidating; PHPStan and several fast gates passed, while Vite Frontend Build, PHPUnit Feature & Unit Tests, and UI Smoke were still pending at the latest read-back."
     root_cause: "The backend check was already able to accept the eighth future session, but the director-facing modal had an invalid initial date and allowed out-of-order check responses to replace the current decision."
     non_goals:
       - "Do not directly mutate production attendance, ClassSession, StudentClass, billing, or payment data."
@@ -36,7 +38,7 @@ queue:
       - "Director can open the modal, receive the latest check for the selected date, and retry a transient failure without leaving the page."
       - "The eighth session is accepted when the contract has one remaining entitlement and cancelled leave rows are excluded from used capacity."
       - "After deployment, production version identity and a read-only 8/29 check match the reviewed commit."
-    next_action: "Obtain independent review, merge only after required checks remain green, then verify production before asking the director to retry."
+    next_action: "Wait for the cfc5a1f6 CI revalidation, then obtain independent review, merge only after required checks remain green, and verify production before asking the director to retry."
 
   - id: OPS-ALLTRUE-2002
     product: alltrue
