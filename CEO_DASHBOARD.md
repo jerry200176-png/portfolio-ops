@@ -41,7 +41,7 @@
 Last updated: 2026-08-27. PR #2086 is a release candidate, not a production
 completion claim.
 
-> Current baseline: 2026-08-01. The historical entries below are retained as an audit trail; the current priority and execution state are defined by this section and `state/work-queue.yaml`.
+> Historical baseline: 2026-08-01. This entry is retained as an audit trail; the current priority and execution state are defined by the 2026-08-27 section above and `state/work-queue.yaml`.
 
 ## 2026-08-01 — Platform optimization baseline and execution reset
 
