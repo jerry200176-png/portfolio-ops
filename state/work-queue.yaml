@@ -54,6 +54,7 @@ queue:
     tests:
       - "Read-only source audit of ClassSessionController, ScheduleController, ScheduleGuardService, and calendar projection merge tests."
       - "Existing backend regression coverage: StaleScheduleExceptionBusyTest and ScheduleStoreOrphanPreventionTest."
+    proposal: reports/2026-08-27/alltrue-cross-date-calendar-proposal.md
     rollback: "No product change in this queue entry; any future implementation must use an isolated PR with an explicit rollback plan and post-deploy calendar/availability verification."
     dependencies:
       - "Architecture decision: canonical display contract for cross-date reschedule targets (projection versus safe idempotent materialization)."
@@ -63,7 +64,7 @@ queue:
       - "A valid cross-date rescheduled target appears exactly once in the teacher calendar and remains consistent with availability occupancy."
       - "Stale, cancelled, duplicate, and makeup-only schedule rows remain hidden or classified according to the reviewed contract."
       - "A regression test proves no false-free slot and no duplicate calendar occurrence."
-    next_action: "Prepare a small architecture/test proposal, then request the Founder gate before implementation."
+    next_action: "Review reports/2026-08-27/alltrue-cross-date-calendar-proposal.md and request the Founder gate before implementation."
 
   - id: PORTFOLIO-OPT-BASELINE-20260801
     product: portfolio
