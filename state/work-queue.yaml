@@ -67,6 +67,37 @@ queue:
       - "A regression test proves no false-free slot and no duplicate calendar occurrence."
     next_action: "Review reports/2026-08-27/alltrue-cross-date-calendar-proposal.md and request the Founder gate before implementation."
 
+  - id: OPS-ALLTRUE-2085
+    product: alltrue
+    priority: p1
+    title: Keep director dashboard actions clear and tappable on mobile
+    source: https://github.com/jerry200176-png/AllTrue_System/pull/2085
+    status: ready_for_independent_review
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2085
+    evidence:
+      - "The director dashboard primary task action was visually and physically too close to inline-link behavior on small screens; the fix makes the mobile CTA a clear action with a minimum 44px touch target while preserving the existing hierarchy."
+      - "Local validation on 2026-08-27: frontend lint passed, 303/303 Vitest tests passed, and UI Foundation Playwright passed 120/120 cases."
+      - "The branch is clean at dc81e1b8 and the PR has been marked ready for review; remote checks are running."
+    root_cause: "The responsive CSS changed layout placement but did not give the primary director action an explicit action affordance or minimum touch target."
+    non_goals:
+      - "Do not change attendance, billing, scheduling, authorization, or backend data behavior."
+      - "Do not merge or deploy this UI-only change in parallel with the #2086 booking fix; keep one AllTrue production change in flight and verify each serving SHA separately."
+    tests:
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run test:unit -- --run (303/303)"
+      - "npm --prefix frontend run test:e2e:ui-foundation -- ui-foundation-pages.spec.js (120/120)"
+      - "CI UI Smoke, Vite build, secret, governance, and changed-area checks"
+    rollback: "Revert the reviewed PR commit through the normal product release workflow; no data migration is included."
+    dependencies:
+      - "Independent review and required GitHub checks for PR #2085."
+      - "Sequence the release with PR #2086 and run release evidence after the selected deployment."
+    founder_gate: "Founder/reviewer retains merge and production deploy authority."
+    acceptance:
+      - "On mobile, the director's primary task action is visibly an action, has at least a 44px touch target, and remains keyboard/focus accessible."
+      - "Existing director dashboard task hierarchy and desktop behavior remain unchanged."
+      - "Production version identity and smoke evidence match the reviewed commit after deployment."
+    next_action: "Wait for remote checks, obtain independent review, then coordinate a single reviewed AllTrue deployment with post-deploy evidence."
+
   - id: PORTFOLIO-OPT-BASELINE-20260801
     product: portfolio
     priority: p1
