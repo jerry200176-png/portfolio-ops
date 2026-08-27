@@ -8,6 +8,8 @@ The workspace operating model is documented in
 [`docs/workspace-operating-model.md`](docs/workspace-operating-model.md), and
 the research benchmark is in
 [`docs/research/2026-08-company-governance-benchmark.md`](docs/research/2026-08-company-governance-benchmark.md).
+The current tool selection and closed-loop evidence are recorded in
+[`reports/2026-08-27/toolchain-closure.md`](reports/2026-08-27/toolchain-closure.md).
 
 Safe workspace scripts:
 
@@ -19,11 +21,20 @@ scripts/portfolio-governance-audit.sh <output.tsv> <repo>...
 scripts/workspace-inventory.sh <output.tsv> <discovery-root>...
 scripts/github-governance-audit.sh <output-dir> <owner/repo>...
 python scripts/validate-governance-contract.py
+python scripts/release-evidence.py \
+  --version-url https://example.invalid/version.json \
+  --health-url https://example.invalid/api/health \
+  --expected-sha <deployed-commit-sha>
 ```
 
 They are read-only or proposal-only. They do not reset, clean, merge, rebase,
 prune, remove, move, delete, change GitHub rulesets, merge pull requests,
 deploy, or mutate production data.
+
+`release-evidence.py` is the read-only last-mile check: it writes an optional
+JSON evidence file and exits non-zero when the health endpoint is unhealthy or
+the serving version does not match the intended commit. Run it after a
+controlled deployment; a green PR alone is not release evidence.
 
 This directory is the portfolio control plane for jerry200176-png's product
 portfolio:

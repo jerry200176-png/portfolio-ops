@@ -1,9 +1,135 @@
 schema_version: 1
-updated_at: 2026-08-22T13:20:00+08:00
+updated_at: 2026-08-27T11:10:39+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: OPS-ALLTRUE-2086
+    product: alltrue
+    priority: p1
+    title: Resolve Xindian eighth-session booking failure through the real director workflow
+    source: https://github.com/jerry200176-png/AllTrue_System/pull/2086
+    status: ready_for_independent_review
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2086
+    evidence:
+      - "Production read-only check for StudentClass 2081, Xindian campus, 2026-08-29 13:00 returned can_add=true, conflict_type=none, and one available session; this session did not write production data."
+      - "The original frontend opened a check for today's date before the director selected 8/29; without request ordering protection, an older 422 could overwrite the newer valid result."
+      - "PR #2086 adds request-version protection, next-valid-date defaults, a retry action, and a Feature Test covering seven attended sessions plus cancelled leave dates."
+      - "Current CI run 33033523696 passed PHPUnit Feature & Unit Tests, Vite Frontend Build, Golden scenarios, PHPStan, UI Smoke, security scans, and governance gates; the page-level delayed-422 Playwright regression also passed in the targeted local run."
+      - "Read-only release gate at 2026-08-27 10:53:30 +08:00: health HTTP 200/ok, but serving SHA 5e659805 does not match PR #2086 head 4af00816; release gate failed as expected and no production state was changed."
+      - "Latest head cfc5a1f6 adds AbortController cancellation for superseded manual/quick-add checks and cancellation on modal close/unmount; local 304/304 unit tests and the targeted Playwright race test passed."
+      - "Required CI run 33035364530 for cfc5a1f6 completed successfully, including PHPStan, Vite Frontend Build, PHPUnit Feature & Unit Tests, UI Smoke, Golden scenarios, security, and governance gates."
+      - "Latest read-only release gate at 2026-08-27 11:10:39 +08:00 still fails the SHA match: serving 5e659805 versus expected cfc5a1f6; see reports/2026-08-27/alltrue-release-gate-2086-latest.md."
+    root_cause: "The backend check was already able to accept the eighth future session, but the director-facing modal had an invalid initial date and allowed out-of-order check responses to replace the current decision."
+    non_goals:
+      - "Do not directly mutate production attendance, ClassSession, StudentClass, billing, or payment data."
+      - "Do not bypass independent review or deploy controls for a scheduling and billing-adjacent change."
+    tests:
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run test:unit"
+      - "npm --prefix frontend run build"
+      - "npm --prefix frontend run test:e2e:ui-foundation -- ui-foundation-pages.spec.js"
+      - "CI PHPUnit Feature & Unit Tests (run 33035364530)"
+    rollback: "Revert the deployed PR commit through the normal production deploy workflow; no data migration is included."
+    dependencies:
+      - "Independent review of PR #2086."
+      - "Post-merge deploy workflow and production read-only smoke."
+    founder_gate: "Founder/reviewer retains merge and production deploy authority; production data correction, if later required, must use a separately approved audited workflow."
+    acceptance:
+      - "Director can open the modal, receive the latest check for the selected date, and retry a transient failure without leaving the page."
+      - "The eighth session is accepted when the contract has one remaining entitlement and cancelled leave rows are excluded from used capacity."
+      - "After deployment, production version identity and a read-only 8/29 check match the reviewed commit."
+    next_action: "Obtain independent review, merge only after required checks remain green, and verify production before asking the director to retry."
+
+  - id: OPS-ALLTRUE-2002
+    product: alltrue
+    priority: p1
+    title: Make cross-date rescheduled sessions visible in the teacher calendar
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/2002
+    status: needs_design_and_founder_gate
+    evidence:
+      - "Issue #2002 reports a live-shaped case where schedules contains a rescheduled-to scheduled row for a cross-date move, but the corresponding ClassSession is absent; the calendar therefore shows a false free slot while availability reads the schedule row as busy."
+      - "Current ClassSessionController read-side repair only handles same-day ranges and explicitly skips a cross-date original_schedule_id chain to avoid creating a duplicate ghost occurrence."
+      - "Existing tests cover stale same-day exception occupancy and cross-date schedule write deferral, but do not prove the teacher calendar read model renders or safely resolves a cross-date scheduled exception with no materialized ClassSession."
+    root_cause: "The scheduling and calendar read models still have different completeness boundaries for legacy cross-date reschedule chains: schedules can be authoritative for occupancy while ClassSession remains the calendar display source."
+    non_goals:
+      - "Do not bulk-materialize or mutate production sessions from a read-only investigation."
+      - "Do not choose between rendering a projection and materializing a ClassSession until duplicate/stale-chain semantics are specified and reviewed."
+    tests:
+      - "Read-only source audit of ClassSessionController, ScheduleController, ScheduleGuardService, and calendar projection merge tests."
+      - "Existing backend regression coverage: StaleScheduleExceptionBusyTest and ScheduleStoreOrphanPreventionTest."
+    proposal: reports/2026-08-27/alltrue-cross-date-calendar-proposal.md
+    rollback: "No product change in this queue entry; any future implementation must use an isolated PR with an explicit rollback plan and post-deploy calendar/availability verification."
+    dependencies:
+      - "Architecture decision: canonical display contract for cross-date reschedule targets (projection versus safe idempotent materialization)."
+      - "Independent review and Founder approval before scheduling/read-model production changes."
+    founder_gate: "Founder/reviewer must approve the contract and production rollout; any data repair remains a separately audited operation."
+    acceptance:
+      - "A valid cross-date rescheduled target appears exactly once in the teacher calendar and remains consistent with availability occupancy."
+      - "Stale, cancelled, duplicate, and makeup-only schedule rows remain hidden or classified according to the reviewed contract."
+      - "A regression test proves no false-free slot and no duplicate calendar occurrence."
+    next_action: "Review reports/2026-08-27/alltrue-cross-date-calendar-proposal.md and request the Founder gate before implementation."
+
+  - id: OPS-ALLTRUE-2085
+    product: alltrue
+    priority: p1
+    title: Keep director dashboard actions clear and tappable on mobile
+    source: https://github.com/jerry200176-png/AllTrue_System/pull/2085
+    status: ready_for_independent_review
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2085
+    evidence:
+      - "The director dashboard primary task action was visually and physically too close to inline-link behavior on small screens; the fix makes the mobile CTA a clear action with a minimum 44px touch target while preserving the existing hierarchy."
+      - "Local validation on 2026-08-27: frontend lint passed, 303/303 Vitest tests passed, and UI Foundation Playwright passed 120/120 cases."
+      - "The branch is clean at dc81e1b8 and the PR is marked ready for review; remote run 33034901065 completed successfully, including Vite Frontend Build, UI Smoke, Golden scenarios, changed-area, governance, security, and presubmit checks."
+    root_cause: "The responsive CSS changed layout placement but did not give the primary director action an explicit action affordance or minimum touch target."
+    non_goals:
+      - "Do not change attendance, billing, scheduling, authorization, or backend data behavior."
+      - "Do not merge or deploy this UI-only change in parallel with the #2086 booking fix; keep one AllTrue production change in flight and verify each serving SHA separately."
+    tests:
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run test:unit -- --run (303/303)"
+      - "npm --prefix frontend run test:e2e:ui-foundation -- ui-foundation-pages.spec.js (120/120)"
+      - "CI UI Smoke, Vite build, secret, governance, and changed-area checks"
+    rollback: "Revert the reviewed PR commit through the normal product release workflow; no data migration is included."
+    dependencies:
+      - "Independent review and required GitHub checks for PR #2085."
+      - "Sequence the release with PR #2086 and run release evidence after the selected deployment."
+    founder_gate: "Founder/reviewer retains merge and production deploy authority."
+    acceptance:
+      - "On mobile, the director's primary task action is visibly an action, has at least a 44px touch target, and remains keyboard/focus accessible."
+      - "Existing director dashboard task hierarchy and desktop behavior remain unchanged."
+      - "Production version identity and smoke evidence match the reviewed commit after deployment."
+    next_action: "Wait for remote checks, obtain independent review, then coordinate a single reviewed AllTrue deployment with post-deploy evidence."
+
+  - id: SEC-ALLTRUE-DEPENDABOT-20260827
+    product: alltrue
+    priority: p1
+    title: Resolve open Laravel framework security alerts before the next compatible release
+    source: https://github.com/jerry200176-png/AllTrue_System/security/dependabot
+    status: needs_security_review_and_upgrade_plan
+    evidence:
+      - "GitHub Dependabot read-back on 2026-08-27 reports three open laravel/framework alerts: #4 high severity (CRLF injection in the default email rule), #3 medium severity (file validation bypass), and #5 medium severity (temporary signed URL path confusion)."
+      - "backend/composer.json requires laravel/framework ^8.75 and backend/composer.lock resolves 8.x-dev at 863d9289; the alert remediation versions are outside the current major and cannot be applied as a blind patch."
+      - "The warning was observed during a normal branch push; no dependency files or production environment were changed by this triage."
+    root_cause: "The production backend remains on an old Laravel major and its lockfile permits a development framework build, leaving the application exposed to open framework advisories and without a reviewed upgrade compatibility boundary."
+    non_goals:
+      - "Do not run a blind composer update, change the lockfile, or upgrade the framework inside the attendance/billing incident PR."
+      - "Do not deploy, migrate production, or suppress the alerts without a reachability and compatibility decision."
+    tests:
+      - "Read-only Dependabot alert inventory and composer.json/composer.lock version audit."
+      - "Future isolated upgrade PR must run composer audit, PHP syntax/static checks, full PHPUnit, frontend build/UI smoke, and production rollback-readiness checks."
+    rollback: "Future framework upgrade must be a separately reviewed PR with the prior composer.lock and application release SHA retained for normal deployment rollback."
+    dependencies:
+      - "Security reachability review for the three advisories and confirmation of the supported Laravel target."
+      - "Compatibility plan for PHP 8.2, Laravel application APIs, Sanctum, Excel, Sentry, and existing production workflows."
+      - "Independent review and Founder approval before merge/deploy."
+    founder_gate: "Founder/reviewer retains framework upgrade, production deploy, and any emergency mitigation authority."
+    acceptance:
+      - "All three alerts are fixed, explicitly risk-accepted with expiry, or otherwise resolved with evidence."
+      - "The lockfile uses a supported stable framework release rather than an unreviewed development build."
+      - "All attendance, billing, scheduling, authentication, and notification regression suites pass before release."
+    next_action: "Perform reachability and compatibility review, then open a dedicated dependency-upgrade PR separate from #2086 and #2085."
+
   - id: PORTFOLIO-OPT-BASELINE-20260801
     product: portfolio
     priority: p1

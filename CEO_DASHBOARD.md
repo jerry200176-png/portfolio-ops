@@ -1,6 +1,60 @@
 # CEO Dashboard
 
-> Current baseline: 2026-08-01. The historical entries below are retained as an audit trail; the current priority and execution state are defined by this section and `state/work-queue.yaml`.
+> Current baseline: 2026-08-27. The historical entries below are retained as an audit trail; the current priority and execution state are defined by this section and `state/work-queue.yaml`.
+
+## 2026-08-27 — AllTrue director workflow reliability and release gate
+
+- AllTrue remains Tier 0 and live. Read-only production evidence: version
+  `5e6598052299386bbf13e12ae320b90186022348` (built 2026-08-26 17:18 UTC);
+  health is `ok`.
+- The Xindian director's report about the eighth lesson for 周芮緗 was
+  reproduced at the application boundary. A stale manual-booking response
+  could let an earlier HTTP 422 overwrite the newer valid 8/29 check; this
+  was a workflow defect, not merely a data correction.
+- AllTrue PR [#2086](https://github.com/jerry200176-png/AllTrue_System/pull/2086)
+  contains the latest-only response guard, correct next-session date
+  selection, retryable conflict UI, and a real Vue page-level Playwright
+  regression for the delayed-422 race. Its latest head `cfc5a1f6` also cancels
+  superseded requests; local 304/304 unit tests, the targeted Playwright
+  regression, and remote CI run `33035364530` pass. The PR is open with no
+  independent review and is not deployed.
+- AllTrue PR [#2085](https://github.com/jerry200176-png/AllTrue_System/pull/2085)
+  adds a clear 44px mobile touch target for director dashboard actions. Local
+  lint, 303/303 unit tests, and 120/120 UI Foundation cases pass; remote run
+  33034901065 also passed. Independent review is still required.
+- Dependabot currently reports three open `laravel/framework` advisories on
+  the production backend (one high, two medium); the lockfile resolves
+  `8.x-dev`. This is tracked as a separate security upgrade plan and must not
+  be mixed into the attendance fix.
+- No production attendance, billing, schedule, or account data was mutated
+  by this work. The deployed version therefore remains the source of truth
+  until the PR is independently reviewed, merged, deployed, and verified.
+- A read-only `scripts/release-evidence.py` check is now available to compare
+  the formal version/health endpoints against the expected commit; green CI
+  alone is explicitly insufficient for release closure.
+- The 10:53 +08:00 release-gate check returned health HTTP 200 but a SHA
+  mismatch (`5e659805` serving versus PR #2086 `4af00816` expected), confirming
+  that the fix is not deployed. Evidence: `reports/2026-08-27/alltrue-release-gate-2086.md`.
+- Next tracked product risk: issue #2002, cross-date rescheduled sessions can
+  occupy availability while being absent from the teacher calendar. A
+  contract proposal and test matrix are recorded; implementation requires a
+  separate high-risk review and Founder gate.
+
+### Current execution order
+
+1. Obtain independent review for AllTrue PR #2086, then merge/deploy only
+   through the governed release path.
+2. Run read-only release evidence against the deployed SHA and perform
+   authenticated director acceptance for the 8/29 eighth-session workflow.
+3. Design and review the cross-date calendar/availability consistency fix
+   for AllTrue #2002; do not auto-materialize ambiguous schedule records.
+4. Continue the remaining Portfolio freshness and governance checks; stale
+   production evidence blocks closure.
+
+Last updated: 2026-08-27. PR #2086 is a release candidate, not a production
+completion claim.
+
+> Historical baseline: 2026-08-01. This entry is retained as an audit trail; the current priority and execution state are defined by the 2026-08-27 section above and `state/work-queue.yaml`.
 
 ## 2026-08-01 — Platform optimization baseline and execution reset
 
