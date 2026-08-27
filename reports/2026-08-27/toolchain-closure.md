@@ -21,12 +21,16 @@ AllTrue has many task worktrees and useful tests, but the user-facing incident
 loop was previously missing the last mile: capture the director’s failed
 workflow, identify the exact response race, fix the interaction, run the
 regression suite, deploy, and re-check the production identity. PR #2086 now
-contains that path up to the review gate.
+contains that path up to the review gate. Its head `4af00816` also includes a
+real Vue page-level Playwright scenario that deliberately delays an old 422 and
+proves the director's newer successful date remains actionable.
 
 ## Next system-level improvements
 
-1. Add an authenticated Playwright scenario for the manual-session modal that
-   proves an older failed check cannot replace a newer successful check.
+1. Add an authenticated, post-deploy Playwright acceptance scenario for the
+   manual-session modal; the deterministic mocked scenario is now covered in
+   PR #2086, but production credentials and a live verification trace remain
+   intentionally separate.
 2. Standardize a small frontend API/request-state helper so every async
    decision modal gets request ordering, cancellation, retry, and structured
    error display by default.
