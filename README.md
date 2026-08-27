@@ -8,6 +8,8 @@ The workspace operating model is documented in
 [`docs/workspace-operating-model.md`](docs/workspace-operating-model.md), and
 the research benchmark is in
 [`docs/research/2026-08-company-governance-benchmark.md`](docs/research/2026-08-company-governance-benchmark.md).
+The current tool selection and closed-loop evidence are recorded in
+[`reports/2026-08-27/toolchain-closure.md`](reports/2026-08-27/toolchain-closure.md).
 
 Safe workspace scripts:
 

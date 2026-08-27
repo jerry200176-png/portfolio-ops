@@ -16,6 +16,32 @@ stronger multi-layer loop:
 | Release evidence automation | `scripts/release-evidence.py` + `tests/test_release_evidence.py` | Read-only, machine-readable proof that health is good and the serving SHA matches the intended release |
 | Recovery | rollback-readiness checks and guarded operation workflows | Keep data repairs and production mutations explicit, reversible, and audited |
 
+## Tool selection decisions
+
+The following choices are based on the current AllTrue stack and the tools
+already wired into its repositories. They are the default path for future
+tasks:
+
+| Decision | Tool | Why it fits AllTrue | Evidence / entry point |
+|---|---|---|---|
+| Adopt now | GitHub Actions + `gh` | PR checks, review state, release workflows, and read-back are already the system's authoritative collaboration boundary | `.github/workflows/`, PR #2086, Portfolio `state/work-queue.yaml` |
+| Adopt now | Playwright | Tests the director's real page and interaction sequence, including asynchronous races that unit tests cannot see | `frontend/e2e/`, PR #2086 delayed-422 scenario |
+| Adopt now | ExoProtocol + agent-control | Isolates worktrees, records provenance, and blocks unsafe workspace operations before product edits | `agent-control/`, `exo check`, `workspace.manifest.yaml` |
+| Adopt now | CodeQL, gitleaks, OpenSSF Scorecard, Dependabot | Existing layered security and dependency controls cover source, secrets, supply chain, and update drift without adding a duplicate scanner | AllTrue and Portfolio required checks |
+| Adopt now | Portfolio release evidence | Makes health and serving-commit identity a machine-checkable release gate | `scripts/release-evidence.py` |
+| Defer | Sentry / hosted error tracking | Useful only after an explicit PII/minor-data retention policy, account ownership, and production integration plan exist | No approved integration or retention decision in the current portfolio |
+| Defer | OpenTelemetry collector | Valuable for distributed traces, but the current self-hosted deployment needs a storage, sampling, and retention design before emitting operational data | No approved trace schema or retention budget |
+| Do not add yet | Renovate or Semgrep as parallel defaults | Dependabot and CodeQL already cover the corresponding baseline classes; a second always-on tool would add noise unless a measured gap is documented | Existing workflow inventory and quality gates |
+| Defer | Backstage portal | The catalog is already Backstage-compatible; a portal is unnecessary overhead until the portfolio grows beyond the current operating scale | `catalog/*.yaml`, `docs/workspace-operating-model.md` |
+
+### Import rule
+
+An additional tool may enter the default toolchain only when a concrete
+incident or measured coverage gap names the missing control, the repository
+owner and data-retention impact are known, and the tool can emit evidence into
+the Portfolio work queue. This keeps the loop self-improving without turning
+tool installation into an unreviewed production change.
+
 ## Current gap to close
 
 AllTrue has many task worktrees and useful tests, but the user-facing incident
