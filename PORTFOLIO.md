@@ -13,7 +13,11 @@ hosted on a Raspberry Pi at `daan.lifenet.com.tw`. Handles minors' PII and
 billing data — the highest data-sensitivity product in the portfolio.
 Currently in active P0 containment (SEC-ALLTRUE-003 — see
 `state/work-queue.yaml`) following a credential exposure in a public Actions
-log.
+log. The 2026-08-27 operational priority is a director-reported eighth-
+session booking failure: the defect was reproduced as a stale asynchronous
+HTTP 422 race, and AllTrue PR #2086 carries the guarded workflow and a
+page-level regression test. It is awaiting independent review and deployment;
+production remains unchanged until then.
 
 ## Sunrise Cafe — Tier 0
 
@@ -30,6 +34,11 @@ capacity limits and an open RLS/rate-limit/backup hardening decision queue
 - `portfolio-ops/` (this repo) — the control plane itself.
 
 ## Change log
+
+- 2026-08-27: rebaselined the portfolio around the AllTrue director workflow
+  incident. Recorded the production SHA/health evidence, PR #2086's root
+  cause and regression coverage, the release-evidence gate, and the next
+  cross-date calendar consistency risk. No production data was changed.
 
 - 2026-07-25: restructured from `company-os` into `portfolio-ops` under a
   conservative autonomy policy (no autonomous merge/deploy/production-data
