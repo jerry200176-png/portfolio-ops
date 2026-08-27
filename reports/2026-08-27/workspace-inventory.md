@@ -30,6 +30,18 @@ The read-only governance audit also passed 8/8 required controls for AllTrue,
 `LICENSE` artifact; that is tracked as a separate control-plane improvement,
 not silently fabricated during this inventory refresh.
 
+## Manifest reconciliation
+
+After the inventory, `workspace.manifest.yaml` was checked with
+`validate-governance-contract.py --check-paths`. Five historical entries
+pointed to paths that no longer exist (`alltrue-release`, `alltrue-1264`,
+`wt/alltrue-leave-1280`, `wt/sunrise-verify-fix`, and
+`workspace/worktrees/portfolio-governance-baseline`). Those manifest records
+were removed from the live path registry only; no filesystem path was moved,
+deleted, pruned, or reset. The currently active AllTrue and Portfolio task
+worktrees for this incident were added with their task references so the
+release candidate and its evidence remain discoverable.
+
 ## Cleanup proposal artifact
 
 The existing proposal-only tool was run against the three canonical/control
