@@ -1,5 +1,24 @@
 # CEO Dashboard
 
+## 2026-08-29 — Notifications workspace semantics live
+
+- AllTrue PR [#2172](https://github.com/jerry200176-png/AllTrue_System/pull/2172)
+  is squash-merged as `08fba2c0874da160d8ab1b8c71709788c68e5b4f`. The主任收件匣
+  now links its「待辦案件／營運通知」tabs to one explicit tabpanel, and tuition
+  report uses the shared dialog primitive with initial focus, Escape, close, and
+  scroll-lock behavior. Notification actions are explicit non-submit buttons.
+- Local checks passed: UI foundation 143/143, full Vitest 74 files / 343 tests,
+  release-note gates, design and fixture guards, build, and governance check.
+  Main CI [33218067240](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218067240),
+  Deploy to Pi [33218300044](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218300044),
+  and read-only production acceptance
+  [33218527188](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218527188)
+  passed; Pi Health [33218547562](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218547562)
+  also passed.
+- Release tag `v2026.08.29.11` is published. No payment, reconciliation, receipt,
+  notification data, API, permission, or navigation behavior changed. The broad
+  #1600 UX epic and #1618 teacher workflow remain open for subsequent bounded slices.
+
 ## 2026-08-29 — TeacherHome control semantics live
 
 - AllTrue PR [#2171](https://github.com/jerry200176-png/AllTrue_System/pull/2171)

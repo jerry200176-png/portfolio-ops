@@ -4,6 +4,71 @@ wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-NOTIFICATIONS-DIALOG-A11Y-20260829
+    product: alltrue
+    priority: p2
+    title: Stabilize NotificationsCenter tabs and tuition report dialog
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1600
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2172
+    evidence:
+      - >-
+        NotificationsCenter tabs now expose stable IDs and explicit
+        aria-controls / aria-labelledby relationships to one keyboard-focusable
+        tabpanel; only the selected inbox workspace is active.
+      - >-
+        Tuition report now uses the shared AtDialog primitive with role dialog,
+        aria-modal, labelled title, initial focus, Escape close, close button,
+        and scroll locking; notification action buttons explicitly use
+        type=button.
+      - >-
+        No payment, reconciliation, receipt, notification data, API, permission,
+        navigation, database, or backend behavior changed.
+      - >-
+        Local targeted tab/dialog Playwright checks passed 2/2; the full UI
+        foundation suite passed 143/143 across 390/412/768/1280/1440 and
+        loading/empty/error/long/disabled states.
+      - >-
+        Full Vitest passed 74 files / 343 tests; lint, release-note gates,
+        design-token and fixture guards, production build, and exo check passed.
+      - >-
+        PR #2172 merged as
+        08fba2c0874da160d8ab1b8c71709788c68e5b4f after required GitHub
+        governance, docs, security, UI Smoke, and Vite Frontend Build checks.
+      - >-
+        Main CI 33218067240, Deploy to Pi 33218300044, Pi Health 33218547562,
+        and read-only production acceptance 33218527188 all passed; release
+        tag v2026.08.29.11 was created from the same main merge.
+      - >-
+        Production read-only health and serving-version evidence are covered by
+        Pi Health and the deployment workflow; the release evidence comment is
+        recorded on AllTrue #1600.
+    root_cause: "The inbox had visual tabs without an explicit tab-to-panel relationship, and its tuition report form used a bespoke modal instead of the shared dialog primitive; several notification action buttons also relied on the browser's implicit submit default."
+    non_goals:
+      - "Do not change payment, reconciliation, receipt, notification data, APIs, permissions, navigation, or backend behavior."
+      - "Do not claim the broader #1600 UX renewal or #1618 teacher daily workflow complete."
+    tests:
+      - "npx playwright test e2e/ui-foundation-pages.spec.js -c playwright.ui-foundation.config.js -g inbox (tabs expose|tuition report) (2 passed)"
+      - "npm --prefix frontend run test:unit (74 files / 343 tests passed)"
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run lint:design"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run test:release-notes-coverage"
+      - "npm --prefix frontend run test:e2e:ui-foundation (143 passed)"
+      - "npm --prefix frontend run build"
+      - "GitHub required PR checks, main CI 33218067240, deploy 33218300044, Pi Health 33218547562, and acceptance 33218527188"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Collect主任收件匣 tab-switch, dialog, keyboard, and scan-to-first-action evidence before another inbox slice."
+      - "Keep LearningRecords #1621 behind #957/#1080 and keep #2002, #2129, and production-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, Pi Health, version evidence, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Inbox tabs expose selected state, controlled tabpanel relationships, and keyboard activation without changing the underlying notification/case data."
+      - "Tuition report opens the shared labelled modal with initial focus and Escape/close behavior."
+      - "The broader #1600 UX epic and #1618 teacher workflow remain open for future bounded slices."
+    next_action: "Collect staff feedback and usage evidence, then plan the next non-data-truth inbox or adjacent UX slice; do not unlock LearningRecords preview-queue work before #957/#1080."
+
   - id: UX-ALLTRUE-TEACHER-CARD-A11Y-20260829
     product: alltrue
     priority: p2
