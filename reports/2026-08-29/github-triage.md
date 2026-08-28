@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-29
 
-Capture time: 2026-08-29 06:56 +08:00. GitHub API/`gh` read-back is the
+Capture time: 2026-08-29 07:25 +08:00. GitHub API/`gh` read-back is the
 source of truth for issue and pull-request state. Existing dirty or diverged
 checkouts were preserved; the workspace inventory is recorded in
 [`workspace-inventory.tsv`](workspace-inventory.tsv).
@@ -23,6 +23,27 @@ issues are now marked CLOSED/COMPLETED by GitHub; the active broad UX epic is
 [#1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600).
 
 ## AllTrue release evidence
+
+- [PR #2173](https://github.com/jerry200176-png/AllTrue_System/pull/2173)
+  shipped the bounded navigation-shell More-surface slice and was
+  squash-merged as `70323793f17a5caca1d3bb6d7ed6047fe8066e94`. Desktop More is
+  a predictable non-modal panel; mobile More is a labelled modal sheet. Both
+  support explicit dismissal and focus return while preserving role-scoped
+  destinations, badges, permissions, and business handlers.
+- Targeted navigation contracts passed 10/10; `lint:no-undef`, production
+  build, design lint, `exo check`, PR UI Smoke, and Vite Frontend Build passed.
+  Full `vitest run` remains a non-signal in this repository because its glob
+  mixes Node-style test files and Playwright specs with Vitest suites; the
+  documented build command passed.
+- Deploy [33220048573](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220048573),
+  read-only production acceptance
+  [33220266993](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220266993),
+  and Pi Health [33220353183](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220353183)
+  passed. Production identity read-back is GREEN with main, deployment
+  manifest, frontend build SHA, and backend SHA aligned to the merge SHA; health
+  is HTTP 200/status `ok`.
+- Evidence is recorded on
+  [AllTrue #1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458802888).
 
 - [PR #2172](https://github.com/jerry200176-png/AllTrue_System/pull/2172)
   shipped the bounded NotificationsCenter workspace-semantics slice and was

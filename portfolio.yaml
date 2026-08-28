@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T06:24:57+08:00"
+updated_at: "2026-08-29T07:25:40+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T06:56:28+08:00"
-    source_commit: "08fba2c0874da160d8ab1b8c71709788c68e5b4f"
-    evidence_expires_at: "2026-08-30T06:56:28+08:00"
+    last_verified_at: "2026-08-29T07:25:40+08:00"
+    source_commit: "70323793f17a5caca1d3bb6d7ed6047fe8066e94"
+    evidence_expires_at: "2026-08-30T07:25:40+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-NOTIFICATIONS-DIALOG-A11Y-20260829 — PR #2172 將主任收件匣 tabs 連到明確 tabpanel，核帳登記改用共用 dialog primitive，production acceptance 綠；#1600 broad UX epic 與 #1618 teacher workflow 維持開啟。六 repo inventory 為 76 open issues / 15 open PRs；LearningRecords #1621 受 #957/#1080 資料真相 gate，#2129 與 production-sensitive work 仍獨立追蹤。"
-    next_action: "收集主任收件匣 tab-switch、核帳 dialog、鍵盤與 scan-to-first-action 證據，再規劃下一個不依賴資料真相的 bounded UX slice；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-NAVIGATION-SHELL-A11Y-20260829 — PR #2173 將桌面 More 面板與手機 More bottom sheet 的開啟、Escape、backdrop、關閉、焦點進入與回復契約統一，手機明確標為 labelled modal dialog；production identity 綠。#1600 broad UX epic 與 #1618 teacher workflow 維持開啟。六 repo inventory 為 76 open issues / 15 open PRs；LearningRecords #1621 受 #957/#1080 資料真相 gate，#2129 與 production-sensitive work 仍獨立追蹤。"
+    next_action: "以 #1618 teacher daily workflow 為下一個 page-level bounded UX slice，先收集 scan-to-first-action、tab-switch、keyboard/focus 與狀態誤判證據；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -70,11 +70,17 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/pull/2170
       - https://github.com/jerry200176-png/AllTrue_System/pull/2171
       - https://github.com/jerry200176-png/AllTrue_System/pull/2172
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2173
       - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458607891
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458802888
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218067240
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218300044
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218527188
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218547562
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33219813217
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220048573
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220266993
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220353183
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
       - https://github.com/jerry200176-png/AllTrue_System/releases/tag/v2026.08.29.11
