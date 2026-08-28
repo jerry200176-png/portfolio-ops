@@ -1,5 +1,29 @@
 # CEO Dashboard
 
+## 2026-08-29 — StudentsList row disclosure live
+
+- AllTrue PR [#2166](https://github.com/jerry200176-png/AllTrue_System/pull/2166)
+  is squash-merged as `3251e6c476887ceb432e198462fd8e34a5347577`. StudentsList
+  rows now support Enter/Space expansion, expose an explicit relationship to
+  the course detail row, and isolate selection/edit/delete controls from the
+  row-level keyboard handler. Student/course/payment data, permissions, and
+  navigation behavior are unchanged.
+- Local targeted StudentsList tests passed 12/12, the complete real-Vue UI
+  foundation suite passed 139/139, and required PR checks passed. Main CI
+  [33203497304](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203497304),
+  Deploy to Pi
+  [33203794209](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203794209),
+  and read-only production acceptance
+  [33204061441](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33204061441)
+  passed.
+- Production `/api/v1/health` returned `ok`; `/version.json` reports build
+  SHA `3251e6c476887ceb432e198462fd8e34a5347577`. Evidence is recorded on
+  the [StudentsList rollout issue #692](https://github.com/jerry200176-png/AllTrue_System/issues/692).
+- The broader rollout remains active: the current six-repository inventory is
+  76 open issues and 15 open PRs, with five existing open AllTrue PRs; #2166
+  is merged. No claim is made that the entire UI/UX goal or the StudentsList
+  rollout is complete.
+
 ## 2026-08-29 — CourseManagement interaction hierarchy live
 
 - AllTrue PR [#2165](https://github.com/jerry200176-png/AllTrue_System/pull/2165)
