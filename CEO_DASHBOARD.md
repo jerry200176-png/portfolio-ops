@@ -1,5 +1,30 @@
 # CEO Dashboard
 
+## 2026-08-29 — CourseManagement interaction hierarchy live
+
+- AllTrue PR [#2165](https://github.com/jerry200176-png/AllTrue_System/pull/2165)
+  is squash-merged as `88c4d95388aec6fb9fcda039c43230b1baeb3057`. The course
+  lookup page now separates student-group disclosure from the student-focus
+  action and gives course/billing tabs plus history disclosure explicit
+  keyboard and screen-reader relationships. Existing course, billing,
+  scheduling, permission, and navigation behavior is unchanged.
+- Local CourseManagement tests passed 18/18, the targeted pilot E2E passed
+  6/6, and the complete real-Vue UI foundation suite passed 139/139 across
+  mobile and desktop widths. Required PR checks, main CI
+  [33201485946](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201485946),
+  Deploy to Pi
+  [33201790150](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201790150),
+  and read-only production acceptance
+  [33202081650](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33202081650)
+  passed.
+- Production `/api/v1/health` returned `ok`; `/version.json` reports build
+  SHA `88c4d95388aec6fb9fcda039c43230b1baeb3057`. The release evidence is
+  recorded on [AllTrue issue #691](https://github.com/jerry200176-png/AllTrue_System/issues/691#issuecomment-5456611507).
+- Issue [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007)
+  remains open for later IA work. The current six-repository inventory is 76
+  open issues and 15 open PRs; the five AllTrue open PRs are existing work,
+  while #2165 is merged.
+
 ## 2026-08-29 — Student course detail disclosure live
 
 - AllTrue PR [#2164](https://github.com/jerry200176-png/AllTrue_System/pull/2164)
