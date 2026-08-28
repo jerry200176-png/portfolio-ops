@@ -1,0 +1,42 @@
+id: TKT-20260828-233613-MLTM
+title: Add one-command scheduler-ready autopilot mode
+intent: Add one-command scheduler-ready autopilot mode
+kind: task
+parent_id: INT-20260828-233605-CHOQ
+boundary: Do not modify product repositories, existing worktrees, legacy checkouts,
+  production, credentials, GitHub settings, or perform archive/remove/move/reset/clean/merge/rebase
+  actions.
+success_condition: A single command accepts discovery roots, invokes only the governed
+  read-only inventory producer, writes inventory plus hashed report evidence, and
+  passes focused tests.
+priority: 80
+labels:
+- automation
+scope:
+  allow:
+  - scripts/governance-autopilot.sh
+  - governance/autonomy-automation.yaml
+  - tests/test_governance_autopilot.py
+  - docs/autonomous-governance.md
+  - .exo/**
+  - .exo/cache/**
+  - .exo/memory/**
+  - .exo/locks/**
+  - .exo/tickets/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 8
+  max_loc_changed: 500
+checks:
+- python3 -m pytest
+type: feature
+status: todo
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-28T23:36:13+08:00'
+brain_dump: ''
+risk: medium
+children: []
+resource_profile: default
