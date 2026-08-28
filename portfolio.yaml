@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T04:08:00+08:00"
+updated_at: "2026-08-29T04:38:22+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T04:08:00+08:00"
-    source_commit: "992ea7341228aec142ce6e023d1d5d44fce0f1c9"
-    evidence_expires_at: "2026-08-30T04:08:00+08:00"
+    last_verified_at: "2026-08-29T04:38:22+08:00"
+    source_commit: "4c65f733ad90b2b53aa19fc77395460a491b7611"
+    evidence_expires_at: "2026-08-30T04:38:22+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-DIRECTOR-TABS-20260829 — PR #2167 已把主任總覽的今天／完整營運檢視補成可理解的 tab-panel 工作區，production acceptance 綠且 #2135 維持 open。LearningRecords #1621 受 #957/#1080 資料真相 gate；#2007、#1618、#2129 與 production-sensitive work 仍獨立追蹤。"
-    next_action: "量測主任總覽兩個工作區的 scan-to-first-action、切換使用與鍵盤使用，再規劃下一個不依賴資料真相重整的 bounded UX slice；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-BILLING-TABS-20260829 — PR #2168 修正帳務中心切換到已結清時錯誤同時渲染收據工作區，三個帳務 tab-panel 關係已清楚且 production acceptance 綠；#2135 維持 open。LearningRecords #1621 受 #957/#1080 資料真相 gate；#2007、#1618、#2129 與 production-sensitive work 仍獨立追蹤。"
+    next_action: "收集帳務中心 scan-to-first-action、錯誤率與 tab 使用證據，再規劃下一個不依賴資料真相重整的 bounded UX slice；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -63,6 +63,8 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5456282165
       - https://github.com/jerry200176-png/AllTrue_System/pull/2165
       - https://github.com/jerry200176-png/AllTrue_System/issues/691#issuecomment-5456611507
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2168
+      - https://github.com/jerry200176-png/AllTrue_System/issues/2135#issuecomment-5457506355
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201485946
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201790150
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33202081650
