@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T03:07:00+08:00"
+updated_at: "2026-08-29T03:32:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T03:07:00+08:00"
-    source_commit: "88c4d95388aec6fb9fcda039c43230b1baeb3057"
-    evidence_expires_at: "2026-08-30T03:07:00+08:00"
+    last_verified_at: "2026-08-29T03:32:00+08:00"
+    source_commit: "3251e6c476887ceb432e198462fd8e34a5347577"
+    evidence_expires_at: "2026-08-30T03:32:00+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-COURSE-HIERARCHY-20260829 — PR #2165 已把課程查找的群組展開、專注操作、課程／帳務 tab 與歷史揭露的互動層級和無障礙關係補齊；production acceptance 綠且 #2007 維持 open。#1618、#2129 與 production-sensitive work 仍獨立追蹤。"
-    next_action: "以真實 staff feedback 量測課程工作區的 scan-to-first-action、分頁使用與歷史揭露使用率，再規劃下一個 bounded #2007 或 #1618 slice；#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-STUDENTS-ROW-20260829 — PR #2166 已把學生列表資料列的展開做成可鍵盤操作並明確連到課程工作區，production acceptance 綠且 #2007 維持 open。#1618、#2129 與 production-sensitive work 仍獨立追蹤。"
+    next_action: "以真實 staff feedback 量測學生列表與課程工作區的 scan-to-first-action、鍵盤使用與資料列誤觸率，再規劃下一個 bounded #2007 或 #1618 slice；#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -66,6 +66,12 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201485946
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201790150
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33202081650
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2166
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203497304
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203794209
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33204061441
+      - https://daan.lifenet.com.tw/version.json
+      - https://daan.lifenet.com.tw/api/v1/health
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33198942210
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199257475
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199540861

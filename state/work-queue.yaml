@@ -4,6 +4,42 @@ wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-STUDENTS-ROW-20260829
+    product: alltrue
+    priority: p2
+    title: Make the StudentsList row disclosure keyboard accessible
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/692
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2166
+    evidence:
+      - "Student rows now expose tabindex, aria-expanded, and an explicit aria-controls relationship to the expanded course-detail row. Enter and Space toggle the existing row expansion workflow."
+      - "Selection, edit, and delete controls stop row-level keyboard handling, so focus on those controls cannot accidentally expand or collapse the student."
+      - "Local targeted StudentsList tests passed 12/12; targeted pilot E2E passed 2/2; the full real-Vue UI foundation suite passed 139/139 across 390px–1440px."
+      - "PR #2166 merged as 3251e6c476887ceb432e198462fd8e34a5347577 after all required PR checks passed, including UI Smoke and Vite Frontend Build."
+      - "Main CI 33203497304, Deploy to Pi 33203794209, and Calendar/Course Production Acceptance 33204061441 all passed."
+      - "Production version.json build_sha matched 3251e6c476887ceb432e198462fd8e34a5347577 and /api/v1/health returned status=ok."
+    root_cause: "StudentsList relied on a clickable table row for disclosure but provided no keyboard activation or explicit relationship to the expanded course workspace; row-level events could also compete with nested controls."
+    non_goals:
+      - "Do not change student or course data, API payloads, permissions, billing, scheduling, or production data."
+      - "Do not claim issue #692 or the wider StudentsList rollout complete; this is one bounded accessibility slice."
+    tests:
+      - "npm --prefix frontend run lint:design"
+      - "npx vitest run frontend/src/components/__tests__/StudentsListAccessibility.test.js frontend/src/components/__tests__/StudentCourseSummaryUx.test.js frontend/src/components/__tests__/StudentFocusNavigation.test.js (12 passed)"
+      - "npm --prefix frontend run build"
+      - "npm --prefix frontend run test:e2e:ui-foundation (139 passed locally)"
+      - "GitHub required PR checks, main CI 33203497304, deploy 33203794209, and acceptance 33204061441"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Measure student-list scan-to-first-action, keyboard usage, and accidental row activation with production-safe staff feedback before another StudentsList slice."
+      - "Keep CourseManagement #2007, #1618 teacher workflow, #2129 broad refactor, and #2002 scheduling-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "A focused student row can be expanded or collapsed with Enter and Space."
+      - "The expanded course workspace is announced as the controlled region, while selection and row actions remain independent."
+      - "The broader StudentsList rollout remains open for future bounded slices."
+    next_action: "Collect staff feedback and usage evidence, then plan the next bounded StudentsList or #2007 slice; do not merge the broad failing #2129 refactor as a substitute."
+
   - id: UX-ALLTRUE-COURSE-HIERARCHY-20260829
     product: alltrue
     priority: p2

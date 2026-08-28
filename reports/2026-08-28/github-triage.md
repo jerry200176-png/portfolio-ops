@@ -11,6 +11,26 @@ Capture update: 2026-08-29 02:33 +08:00.
 
 Additional capture: 2026-08-29 03:07 +08:00.
 
+Additional capture: 2026-08-29 03:32 +08:00.
+
+- AllTrue PR [#2166](https://github.com/jerry200176-png/AllTrue_System/pull/2166)
+  shipped a bounded StudentsList accessibility slice: student rows can now be
+  expanded and collapsed with Enter/Space, expose their controlled course
+  detail row, and keep selection/edit/delete controls independent from row
+  keyboard handling.
+- PR #2166 merged as `3251e6c476887ceb432e198462fd8e34a5347577` after all
+  required checks passed. Main CI
+  [33203497304](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203497304),
+  deploy
+  [33203794209](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203794209),
+  and read-only production acceptance
+  [33204061441](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33204061441)
+  passed. Production `version.json` matched `3251e6c4` and health returned
+  `ok`.
+- Fresh owner-visible GitHub read-back remains 76 open issues and 15 open PRs:
+  AllTrue 70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise
+  Cafe 4/3, and both Income Statement repos 0/0.
+
 - AllTrue PR [#2165](https://github.com/jerry200176-png/AllTrue_System/pull/2165)
   shipped a bounded CourseManagement interaction-hierarchy slice: student
   group expansion is now separated from student focus, course/billing tabs
@@ -100,7 +120,7 @@ Additional capture: 2026-08-29 03:07 +08:00.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2165 is merged/deployed for CourseManagement interaction hierarchy; #2007 remains open |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2166 is merged/deployed for keyboard-accessible StudentsList disclosure; #2007 remains open |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
 | [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #54 merged the prior refresh; this release evidence refresh is now queued |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
