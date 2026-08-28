@@ -33,7 +33,7 @@ budgets:
 checks:
 - python3 -m pytest
 type: feature
-status: todo
+status: review
 spec_ref: null
 notes: []
 blockers: []
@@ -42,3 +42,5 @@ brain_dump: ''
 risk: medium
 children: []
 resource_profile: default
+commits:
+- 8b0685389e951e4bb9efb8762d586420f649df1d
