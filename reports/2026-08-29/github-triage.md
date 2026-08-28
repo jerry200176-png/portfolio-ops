@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-29
 
-Capture time: 2026-08-29 05:45 +08:00. GitHub API/`gh` read-back is the
+Capture time: 2026-08-29 06:18 +08:00. GitHub API/`gh` read-back is the
 source of truth for issue and pull-request state. Existing dirty or diverged
 checkouts were preserved; the workspace inventory is recorded in
 [`workspace-inventory.tsv`](workspace-inventory.tsv).
@@ -23,6 +23,26 @@ issues are now marked CLOSED/COMPLETED by GitHub; the active broad UX epic is
 [#1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600).
 
 ## AllTrue release evidence
+
+- [PR #2171](https://github.com/jerry200176-png/AllTrue_System/pull/2171)
+  shipped the bounded TeacherHome control-semantics slice and was squash-merged
+  as `a637338026ab71e2a5d91ca5361ab388386829cd`.
+- The clock-in status card is now a native labelled button; weekly navigation
+  and schedule assessment/report icon controls expose explicit button types and
+  accessible names. Attendance, schedule, assessment data truth, APIs,
+  permissions, and navigation handlers were not changed.
+- [Main CI 33215612471](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215612471),
+  [Deploy to Pi 33215875727](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215875727),
+  and [read-only production acceptance 33216138420](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33216138420)
+  passed. Local TeacherHome E2E passed 5/5 and full Vitest passed 74 files /
+  343 tests.
+- Production read-back returned HTTP 200 for
+  [`/api/v1/health`](https://daan.lifenet.com.tw/api/v1/health),
+  [`/version.json`](https://daan.lifenet.com.tw/version.json), and
+  [`/deployment.json`](https://daan.lifenet.com.tw/deployment.json); all
+  backend/frontend/build SHA values matched the merge commit.
+- Release evidence is recorded on
+  [AllTrue issue #1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458347820).
 
 - [PR #2170](https://github.com/jerry200176-png/AllTrue_System/pull/2170)
   shipped the bounded Attendance workspace accessibility slice and was
@@ -55,4 +75,3 @@ issues are now marked CLOSED/COMPLETED by GitHub; the active broad UX epic is
    side effect of this UI release.
 4. Preserve the six-repository issue/PR inventory and current dirty-checkout
    warnings as evidence, rather than cleaning or resetting shared checkouts.
-

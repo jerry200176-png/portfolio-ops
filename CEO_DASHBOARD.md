@@ -1,5 +1,30 @@
 # CEO Dashboard
 
+## 2026-08-29 — TeacherHome control semantics live
+
+- AllTrue PR [#2171](https://github.com/jerry200176-png/AllTrue_System/pull/2171)
+  is squash-merged as `a637338026ab71e2a5d91ca5361ab388386829cd`. TeacherHome's
+  今日打卡狀態 card is now a native labelled button; weekly navigation and
+  schedule assessment/report controls expose explicit button types and readable
+  names. Attendance, schedule, assessment data, APIs, permissions, and
+  existing navigation handlers are unchanged.
+- Local checks passed: TeacherHome accessibility 2/2, full Vitest 74 files /
+  343 tests, TeacherHome daily-workflow E2E 5/5, release-note gates, design
+  guard, production build, and governance check. Main CI
+  [33215612471](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215612471),
+  Deploy to Pi
+  [33215875727](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215875727),
+  and read-only production acceptance
+  [33216138420](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33216138420)
+  passed.
+- Production health is `status=ok`; `/version.json` and `/deployment.json`
+  report backend/frontend/build SHA `a637338026ab71e2a5d91ca5361ab388386829cd`.
+  Evidence is recorded on
+  [AllTrue issue #1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458347820).
+- Issue #1618 remains open for the broader teacher daily workflow and
+  authenticated visual review. The broad #1600 UX epic remains open; the six
+  repository inventory remains 76 open issues and 15 open PRs.
+
 ## 2026-08-29 — Attendance workspace accessibility live
 
 - AllTrue PR [#2170](https://github.com/jerry200176-png/AllTrue_System/pull/2170)
