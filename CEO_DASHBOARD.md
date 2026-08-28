@@ -1,5 +1,29 @@
 # CEO Dashboard
 
+## 2026-08-29 — Attendance workspace accessibility live
+
+- AllTrue PR [#2170](https://github.com/jerry200176-png/AllTrue_System/pull/2170)
+  is squash-merged as `67e3bba0e81bfcc6b1a7c2a39bb49574571f3df9`. Attendance
+  director tabs now connect to their selected, keyboard-focusable panels, and
+  pending status choices expose their pressed state. Attendance APIs, records,
+  deduction, RFID, permissions, and submit behavior are unchanged.
+- Local checks passed: targeted accessibility 2/2, full UI foundation 141/141,
+  Vitest 73 files / 341 tests, release-note gates, design guard, and production
+  build. Main CI
+  [33213233077](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213233077),
+  Deploy to Pi
+  [33213514877](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213514877),
+  and read-only production acceptance
+  [33213775735](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213775735)
+  passed.
+- Production health is `status=ok`; `/version.json` and `/deployment.json`
+  report the same backend/frontend SHA as the merge commit. Evidence is
+  recorded on [AllTrue issue #1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458089013).
+- Fresh six-repository inventory is 76 open issues and 15 open PRs: AllTrue
+  70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise Cafe 4/3,
+  and both Income Statement repos 0/0. The broad #1600 UX epic remains open;
+  the historical #693 and #695 rollout issues are CLOSED/COMPLETED on GitHub.
+
 ## 2026-08-29 — TeachersList status workspace live
 
 - AllTrue PR [#2169](https://github.com/jerry200176-png/AllTrue_System/pull/2169)
@@ -19,7 +43,8 @@
 - Production health is `status=ok`; `/version.json` and `/deployment.json`
   both report `4f7ce50c841f9cd920614142e93afd3b3baacfb9`. Evidence is recorded
   on [AllTrue issue #693](https://github.com/jerry200176-png/AllTrue_System/issues/693#issuecomment-5457810311).
-  The broader TeachersList governance and UX renewal remain open.
+  The source rollout issue #693 is now closed/completed on GitHub; the broader
+  UX renewal remains open under #1600.
 - Fresh six-repository inventory is 76 open issues and 15 open PRs: AllTrue
   70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise Cafe 4/3,
   and both Income Statement repos 0/0.

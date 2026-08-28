@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-08-29T05:45:12+08:00",
+  "inventory_updated_at": "2026-08-29T05:45:12+08:00",
+  "inventory_stale": false,
+  "projects": [
+    {
+      "id": "alltrue",
+      "last_verified_at": "2026-08-29T05:45:12+08:00",
+      "evidence_expires_at": "2026-08-30T05:45:12+08:00",
+      "status_stale": false,
+      "evidence_stale": false,
+      "p0_evidence_stale": false,
+      "source_commit": "67e3bba0e81bfcc6b1a7c2a39bb49574571f3df9"
+    },
+    {
+      "id": "sunrise",
+      "last_verified_at": "2026-08-29T02:33:00+08:00",
+      "evidence_expires_at": "2026-08-30T02:33:00+08:00",
+      "status_stale": false,
+      "evidence_stale": false,
+      "p0_evidence_stale": false,
+      "source_commit": "f8927b174b04ff7e026be5f4cb341396e1d120c6"
+    }
+  ]
+}
