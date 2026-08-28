@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-28T22:18:46+00:00",
-  "inventory_updated_at": "2026-08-29T06:18:46+08:00",
+  "generated_at": "2026-08-28T22:24:57+00:00",
+  "inventory_updated_at": "2026-08-29T06:24:57+08:00",
   "inventory_stale": false,
   "projects": [
     {
       "id": "alltrue",
-      "last_verified_at": "2026-08-29T06:18:46+08:00",
-      "evidence_expires_at": "2026-08-30T06:18:46+08:00",
+      "last_verified_at": "2026-08-29T06:24:57+08:00",
+      "evidence_expires_at": "2026-08-30T06:24:57+08:00",
       "status_stale": false,
       "evidence_stale": false,
       "p0_evidence_stale": false,

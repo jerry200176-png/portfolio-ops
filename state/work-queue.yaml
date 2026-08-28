@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: 2026-08-29T06:18:46+08:00
+updated_at: 2026-08-29T06:24:57+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
@@ -37,6 +37,10 @@ queue:
         Production health returned status=ok; version.json and deployment.json
         reported backend/frontend SHA
         a637338026ab71e2a5d91ca5361ab388386829cd.
+      - >-
+        Issue #1618 was intentionally reopened after merge because the shipped
+        change is only a bounded control-semantics slice; the broader teacher
+        daily workflow remains open for follow-up.
     root_cause: "The clock-in status card used a styled div with role=button and only Enter handling, while icon-only schedule controls relied on title/tooltips and several buttons omitted an explicit type."
     non_goals:
       - "Do not change attendance, schedule, assessment data truth, APIs, permissions, database schema, or navigation handlers."

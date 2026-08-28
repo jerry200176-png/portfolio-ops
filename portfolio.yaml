@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T06:18:46+08:00"
+updated_at: "2026-08-29T06:24:57+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,9 +30,9 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T06:18:46+08:00"
+    last_verified_at: "2026-08-29T06:24:57+08:00"
     source_commit: "a637338026ab71e2a5d91ca5361ab388386829cd"
-    evidence_expires_at: "2026-08-30T06:18:46+08:00"
+    evidence_expires_at: "2026-08-30T06:24:57+08:00"
     open_p0: 0
     open_p1: 33
     current_priority: "UX-ALLTRUE-TEACHER-CARD-A11Y-20260829 — PR #2171 將 TeacherHome 今日打卡卡片改為原生 button，補上狀態宣告與週課表／課表操作的 accessible names；production acceptance 綠，#1618 維持開啟以追蹤更完整的老師每日工作流。六 repo fresh inventory 為 76 open issues / 15 open PRs；#1600 維持 broad UX epic。LearningRecords #1621 受 #957/#1080 資料真相 gate；#2007、#2129 與 production-sensitive work 仍獨立追蹤。"
@@ -70,6 +70,7 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/pull/2170
       - https://github.com/jerry200176-png/AllTrue_System/pull/2171
       - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458347820
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458393226
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215612471
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215875727
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33216138420

@@ -1,5 +1,5 @@
 ## Portfolio freshness
-Generated: `2026-08-28T22:18:46+00:00`
+Generated: `2026-08-28T22:24:57+00:00`
 Inventory stale: **NO**
 
 | Project | Status stale | Evidence stale | P0 evidence warning | Source commit |
