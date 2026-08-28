@@ -23,7 +23,8 @@
   [AllTrue issue #1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458347820).
 - Issue #1618 remains open for the broader teacher daily workflow and
   authenticated visual review. The broad #1600 UX epic remains open; the six
-  repository inventory remains 76 open issues and 15 open PRs.
+  repository inventory remains 76 open issues and 15 open PRs. Issue lifecycle
+  correction is recorded in the [reopen note](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458393226).
 
 ## 2026-08-29 — Attendance workspace accessibility live
 

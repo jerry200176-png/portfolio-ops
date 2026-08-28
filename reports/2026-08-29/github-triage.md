@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-29
 
-Capture time: 2026-08-29 06:18 +08:00. GitHub API/`gh` read-back is the
+Capture time: 2026-08-29 06:24 +08:00. GitHub API/`gh` read-back is the
 source of truth for issue and pull-request state. Existing dirty or diverged
 checkouts were preserved; the workspace inventory is recorded in
 [`workspace-inventory.tsv`](workspace-inventory.tsv).
@@ -43,6 +43,10 @@ issues are now marked CLOSED/COMPLETED by GitHub; the active broad UX epic is
   backend/frontend/build SHA values matched the merge commit.
 - Release evidence is recorded on
   [AllTrue issue #1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458347820).
+- Issue #1618 was re-opened intentionally after the bounded PR merged; its
+  broader teacher daily workflow and authenticated visual review remain open.
+  The lifecycle correction is recorded in the
+  [reopen note](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458393226).
 
 - [PR #2170](https://github.com/jerry200176-png/AllTrue_System/pull/2170)
   shipped the bounded Attendance workspace accessibility slice and was
