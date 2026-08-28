@@ -107,6 +107,41 @@ queue:
       - "Production version identity and health match the merged commit after deployment."
     next_action: "Measure the visual companion with real staff feedback; then select the next bounded surface from #2007/#1618 or the design-system rollout rather than styling the entire app in one rewrite."
 
+  - id: UX-ALLTRUE-STUDENT-COURSE-IA-20260829
+    product: alltrue
+    priority: p2
+    title: Propose a two-level student course workspace with clear next action and progressive disclosure
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/2007
+    status: proposal_ready
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2161
+    evidence:
+      - "PR #2161 merged the research-backed proposal with desktop/mobile wireframes, state ordering, design-system adaptation, and Phase 2A/2B/2C rollout gates."
+      - "The proposal adapts Duolingo's clear next step and readable progress principles without bringing XP, streaks, leaderboards, or invented operational scores into the director workflow."
+      - "The proposal keeps bank-like restraint for billing, attendance, PII, delete, close, and other high-risk operations; learning-oriented warmth remains contained to appropriate surfaces."
+      - "The proposal preserves existing API, database, permission, branch-isolation, billing, attendance, scheduling, and mutation-handler boundaries."
+      - "PR checks passed: Docs Integrity, Golden scenarios, Vite Frontend Build, UI Smoke, governance, secret scan, and provenance."
+    root_cause: "The first active-course card slice reduced row density but the expanded student record still needs a clear course overview and lower-cost navigation across multiple active and historical courses."
+    non_goals:
+      - "Do not implement before product/director review of the proposal."
+      - "Do not change API payloads, data ownership, permissions, billing, attendance, scheduling, course mutations, database state, or production data."
+      - "Do not merge the broad failing #2129 refactor as a substitute for this bounded design."
+    tests:
+      - "git diff --check"
+      - "GitHub Docs Integrity Check run 33191036576"
+      - "GitHub Golden scenarios report run 33191036650"
+      - "GitHub UI Smoke run 33191036552"
+      - "GitHub Vite Frontend Build run 33191036650"
+    rollback: "Revert the documentation-only proposal PR through a normal PR; no production deploy or data rollback is required."
+    dependencies:
+      - "Product/director approval of docs/design/student-course-ia-redesign-2026-08-29.md."
+      - "Keep implementation separate from #2002 and other scheduling, attendance, billing, and PII-sensitive work."
+    founder_gate: "Proposal is ready for review; implementation and production release remain gated on explicit approval, focused tests, required checks, and read-only production evidence."
+    acceptance:
+      - "Proposal includes desktop/mobile wireframes and a state matrix for normal, multi-course, warning, monthly, missing-data, empty, loading, error, historical, and long-text states."
+      - "Proposal defines semantic progress, keyboard/focus, responsive, token, and preserved-handler requirements for the future implementation."
+      - "Issue #2007 remains open until the approved implementation is deployed and verified."
+    next_action: "Obtain product/director review; if approved, open a separate Phase 2A implementation PR limited to course overview and active-course selection."
+
   - id: OPS-ALLTRUE-2086
     product: alltrue
     priority: p1

@@ -1,5 +1,25 @@
 # CEO Dashboard
 
+## 2026-08-29 — Student course IA proposal ready for review
+
+- AllTrue PR [#2161](https://github.com/jerry200176-png/AllTrue_System/pull/2161)
+  merged the proposal-only redesign for issue
+  [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007).
+  The proposal adds desktop/mobile wireframes, status ordering, responsive and
+  accessibility acceptance, and a two-level course workspace that makes the
+  next safe action visible without turning the director workflow into a game.
+- The direction is explicit: bank-like clarity for billing, attendance, PII,
+  delete, close, and other high-risk work; contained learning warmth only where
+  it helps a learning-oriented journey. No production code or data changed in
+  this PR, and #2007 remains open pending product/director review.
+- The open PR register still has five AllTrue PRs. PR #2129 remains blocked by
+  failed Presubmit/UI Smoke and its 1,279-line diff; it is not a release
+  candidate. PR #2161 is merged and now the review gate for the next #2007
+  implementation slice.
+- Portfolio Ops PR #51 is the current merged inventory record; superseded PR
+  #50 is closed. The canonical Portfolio Ops checkout and other dirty user
+  worktrees were preserved.
+
 ## 2026-08-29 — AllTrue visual companion slice and acceptance recovery
 
 - AllTrue PR [#2159](https://github.com/jerry200176-png/AllTrue_System/pull/2159)
