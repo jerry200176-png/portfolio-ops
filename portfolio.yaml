@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T00:25:21+08:00"
+updated_at: "2026-08-29T00:43:50+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T00:25:21+08:00"
+    last_verified_at: "2026-08-29T00:43:50+08:00"
     source_commit: "f29ad8a36f5dd5780a6c6b0d8baae85b322d99fb"
-    evidence_expires_at: "2026-08-30T00:25:21+08:00"
+    evidence_expires_at: "2026-08-30T00:43:50+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-VISUAL-COMPANION-20260829 — TeacherHome 已加入原創 learning companion hero；PR #2160 merge/deploy、production version f29ad8a3、health 與本地 UI evidence 已驗證；Calendar/Course parity acceptance 亦已由 PR #2159 修正並通過。"
-    next_action: "以真實教職員回饋評估 TeacherHome 視覺切片，再從 #2007/#1618 或 design-system rollout 選下一個 bounded UX slice；#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-STUDENT-COURSE-IA-20260829 — PR #2161 已合併研究與 wireframe 提案；#2007 維持 open，等待產品／主任確認後才進入 implementation。#2160 TeacherHome 視覺切片仍為 production baseline。"
+    next_action: "取得 #2007 提案確認，再以 Phase 2A 實作課程總覽與 active-course selection；#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -54,6 +54,8 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/pull/2157
       - https://github.com/jerry200176-png/AllTrue_System/pull/2159
       - https://github.com/jerry200176-png/AllTrue_System/pull/2160
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2161
+      - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455191359
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33183649649

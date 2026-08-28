@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-28
 
-Capture time: 2026-08-29 00:25 +08:00. Source of truth for repository and
+Capture time: 2026-08-29 00:43 +08:00. Source of truth for repository and
 collaboration state: GitHub API/`gh` read-back in this session. Labels are
 signals only; the shortlist below is cross-checked against PR checks, local
 worktrees, and production read-only endpoints.
@@ -27,6 +27,12 @@ worktrees, and production read-only endpoints.
   [33184796064](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184796064)
   and [33187279382](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33187279382);
   the selector remediation is now merged and the full acceptance run is green.
+- AllTrue PR [#2161](https://github.com/jerry200176-png/AllTrue_System/pull/2161)
+  merged a proposal-only student-course IA redesign for issue [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007).
+  It contains desktop/mobile wireframes, state rules, and implementation gates;
+  #2007 remains open until product/director review and a later implementation
+  release. The proposal comment is recorded at
+  [the issue thread](https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455191359).
 
 ## Portfolio snapshot
 
@@ -34,7 +40,7 @@ worktrees, and production read-only endpoints.
 |---|---:|---:|---:|---:|---|
 | [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2160 is merged/deployed for the first visual companion slice; Calendar/Course acceptance is green after PR #2159 |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
-| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 7 | PR #50 is ready and all five of its checks pass; PR #40 remains draft/failing |
+| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 7 | PR #51 merged the refreshed inventory; superseded PR #50 is closed; PR #40 remains draft/failing |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
 | [Income Statement App](https://github.com/jerry200176-png/income-statement-app) | 0 | 0 | 0 | 0 | No open GitHub work items |
 | [Income Statement App Releases](https://github.com/jerry200176-png/income-statement-app-releases) | 0 | 0 | 0 | 0 | No open GitHub work items |
@@ -49,13 +55,13 @@ GitHub project.
 
 | Repository | PR | State/check signal | Next action |
 |---|---|---|---|
-| AllTrue | [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) | Open; Presubmit and UI Smoke failed; Vite build passed | Split the 1,279-line UI change into reviewable slices and repair the course-management smoke contract before review |
+| AllTrue | [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) | Open; Presubmit and UI Smoke failed; Vite build passed | Split the 1,279-line UI change into reviewable slices and repair the course-management smoke contract before review; do not merge as-is |
 | AllTrue | [#2112](https://github.com/jerry200176-png/AllTrue_System/pull/2112) | Open; failing check read back | Re-run/read the failing dependency check and merge only after required checks are green |
 | AllTrue | [#2092](https://github.com/jerry200176-png/AllTrue_System/pull/2092) | Draft; no checks recorded | Decide whether the unused-variable ratchet is still needed, then make the PR reviewable or close it with evidence |
 | AllTrue | [#2021](https://github.com/jerry200176-png/AllTrue_System/pull/2021) | Open; recorded checks have no failure | Obtain independent review and confirm it does not compete with the current production release gate |
 | AllTrue | [#1991](https://github.com/jerry200176-png/AllTrue_System/pull/1991) | Draft; no checks recorded | Review RFC scope and either mark ready with evidence or close as stale |
 | Engineering Intelligence | [#1](https://github.com/jerry200176-png/engineering-intelligence/pull/1) | Open; failing check read back | Inspect the failed real-LLM pipeline check before review |
-| Portfolio Ops | [#50](https://github.com/jerry200176-png/portfolio-ops/pull/50) | Ready; CodeQL, Scorecard, Secret scan, governance-check, and validate passed | Merge in a separate portfolio-ops session after recording the refreshed snapshot |
+| Portfolio Ops | [#51](https://github.com/jerry200176-png/portfolio-ops/pull/51) | Merged; CodeQL, Scorecard, Secret scan, governance-check, and validate passed | Keep the refreshed inventory as the current source of truth; superseded #50 is closed |
 | Portfolio Ops | [#47](https://github.com/jerry200176-png/portfolio-ops/pull/47) | Open; no failure recorded | Review Dependabot change |
 | Portfolio Ops | [#42](https://github.com/jerry200176-png/portfolio-ops/pull/42) | Open; no failure recorded | Review governance documentation change |
 | Portfolio Ops | [#40](https://github.com/jerry200176-png/portfolio-ops/pull/40) | Draft; failing check read back | Repair or close after checking current workspace manifest |
