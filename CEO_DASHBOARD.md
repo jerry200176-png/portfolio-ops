@@ -1,5 +1,82 @@
 # CEO Dashboard
 
+## 2026-08-29 — AllTrue visual companion slice and acceptance recovery
+
+- AllTrue PR [#2159](https://github.com/jerry200176-png/AllTrue_System/pull/2159)
+  fixed the Calendar/Course production acceptance contract by targeting the
+  current semantic `AtPageHeader` headings. It merged as
+  `96d2980aa8d93a88ea56fdb0b1ca8a5a980eca06`; corrected read-only acceptance
+  [33188606426](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33188606426)
+  passed desktop and mobile parity checks.
+- AllTrue PR [#2160](https://github.com/jerry200176-png/AllTrue_System/pull/2160)
+  adds the first genuine visual-direction slice: an original image-model
+  learning companion, warm amber/navy surface, rounded hierarchy, encouraging
+  copy, and a real queue link on TeacherHome. It deliberately keeps billing,
+  attendance, PII, scheduling, permissions, and operational data unchanged.
+- PR #2160 merged as `f29ad8a36f5dd5780a6c6b0d8baae85b322d99fb`. Main CI
+  [33189424753](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33189424753),
+  deploy [33189578837](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33189578837),
+  production `version.json`, and `/api/v1/health` all passed. Local real-Vue
+  evidence passed five normal/empty/error and responsive TeacherHome cases.
+- This is an intentional hybrid direction: Duolingo-like warmth and emotional
+  feedback in learning-oriented moments, with bank-like restraint and explicit
+  states on safety/data-heavy operations pages. It is the beginning of the
+  visual system, not a claim that the entire app has already been redesigned.
+- Fresh GitHub inventory remains six owner-visible repositories with 76 open
+  issues and 16 open PRs: AllTrue 70/5, Portfolio Ops 2/7, Engineering
+  Intelligence 0/1, Sunrise Cafe 4/3, and both Income Statement repos 0/0.
+- Portfolio state and evidence were refreshed in
+  [`reports/2026-08-28/github-triage.md`](reports/2026-08-28/github-triage.md)
+  and [`state/work-queue.yaml`](state/work-queue.yaml). Existing dirty
+  canonical worktrees were preserved; all changes used isolated worktrees.
+
+## 2026-08-28 — AllTrue student course summary slice live verification
+
+- AllTrue issue [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) now has a bounded first slice: active student courses use task-first summary cards with explicit session progress, honest monthly/missing-session states, one primary action, and keyboard-accessible secondary actions. Existing API payloads, mutation handlers, permissions, billing, attendance, scheduling, and history behavior were preserved.
+- The implementation was merged through PR [#2157](https://github.com/jerry200176-png/AllTrue_System/pull/2157) as `84c9e2e6e7767627c8befb55af00d53514f3d08d`. Required GitHub checks passed, including Presubmit, Vite Frontend Build, UI Smoke (Playwright), security, docs, control-plane, and golden-scenario checks.
+- Deploy run [33184486346](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184486346) passed. Production `version.json` reports build SHA `84c9e2e6e7767627c8befb55af00d53514f3d08d`; `/api/v1/health` returned `ok`.
+- Post-deploy read-only Calendar/Course Acceptance run [33184796064](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184796064) reached the calendar page and completed its API parity reads, but failed on the stale `.smart-cal-title` UI selector before course-page assertions. Production remained healthy; this acceptance contract follow-up is still open.
+- TeacherHome priority-rule clarification was merged as PR [#2158](https://github.com/jerry200176-png/AllTrue_System/pull/2158), SHA `1a43a4ad0303458abacd71f5c0e04325f911f500`; main CI [33186834949](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33186834949), deploy [33186993773](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33186993773), production version, and health all passed. A second acceptance run [33187279382](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33187279382) reproduced the same stale selector failure, so the parity gate remains open.
+- This is a first course-summary slice, not completion of #2007's broader course-management IA cleanup. AllTrue remains at 70 open issues and five open PRs; cross-repo totals remain 76 open issues and 16 open PRs.
+- Exo's merge audit required an explicit break-glass record because stale session metadata produced a false ungoverned/drift result; the override reason, green required checks, and normal squash merge are recorded in the product session audit. No admin or force operation was used.
+
+## 2026-08-28 — AllTrue UI slices live verification
+
+- AllTrue PR [#2154](https://github.com/jerry200176-png/AllTrue_System/pull/2154) was squash-merged as `2e1d0cd28ae936f74285dbbea835244779c6aa7c` after all required PR checks passed.
+- CI deploy run [33166606478](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478) passed. Production `version.json`, Pi HEAD, deployment manifest, health, API smoke, and authenticated director UI smoke all matched the merge SHA; the director UI smoke passed at 390, 412, 768, 1280, and 1440px.
+- Issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911) is now closed as completed by the bounded daily-progress implementation. AllTrue currently has 70 open issues and 5 open PRs; current cross-repo totals are 76 open issues and 16 open PRs.
+- The follow-up sidebar-focus slice, PR [#2155](https://github.com/jerry200176-png/AllTrue_System/pull/2155), was merged as `c44ea6aff907d79f8ea80da56edd06619e899e32`. Deploy run [33167200741](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741) passed exact-SHA production deployment, health, read-only API smoke, bundle checks, and director endpoint probes; production `version.json` and Pi HEAD match `c44ea6af`.
+- Portfolio triage is refreshed in [`reports/2026-08-28/github-triage.md`](reports/2026-08-28/github-triage.md); portfolio-ops PR [#50](https://github.com/jerry200176-png/portfolio-ops/pull/50) has all five remote checks passing and remains ready for a separate merge session.
+
+> These are two bounded UX slices, not a claim that every open issue/PR is resolved. The UX slice deployment is verified, while the post-deploy acceptance selector follow-up and #2007, #2002, #2129, and the remaining queues stay separately tracked.
+
+## 2026-08-28 — GitHub portfolio and AllTrue UI V1 (pre-release snapshot)
+
+- Fresh GitHub read-back covers six owner-visible repositories: 79 open issues
+  and 15 open PRs. AllTrue has 73 open issues (33 P1-labelled) and five open
+  PRs; Sunrise has four issues (three P1-labelled) and three open PRs; the
+  remaining repositories are listed in
+  [`reports/2026-08-28/github-triage.md`](reports/2026-08-28/github-triage.md).
+- The main UI signal is AllTrue PR [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129): it is not a release candidate because its 1,279-line diff fails the PR-size gate and UI Smoke. A bounded V1 was therefore implemented separately in isolated branch `chore/task-uiux-github-20260828`, linked to issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911).
+- The V1 adds `TodayProgressCard` to the director focus view. It uses only
+  loaded `todaySchedules` and `attended` state, shows completed/total progress,
+  separates loading from empty state, and routes the next action through the
+  existing dashboard navigation. No API, permission, billing, schedule, or
+  production data behavior changed.
+- Read-only production checks passed: AllTrue health returned `ok` and serving
+  SHA was `4a6b2a32`; Sunrise booking health returned `ok` and serving commit
+  was `f8927b17`. These are observation evidence only; the V1 is not deployed.
+- Existing dirty/diverged worktrees were preserved. Full workspace evidence is
+  in [`reports/2026-08-28/workspace-inventory.md`](reports/2026-08-28/workspace-inventory.md).
+
+### Current decisions required
+
+1. Independent UI review and required checks for the new V1 Draft PR.
+2. Keep the production-sensitive AllTrue #2086 release gate separate from the
+   UI change; never bundle billing/attendance fixes with the UX slice.
+3. After merge/deploy, verify serving SHA, health, and UI smoke before calling
+   the UI improvement live.
+
 > Current baseline: 2026-08-27. The historical entries below are retained as an audit trail; the current priority and execution state are defined by this section and `state/work-queue.yaml`.
 
 ## 2026-08-27 — AllTrue director workflow reliability and release gate
