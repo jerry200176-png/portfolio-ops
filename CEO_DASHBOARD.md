@@ -1,5 +1,26 @@
 # CEO Dashboard
 
+## 2026-08-29 — Student course detail disclosure live
+
+- AllTrue PR [#2164](https://github.com/jerry200176-png/AllTrue_System/pull/2164)
+  is squash-merged as `350da457ec9010aca90d2e718b0055cd77156b86`. The selected
+  course is now an explicit `目前課程工作區`; historical courses remain a
+  separate accessible disclosure. The release also fixed the real history
+  lookup bug where the disclosure reused the active-only course collection.
+- Main CI
+  [33198942210](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33198942210),
+  Deploy to Pi
+  [33199257475](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199257475),
+  and read-only production acceptance
+  [33199540861](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199540861)
+  passed. Production `/version.json` matched `350da457` and health returned
+  `ok`.
+- AllTrue issue [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007)
+  remains open for the remaining course IA rollout. Current six-repository
+  inventory is 76 open issues and 15 open PRs: AllTrue 70/5, Portfolio Ops
+  2/6, Engineering Intelligence 0/1, Sunrise Cafe 4/3, and both Income
+  Statement repos 0/0.
+
 ## 2026-08-29 — Teacher workbench next action live
 
 - AllTrue PR [#2163](https://github.com/jerry200176-png/AllTrue_System/pull/2163)
