@@ -3,8 +3,8 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'EOF'
-usage: governance-autopilot.sh --policy FILE --inventory FILE --output FILE
-       [--apply-safe-cleanup]
+usage: governance-autopilot.sh --policy FILE [--inventory FILE | --scan-root DIR...]
+       --output FILE [--apply-safe-cleanup]
 
 The default mode is read-only. Safe cleanup is only eligible for files below
 the policy-owned runtime root when its ownership marker exists. Approval items
@@ -17,11 +17,13 @@ policy=''
 inventory=''
 output=''
 apply_safe_cleanup=0
+scan_roots=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --policy) policy=${2:?missing value for --policy}; shift 2 ;;
     --inventory) inventory=${2:?missing value for --inventory}; shift 2 ;;
+    --scan-root) scan_roots+=("${2:?missing value for --scan-root}"); shift 2 ;;
     --output) output=${2:?missing value for --output}; shift 2 ;;
     --apply-safe-cleanup) apply_safe_cleanup=1; shift ;;
     -h|--help) usage ;;
@@ -29,8 +31,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -n "$policy" && -n "$inventory" && -n "$output" ]] || usage
+[[ -n "$policy" && -n "$output" ]] || usage
+if [[ -n "$inventory" && ${#scan_roots[@]} -gt 0 ]]; then
+  echo "use either --inventory or --scan-root, not both" >&2
+  exit 2
+fi
 [[ -f "$policy" ]] || { echo "policy not found: $policy" >&2; exit 1; }
+
+if [[ -z "$inventory" ]]; then
+  [[ ${#scan_roots[@]} -gt 0 ]] || usage
+  repo_root=$(cd "$(dirname "$policy")/.." && pwd)
+  inventory="${output%.json}.inventory.tsv"
+  bash "$repo_root/scripts/workspace-inventory.sh" "$inventory" "${scan_roots[@]}"
+fi
 [[ -f "$inventory" ]] || { echo "inventory not found: $inventory" >&2; exit 1; }
 
 exec python3 - "$policy" "$inventory" "$output" "$apply_safe_cleanup" <<'PY'

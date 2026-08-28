@@ -13,22 +13,18 @@ POLICY = ROOT / "governance" / "autonomy-automation.yaml"
 
 
 class GovernanceAutopilotTests(unittest.TestCase):
-    def run_autopilot(self, inventory: str) -> dict:
+    def run_autopilot(self, inventory: str, scan_root: Path | None = None) -> dict:
         with tempfile.TemporaryDirectory(prefix="governance-autopilot-test-") as directory:
             root = Path(directory)
             inventory_path = root / "inventory.tsv"
             output_path = root / "report.json"
             inventory_path.write_text(inventory, encoding="utf-8")
+            if scan_root is not None:
+                subprocess.run(["git", "init", "--quiet", str(scan_root)], check=True, capture_output=True, text=True)
             result = subprocess.run(
-                [
-                    str(SCRIPT),
-                    "--policy",
-                    str(POLICY),
-                    "--inventory",
-                    str(inventory_path),
-                    "--output",
-                    str(output_path),
-                ],
+                ([str(SCRIPT), "--policy", str(POLICY), "--scan-root", str(scan_root), "--output", str(output_path)]
+                 if scan_root is not None
+                 else [str(SCRIPT), "--policy", str(POLICY), "--inventory", str(inventory_path), "--output", str(output_path)]),
                 cwd=ROOT,
                 capture_output=True,
                 text=True,
@@ -85,6 +81,24 @@ class GovernanceAutopilotTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertRegex(first["source_inventory_sha256"], r"^[0-9a-f]{64}$")
         self.assertRegex(first["policy_sha256"], r"^[0-9a-f]{64}$")
+
+    def test_scan_root_mode_is_a_single_command(self):
+        with tempfile.TemporaryDirectory(prefix="governance-autopilot-scan-") as directory:
+            scan_root = Path(directory) / "repo"
+            scan_root.mkdir()
+            output_path = Path(directory) / "report.json"
+            subprocess.run(["git", "init", "--quiet", str(scan_root)], check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                [str(SCRIPT), "--policy", str(POLICY), "--scan-root", str(scan_root), "--output", str(output_path)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertTrue(Path(report["source_inventory"]).is_file())
+            self.assertEqual(report["summary"]["malformed_rows"], 0)
 
     def test_script_contains_no_destructive_git_or_shell_cleanup_commands(self):
         source = SCRIPT.read_text(encoding="utf-8")

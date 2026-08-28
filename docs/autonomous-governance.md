@@ -20,17 +20,21 @@ The machine-readable policy is
 
 ## Run it
 
-First produce an inventory with the existing read-only inventory command, then
-pass that evidence to the autopilot:
+For unattended runs, one command is enough. It invokes the existing read-only
+inventory producer, then writes the inventory and autopilot report:
 
 ```bash
-scripts/workspace-inventory.sh /tmp/portfolio-inventory.tsv \
-  /home/jerry/workspace /home/jerry/wt /home/jerry
 scripts/governance-autopilot.sh \
   --policy governance/autonomy-automation.yaml \
-  --inventory /tmp/portfolio-inventory.tsv \
+  --scan-root /home/jerry/workspace \
+  --scan-root /home/jerry/wt \
+  --scan-root /home/jerry \
   --output /home/jerry/evidence/workspace-admin/governance-autopilot.json
 ```
+
+The same command can be called by cron, a systemd user timer, or an agent
+worker. Passing `--inventory` remains available when a previously captured
+evidence file must be replayed.
 
 The default invocation writes evidence only. It does not touch a checkout.
 `--apply-safe-cleanup` is deliberately narrower: it only sends files matching
