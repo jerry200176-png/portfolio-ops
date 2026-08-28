@@ -9,6 +9,28 @@ worktrees, and production read-only endpoints.
 
 Capture update: 2026-08-29 02:33 +08:00.
 
+Additional capture: 2026-08-29 03:07 +08:00.
+
+- AllTrue PR [#2165](https://github.com/jerry200176-png/AllTrue_System/pull/2165)
+  shipped a bounded CourseManagement interaction-hierarchy slice: student
+  group expansion is now separated from student focus, course/billing tabs
+  have explicit tabpanel relationships, and history disclosure exposes its
+  controlled region to assistive technology. Existing course, billing,
+  scheduling, permission, and navigation handlers were preserved.
+- PR #2165 merged as `88c4d95388aec6fb9fcda039c43230b1baeb3057` after all
+  required checks passed. Main CI
+  [33201485946](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201485946),
+  deploy
+  [33201790150](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201790150),
+  and read-only production acceptance
+  [33202081650](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33202081650)
+  passed. Production `version.json` matched `88c4d953` and health returned
+  `ok`; the release was recorded on [issue #691](https://github.com/jerry200176-png/AllTrue_System/issues/691#issuecomment-5456611507).
+- Fresh owner-visible GitHub read-back remains 76 open issues and 15 open PRs:
+  AllTrue 70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise
+  Cafe 4/3, and both Income Statement repos 0/0. The five AllTrue PRs are
+  existing open work; #2165 is merged and is not in the open register.
+
 - AllTrue PR [#2164](https://github.com/jerry200176-png/AllTrue_System/pull/2164)
   shipped the next bounded #2007 course IA slice: the selected course is now
   labeled as the current-course workspace, history is an explicit accessible
@@ -78,7 +100,7 @@ Capture update: 2026-08-29 02:33 +08:00.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2164 is merged/deployed for the course detail disclosure and history lookup fix; #2007 remains open |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2165 is merged/deployed for CourseManagement interaction hierarchy; #2007 remains open |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
 | [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #54 merged the prior refresh; this release evidence refresh is now queued |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |

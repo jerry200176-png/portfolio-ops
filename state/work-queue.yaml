@@ -4,6 +4,42 @@ wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-COURSE-HIERARCHY-20260829
+    product: alltrue
+    priority: p2
+    title: Clarify course management interaction hierarchy and accessibility
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/691
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2165
+    evidence:
+      - "Student group disclosure is now a native button separate from the student-focus action, removing nested interactive semantics while preserving the existing focus workflow."
+      - "Course/Billing tabs expose stable tab-to-tabpanel relationships; history courses expose aria-expanded and aria-controls/id relationships. Existing course, billing, scheduling, permission, and navigation handlers are unchanged."
+      - "Local targeted CourseManagement tests passed 18/18; targeted pilot E2E passed 6/6; the full real-Vue UI foundation suite passed 139/139 across 390px–1440px."
+      - "PR #2165 merged as 88c4d95388aec6fb9fcda039c43230b1baeb3057 after all required PR checks passed, including UI Smoke and Vite Frontend Build."
+      - "Main CI 33201485946, Deploy to Pi 33201790150, and Calendar/Course Production Acceptance 33202081650 all passed."
+      - "Production version.json build_sha matched 88c4d95388aec6fb9fcda039c43230b1baeb3057 and /api/v1/health returned status=ok."
+    root_cause: "The course lookup header used a role=button container around a nested focus button, while tab and history disclosures did not fully expose their controlled regions to assistive technology."
+    non_goals:
+      - "Do not change course data, API payloads, permissions, billing, attendance, scheduling, or production data."
+      - "Do not claim issue #2007 complete; the broader course-management IA rollout remains open."
+    tests:
+      - "npm --prefix frontend run lint:design"
+      - "npx vitest run frontend/src/components/__tests__/CourseManagementAccessibility.test.js frontend/src/components/__tests__/CourseManagementActionHierarchy.test.js frontend/src/components/__tests__/CourseManagementLensUx.test.js frontend/src/components/__tests__/CourseManagementEmptyState.test.js frontend/src/components/__tests__/CourseManagementBillingTab.test.js (18 passed)"
+      - "npm --prefix frontend run build"
+      - "npm --prefix frontend run test:e2e:ui-foundation (139 passed locally)"
+      - "GitHub required PR checks, main CI 33201485946, deploy 33201790150, and acceptance 33202081650"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Measure scan-to-first-action, course/billing tab usage, and history-disclosure usage with production-safe staff feedback before another #2007 slice."
+      - "Keep #1618 teacher workflow, #2129 broad refactor, and #2002 scheduling-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Student group expansion and student focus are separate, keyboard-operable actions."
+      - "Course, billing, and history disclosure states are understandable to keyboard and screen-reader users."
+      - "Issue #2007 remains open for the next approved IA phase."
+    next_action: "Collect staff feedback and usage evidence, then plan the next bounded #2007 or #1618 slice; do not merge the broad failing #2129 refactor as a substitute."
+
   - id: UX-ALLTRUE-COURSE-DISCLOSURE-20260829
     product: alltrue
     priority: p2
