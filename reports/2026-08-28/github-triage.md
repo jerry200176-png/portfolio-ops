@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-28
 
-Capture time: 2026-08-29 00:43 +08:00. Source of truth for repository and
+Capture time: 2026-08-29 01:30 +08:00. Source of truth for repository and
 collaboration state: GitHub API/`gh` read-back in this session. Labels are
 signals only; the shortlist below is cross-checked against PR checks, local
 worktrees, and production read-only endpoints.
@@ -8,8 +8,7 @@ worktrees, and production read-only endpoints.
 ## 2026-08-29 refresh
 
 - Fresh authenticated GitHub read-back covers six owner-visible repositories:
-  76 open issues and 16 open PRs. Counts are unchanged from the prior
-  snapshot: AllTrue 70 issues / 5 PRs, Portfolio Ops 2 / 7, Engineering
+  76 open issues and 15 open PRs: AllTrue 70 issues / 5 PRs, Portfolio Ops 2 / 6, Engineering
   Intelligence 0 / 1, Sunrise Cafe 4 / 3, and both Income Statement repos 0 / 0.
 - AllTrue PR [#2159](https://github.com/jerry200176-png/AllTrue_System/pull/2159)
   repaired the calendar/course acceptance contract and merged as
@@ -33,6 +32,17 @@ worktrees, and production read-only endpoints.
   #2007 remains open until product/director review and a later implementation
   release. The proposal comment is recorded at
   [the issue thread](https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455191359).
+- AllTrue PR [#2162](https://github.com/jerry200176-png/AllTrue_System/pull/2162)
+  shipped Phase 2A of #2007: a course overview, attention-first active-course
+  picker, focused detail card, and mobile scroll-preservation behavior. It
+  merged as `a567f55e9a43d2214161347083a6e5d77067b5d6`; main CI
+  [33194188998](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194188998),
+  deploy [33194481228](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194481228),
+  and read-only production acceptance
+  [33194768520](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194768520)
+  passed. Production version and health matched; #2007 was reopened after
+  GitHub auto-closed it from the PR keyword because the parent issue remains
+  the tracker for future IA phases.
 
 ## Portfolio snapshot
 
@@ -40,7 +50,7 @@ worktrees, and production read-only endpoints.
 |---|---:|---:|---:|---:|---|
 | [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2160 is merged/deployed for the first visual companion slice; Calendar/Course acceptance is green after PR #2159 |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
-| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 7 | PR #51 merged the refreshed inventory; superseded PR #50 is closed; PR #40 remains draft/failing |
+| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #52 merged the refreshed inventory; superseded PR #51 is closed; PR #40 remains draft/failing |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
 | [Income Statement App](https://github.com/jerry200176-png/income-statement-app) | 0 | 0 | 0 | 0 | No open GitHub work items |
 | [Income Statement App Releases](https://github.com/jerry200176-png/income-statement-app-releases) | 0 | 0 | 0 | 0 | No open GitHub work items |
@@ -61,7 +71,6 @@ GitHub project.
 | AllTrue | [#2021](https://github.com/jerry200176-png/AllTrue_System/pull/2021) | Open; recorded checks have no failure | Obtain independent review and confirm it does not compete with the current production release gate |
 | AllTrue | [#1991](https://github.com/jerry200176-png/AllTrue_System/pull/1991) | Draft; no checks recorded | Review RFC scope and either mark ready with evidence or close as stale |
 | Engineering Intelligence | [#1](https://github.com/jerry200176-png/engineering-intelligence/pull/1) | Open; failing check read back | Inspect the failed real-LLM pipeline check before review |
-| Portfolio Ops | [#51](https://github.com/jerry200176-png/portfolio-ops/pull/51) | Merged; CodeQL, Scorecard, Secret scan, governance-check, and validate passed | Keep the refreshed inventory as the current source of truth; superseded #50 is closed |
 | Portfolio Ops | [#47](https://github.com/jerry200176-png/portfolio-ops/pull/47) | Open; no failure recorded | Review Dependabot change |
 | Portfolio Ops | [#42](https://github.com/jerry200176-png/portfolio-ops/pull/42) | Open; no failure recorded | Review governance documentation change |
 | Portfolio Ops | [#40](https://github.com/jerry200176-png/portfolio-ops/pull/40) | Draft; failing check read back | Repair or close after checking current workspace manifest |
@@ -82,8 +91,9 @@ GitHub project.
 2. [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) —
    broad UI refactor; failed size/UI gates prove it is not a release candidate.
 3. [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) —
-   first student course-summary slice is live through PR #2157; the broader
-   course-management IA cleanup remains open and must stay presentation-only per slice.
+   Phase 2A course overview and active-course selection is live through PR
+   #2162; the broader course-management IA cleanup remains open and must stay
+   presentation-only per slice.
 4. [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618) —
    teacher daily workflow; follow after the director pattern is measured.
 5. [#2112](https://github.com/jerry200176-png/AllTrue_System/pull/2112) —
@@ -148,8 +158,14 @@ maintenance items, not product release blockers.
   deploy [33189578837](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33189578837),
   and production read-back at 2026-08-29 00:25 all passed.
 - AllTrue `https://daan.lifenet.com.tw/version.json` returned HTTP 200 with
-  serving build SHA `f29ad8a36f5dd5780a6c6b0d8baae85b322d99fb`, and
+  serving build SHA `a567f55e9a43d2214161347083a6e5d77067b5d6`, and
   `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.
+- AllTrue PR [#2162](https://github.com/jerry200176-png/AllTrue_System/pull/2162)
+  passed the local 124-case UI foundation suite and all required remote PR
+  checks. Main CI run [33194188998](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194188998),
+  deploy [33194481228](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194481228),
+  and read-only acceptance [33194768520](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194768520)
+  passed against the merged SHA; issue #2007 remains open for the next IA phase.
 - AllTrue PR [#2154](https://github.com/jerry200176-png/AllTrue_System/pull/2154)
   closed issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911)
   and deployed through run
