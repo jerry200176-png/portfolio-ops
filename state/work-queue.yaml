@@ -4,6 +4,70 @@ wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-ATTENDANCE-TABS-20260829
+    product: alltrue
+    priority: p2
+    title: Make Attendance workspace tabs and status choices explicit
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1600
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2170
+    evidence:
+      - >-
+        Director Attendance tabs now expose stable IDs and explicit
+        aria-controls / aria-labelledby relationships to the selected student
+        or teacher tabpanel; panels are keyboard-focusable.
+      - >-
+        Pending attendance status buttons now expose aria-pressed and explicit
+        button types on desktop and mobile, with a visible focus treatment.
+      - >-
+        Teacher mode keeps the existing student attendance workspace and uses
+        an internal accessible heading because no director tab is rendered.
+      - >-
+        No attendance API, data, deduction, RFID, permission, database, or
+        submit behavior changed.
+      - >-
+        Local targeted accessibility tests passed 2/2; full Vitest passed 73
+        files / 341 tests; the real-Vue UI foundation suite passed 141/141.
+      - >-
+        PR #2170 merged as
+        67e3bba0e81bfcc6b1a7c2a39bb49574571f3df9 after required governance,
+        docs, provenance, secret scan, UI Smoke, and Vite Frontend Build checks
+        passed.
+      - >-
+        Main CI 33213233077, Deploy to Pi 33213514877, and read-only
+        production acceptance 33213775735 all passed.
+      - >-
+        Production health returned status=ok; version.json and deployment.json
+        reported backend/frontend SHA
+        67e3bba0e81bfcc6b1a7c2a39bb49574571f3df9.
+    root_cause: "Attendance already had visual director tabs and status buttons, but tab-to-panel semantics and selected status announcements were incomplete, leaving the current work area and attendance choice less clear to keyboard and screen-reader users."
+    non_goals:
+      - "Do not change attendance APIs, records, deduction behavior, RFID, permissions, database schema, or submit handlers."
+      - "Do not claim the broader #1600 UX renewal complete; this is one bounded Attendance presentation slice."
+    tests:
+      - "npx vitest run src/components/__tests__/AttendancePageAccessibility.test.js (2 passed)"
+      - "npm --prefix frontend run test:unit (73 files / 341 tests passed)"
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run lint:design"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run test:release-notes-coverage"
+      - "npm --prefix frontend run build"
+      - "UI foundation Playwright suite: 141 passed"
+      - "GitHub required PR checks, main CI 33213233077, deploy 33213514877, and acceptance 33213775735"
+      - "Production /api/v1/health, /version.json, and /deployment.json read-back"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Collect Attendance scan-to-first-action, tab-switch, keyboard, and status-misclassification evidence before another Attendance slice."
+      - "Keep LearningRecords #1621 behind #957/#1080 and keep #2007, #1618, #2129, and production-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Director Attendance tabs expose selected state, controlled tabpanels, and keyboard-focusable content without rendering unrelated workspaces."
+      - "Pending attendance status controls expose their selected state to assistive technology on desktop and mobile."
+      - "Attendance data, submit behavior, and the teacher-mode workspace remain unchanged."
+      - "The broader #1600 UX epic remains open for future bounded slices."
+    next_action: "Collect staff feedback and usage evidence, then plan the next non-data-truth Attendance or adjacent rollout slice; do not unlock LearningRecords preview-queue work before #957/#1080."
+
   - id: UX-ALLTRUE-TEACHERS-LIST-20260829
     product: alltrue
     priority: p2
@@ -64,7 +128,7 @@ queue:
       - "Each TeachersList status tab exposes selected state and a controlled tabpanel, with only the selected workspace rendered."
       - "Pending, active, and suspended labels remain textually explicit and their count/status colors are semantically consistent."
       - "RFID identifiers remain visible and readable without changing binding behavior."
-      - "The broader TeachersList governance issue remains open for future bounded slices."
+      - "The source issue #693 is closed/completed on GitHub; this record preserves the shipped slice and does not reopen or claim broader UX renewal complete."
     next_action: "Collect staff feedback and usage evidence, then plan the next non-data-truth TeachersList or adjacent rollout slice; do not unlock LearningRecords preview-queue work before #957/#1080."
 
   - id: UX-ALLTRUE-BILLING-TABS-20260829

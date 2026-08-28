@@ -1,4 +1,15 @@
 version: '0.1'
 last_updated: '2026-08-15'
 rules_of_thumb: []
-failure_modes: []
+failure_modes:
+- id: FM-20260829-054949-9PYS
+  name: CI and local validation commands run from different repository directories
+  detection:
+    signal: CI and local validation commands run from different repository directories
+    source: reflection:REF-20260829-054949-CF25
+  mitigation:
+    practice: Run frontend npm scripts from frontend and portfolio Python tests through
+      the repository's uv runner when system pytest is unavailable; report the command-path
+      issue separately from product failures.
+  severity: low
+  frequency: recurring

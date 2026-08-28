@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T05:12:10+08:00"
+updated_at: "2026-08-29T05:45:12+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T05:12:10+08:00"
-    source_commit: "4f7ce50c841f9cd920614142e93afd3b3baacfb9"
-    evidence_expires_at: "2026-08-30T05:12:10+08:00"
+    last_verified_at: "2026-08-29T05:45:12+08:00"
+    source_commit: "67e3bba0e81bfcc6b1a7c2a39bb49574571f3df9"
+    evidence_expires_at: "2026-08-30T05:45:12+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-TEACHERS-LIST-20260829 — PR #2169 將老師狀態 tab 與內容區建立清楚的 tab-panel 關係，統一待審核／停用語意色並改善 RFID 可讀性；production acceptance 綠，#693 維持 open 追蹤後續治理。六 repo fresh inventory 為 76 open issues / 15 open PRs。LearningRecords #1621 受 #957/#1080 資料真相 gate；#2007、#1618、#2129 與 production-sensitive work 仍獨立追蹤。"
-    next_action: "收集老師清單 scan-to-first-action、狀態 tab 使用、鍵盤操作與錯誤率證據，再規劃下一個不依賴資料真相的 bounded UX slice；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-ATTENDANCE-TABS-20260829 — PR #2170 將出缺勤主任分頁與內容區建立清楚的 tab-panel 關係，並讓待點名狀態按鈕公告 pressed state；production acceptance 綠，#1600 維持 broad UX epic。六 repo fresh inventory 為 76 open issues / 15 open PRs；#693 與 #695 已由 GitHub 標示 CLOSED/COMPLETED。LearningRecords #1621 受 #957/#1080 資料真相 gate；#2007、#1618、#2129 與 production-sensitive work 仍獨立追蹤。"
+    next_action: "收集出缺勤工作區 scan-to-first-action、分頁切換、鍵盤操作與狀態誤判率證據，再規劃下一個不依賴資料真相的 bounded UX slice；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -67,6 +67,14 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/issues/2135#issuecomment-5457506355
       - https://github.com/jerry200176-png/AllTrue_System/pull/2169
       - https://github.com/jerry200176-png/AllTrue_System/issues/693#issuecomment-5457810311
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2170
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458089013
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213233077
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213514877
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213775735
+      - https://daan.lifenet.com.tw/version.json
+      - https://daan.lifenet.com.tw/api/v1/health
+      - https://daan.lifenet.com.tw/deployment.json
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33210657923
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211140431
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211414610

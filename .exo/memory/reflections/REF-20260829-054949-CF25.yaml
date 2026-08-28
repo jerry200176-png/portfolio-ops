@@ -1,0 +1,14 @@
+id: REF-20260829-054949-CF25
+pattern: CI and local validation commands run from different repository directories
+insight: Run frontend npm scripts from frontend and portfolio Python tests through
+  the repository's uv runner when system pytest is unavailable; report the command-path
+  issue separately from product failures.
+severity: low
+scope: uiux-attendance-20260829
+actor: human
+session_id: ''
+created_at: '2026-08-29T05:49:49+08:00'
+status: active
+tags:
+- verification
+hit_count: 0
