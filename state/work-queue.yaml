@@ -1,9 +1,72 @@
 schema_version: 1
-updated_at: 2026-08-29T04:38:22+08:00
+updated_at: 2026-08-29T05:12:10+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-TEACHERS-LIST-20260829
+    product: alltrue
+    priority: p2
+    title: Clarify TeachersList status workspace and RFID readability
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/693
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2169
+    evidence:
+      - >-
+        TeachersList status tabs now expose stable tab IDs, aria-controls, and
+        a focusable labelled tabpanel for the selected active, pending, or
+        suspended teacher workspace.
+      - >-
+        Pending and suspended count badges now use semantic warning/danger
+        treatments, matching the card status labels; RFID identifiers use
+        muted tabular monospace presentation for easier scanning.
+      - >-
+        No teacher data, account, RFID binding, API, permission, workflow
+        handler, database, or production data behavior changed.
+      - >-
+        Local TeachersList accessibility tests passed 3/3; the real-Vue mobile
+        UI foundation test passed; the full UI foundation suite passed 141/141.
+      - >-
+        Vitest passed 72 files / 339 tests; lint:no-undef, lint:design,
+        release-note checks, release-note coverage, and production build passed.
+      - >-
+        PR #2169 merged as 4f7ce50c841f9cd920614142e93afd3b3baacfb9 after
+        required provenance, governance, docs, gitleaks, UI Smoke, and Vite
+        Frontend Build checks passed.
+      - >-
+        Main CI 33210657923, Deploy to Pi 33211140431, and read-only
+        production acceptance 33211414610 all passed.
+      - >-
+        Production /api/v1/health returned status=ok; /version.json and
+        /deployment.json reported backend/frontend SHA
+        4f7ce50c841f9cd920614142e93afd3b3baacfb9.
+    root_cause: "TeachersList status tabs visually changed the filtered list but did not expose a tab-to-panel relationship, while count badges used one danger treatment for different statuses and RFID identifiers used a high-attention color."
+    non_goals:
+      - "Do not change teacher data, accounts, RFID binding, APIs, permissions, workflows, or database schema."
+      - "Do not claim issue #693 or the broader #1600 UX renewal complete; this is one bounded TeachersList presentation slice."
+    tests:
+      - "npx vitest run frontend/src/components/__tests__/TeachersListAccessibility.test.js frontend/src/components/__tests__/UiHumanCopySweep.test.js (7 passed)"
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run lint:design"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run test:release-notes-coverage"
+      - "npm --prefix frontend run build"
+      - "UI foundation Playwright suite: 141 passed"
+      - "GitHub required PR checks, main CI 33210657923, deploy 33211140431, and acceptance 33211414610"
+      - "Production /api/v1/health, /version.json, and /deployment.json read-back"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Collect teacher-list scan-to-first-action, status-tab usage, keyboard navigation, and error-rate evidence before another teacher-management slice."
+      - "Keep LearningRecords #1621 behind #957/#1080 and keep #2007, #1618, #2129, and production-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Each TeachersList status tab exposes selected state and a controlled tabpanel, with only the selected workspace rendered."
+      - "Pending, active, and suspended labels remain textually explicit and their count/status colors are semantically consistent."
+      - "RFID identifiers remain visible and readable without changing binding behavior."
+      - "The broader TeachersList governance issue remains open for future bounded slices."
+    next_action: "Collect staff feedback and usage evidence, then plan the next non-data-truth TeachersList or adjacent rollout slice; do not unlock LearningRecords preview-queue work before #957/#1080."
+
   - id: UX-ALLTRUE-BILLING-TABS-20260829
     product: alltrue
     priority: p2
