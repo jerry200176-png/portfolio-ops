@@ -36,6 +36,28 @@ The same command can be called by cron, a systemd user timer, or an agent
 worker. Passing `--inventory` remains available when a previously captured
 evidence file must be replayed.
 
+## Optional one-time timer activation
+
+The repository includes a bounded user-level systemd service and timer under
+`automation/systemd/`. The service is read-only by default and never passes
+`--apply-safe-cleanup`; it refreshes evidence daily and leaves all approval
+items in the queue. Install it after the reviewed changes are available in the
+canonical checkout:
+
+```bash
+scripts/install-governance-autopilot-timer.sh
+scripts/install-governance-autopilot-timer.sh --enable-now
+systemctl --user status portfolio-ops-governance-autopilot.timer
+```
+
+The installer refuses to overwrite a different existing unit. The first
+command only installs templates; the second is the explicit one-time choice to
+activate persistent automation. To pause it later:
+
+```bash
+systemctl --user disable --now portfolio-ops-governance-autopilot.timer
+```
+
 The default invocation writes evidence only. It does not touch a checkout.
 `--apply-safe-cleanup` is deliberately narrower: it only sends files matching
 the policy patterns to the desktop Trash when the exact policy runtime root

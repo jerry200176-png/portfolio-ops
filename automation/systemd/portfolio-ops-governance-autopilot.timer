@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Portfolio Ops governance evidence refresh
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 Asia/Taipei
+Persistent=true
+RandomizedDelaySec=15min
+Unit=portfolio-ops-governance-autopilot.service
+
+[Install]
+WantedBy=timers.target
