@@ -79,17 +79,18 @@ queue:
     priority: p1
     title: Resolve Xindian eighth-session booking failure through the real director workflow
     source: https://github.com/jerry200176-png/AllTrue_System/pull/2086
-    status: ready_for_independent_review
+    status: merged_deployed_acceptance_followup
     implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2086
     evidence:
+      - "PR #2086 is merged as 4dc5a1f850e822345e207a98c78fd70fe20f89c1; the current serving build 84c9e2e6e7767627c8befb55af00d53514f3d08d includes that merge, and production health is ok."
       - "Production read-only check for StudentClass 2081, Xindian campus, 2026-08-29 13:00 returned can_add=true, conflict_type=none, and one available session; this session did not write production data."
       - "The original frontend opened a check for today's date before the director selected 8/29; without request ordering protection, an older 422 could overwrite the newer valid result."
       - "PR #2086 adds request-version protection, next-valid-date defaults, a retry action, and a Feature Test covering seven attended sessions plus cancelled leave dates."
       - "Current CI run 33033523696 passed PHPUnit Feature & Unit Tests, Vite Frontend Build, Golden scenarios, PHPStan, UI Smoke, security scans, and governance gates; the page-level delayed-422 Playwright regression also passed in the targeted local run."
-      - "Read-only release gate at 2026-08-27 10:53:30 +08:00: health HTTP 200/ok, but serving SHA 5e659805 does not match PR #2086 head 4af00816; release gate failed as expected and no production state was changed."
+      - "The earlier pre-merge read-only release gate at 2026-08-27 10:53:30 +08:00 correctly found the old serving SHA 5e659805 rather than the then-unmerged PR head; that evidence is superseded by the merged/deployed readback above."
       - "Latest head cfc5a1f6 adds AbortController cancellation for superseded manual/quick-add checks and cancellation on modal close/unmount; local 304/304 unit tests and the targeted Playwright race test passed."
       - "Required CI run 33035364530 for cfc5a1f6 completed successfully, including PHPStan, Vite Frontend Build, PHPUnit Feature & Unit Tests, UI Smoke, Golden scenarios, security, and governance gates."
-      - "Latest read-only release gate at 2026-08-27 11:10:39 +08:00 still fails the SHA match: serving 5e659805 versus expected cfc5a1f6; see reports/2026-08-27/alltrue-release-gate-2086-latest.md."
+      - "Post-#2157 Calendar/Course Production Acceptance run 33184796064 reached production and the parity API reads passed, but the UI assertion failed on stale selector `.smart-cal-title` before completing the course-page parity checks."
     root_cause: "The backend check was already able to accept the eighth future session, but the director-facing modal had an invalid initial date and allowed out-of-order check responses to replace the current decision."
     non_goals:
       - "Do not directly mutate production attendance, ClassSession, StudentClass, billing, or payment data."
@@ -104,12 +105,12 @@ queue:
     dependencies:
       - "Independent review of PR #2086."
       - "Post-merge deploy workflow and production read-only smoke."
-    founder_gate: "Founder/reviewer retains merge and production deploy authority; production data correction, if later required, must use a separately approved audited workflow."
+    founder_gate: "The merge/deploy is complete through the normal release flow; any production data correction, if later required, must use a separately approved audited workflow. The acceptance selector follow-up still needs a reviewed code change and green run."
     acceptance:
       - "Director can open the modal, receive the latest check for the selected date, and retry a transient failure without leaving the page."
       - "The eighth session is accepted when the contract has one remaining entitlement and cancelled leave rows are excluded from used capacity."
       - "After deployment, production version identity and a read-only 8/29 check match the reviewed commit."
-    next_action: "Obtain independent review, merge only after required checks remain green, and verify production before asking the director to retry."
+    next_action: "Repair the read-only acceptance selector to target the current AtPageHeader semantic heading, then rerun the production parity workflow; keep any data correction separately gated."
 
   - id: OPS-ALLTRUE-2002
     product: alltrue

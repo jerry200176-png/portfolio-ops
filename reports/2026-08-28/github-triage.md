@@ -47,19 +47,18 @@ GitHub project.
 
 ### AllTrue
 
-1. [#2086](https://github.com/jerry200176-png/AllTrue_System/pull/2086) —
-   production-sensitive eighth-session workflow; the current portfolio queue
-   still requires independent review and serving-SHA verification.
-2. [#2002](https://github.com/jerry200176-png/AllTrue_System/issues/2002) —
+1. [#2002](https://github.com/jerry200176-png/AllTrue_System/issues/2002) —
    cross-date reschedule/calendar consistency; requires a reviewed projection
    contract before any materialization or data repair.
-3. [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) —
+2. [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) —
    broad UI refactor; failed size/UI gates prove it is not a release candidate.
-4. [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) —
+3. [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) —
    first student course-summary slice is live through PR #2157; the broader
    course-management IA cleanup remains open and must stay presentation-only per slice.
-5. [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618) —
+4. [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618) —
    teacher daily workflow; follow after the director pattern is measured.
+5. [#2112](https://github.com/jerry200176-png/AllTrue_System/pull/2112) —
+   Dependabot action update; keep dependency review separate from the UI work.
 
 ### Sunrise Cafe
 
@@ -89,8 +88,17 @@ maintenance items, not product release blockers.
   `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.
   The slice changes active-course presentation only; issue #2007 remains open
   for the larger course-management IA work.
+- AllTrue's post-#2157 read-only Calendar/Course Production Acceptance run
+  [33184796064](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184796064)
+  reached both calendar viewports and completed the API parity reads, but
+  failed before the course-page assertions because the test still required
+  the removed `.smart-cal-title` class while production renders the same
+  heading through `AtPageHeader`. The captured DOM showed the calendar heading,
+  controls, and course cards; this is an acceptance-selector contract failure,
+  not evidence of an API or deployment outage. The selector follow-up remains
+  open and must pass before claiming the acceptance workflow green.
 - AllTrue `https://daan.lifenet.com.tw/version.json` returned HTTP 200 with
-  serving build SHA `2e1d0cd28ae936f74285dbbea835244779c6aa7c`, and
+  serving build SHA `84c9e2e6e7767627c8befb55af00d53514f3d08d`, and
   `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.
 - AllTrue PR [#2154](https://github.com/jerry200176-png/AllTrue_System/pull/2154)
   closed issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911)

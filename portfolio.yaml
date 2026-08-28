@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-28T19:31:00+08:00"
+updated_at: "2026-08-28T23:34:34+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -35,8 +35,8 @@ projects:
     evidence_expires_at: "2026-08-29T23:22:19+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-COURSE-SUMMARY-20260828 — issue #2007 的第一個 student course summary slice 已由 PR #2157 merge/deploy；production version 與 health 以 84c9e2e6 驗證，較大的 course-management IA 仍未完成。"
-    next_action: "維持 issue #2007 的後續 IA 工作與 #2086 等 production-sensitive work 分開；每次 AllTrue 僅一個 deployable change，所有後續 release 仍須 version.json、health 與 smoke 驗收。"
+    current_priority: "UX-ALLTRUE-COURSE-SUMMARY-20260828 — issue #2007 的第一個 student course summary slice 已由 PR #2157 merge/deploy；production version 與 health 以 84c9e2e6 驗證，較大的 course-management IA 仍未完成；另有 production acceptance selector follow-up。"
+    next_action: "維持 issue #2007 的後續 IA 工作與 #2002 等 production-sensitive work 分開；先修正 Calendar/Course read-only acceptance 的 AtPageHeader selector 並取得 green run；每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -58,6 +58,7 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33183649648
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184142519
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184486346
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184796064
       - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
