@@ -1,0 +1,46 @@
+id: INT-20260828-233605-CHOQ
+title: Make governance autopilot unattended
+intent: Make governance autopilot unattended
+kind: intent
+brain_dump: 'The autopilot should be a one-command, scheduler-ready entry point for
+  a one-person company: it should optionally run the read-only inventory producer
+  itself, write evidence, and preserve the same approval-only safety boundary.'
+boundary: Only modify the governance autopilot policy, implementation, tests, and
+  documentation in this isolated portfolio-ops worktree. Do not modify product repositories,
+  existing worktrees, legacy checkouts, production, credentials, GitHub settings,
+  or perform archive/remove/move/reset/clean/merge/rebase actions.
+success_condition: Autopilot can run from explicit discovery roots without a separately
+  prepared inventory, emits hashed inventory and report evidence, remains idempotent
+  and read-only by default, and is covered by focused tests and scheduler usage documentation.
+risk: medium
+priority: 80
+labels:
+- automation
+scope:
+  allow:
+  - scripts/governance-autopilot.sh
+  - governance/autonomy-automation.yaml
+  - tests/test_governance_autopilot.py
+  - docs/autonomous-governance.md
+  - .exo/**
+  - .exo/cache/**
+  - .exo/memory/**
+  - .exo/locks/**
+  - .exo/tickets/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 8
+  max_loc_changed: 500
+checks:
+- python3 -m pytest
+type: feature
+status: todo
+parent_id: null
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-28T23:36:05+08:00'
+children:
+- TKT-20260828-233613-MLTM
+resource_profile: default

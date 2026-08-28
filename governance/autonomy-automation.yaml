@@ -1,0 +1,48 @@
+schema_version: 1
+policy_owner: /home/jerry/workspace/portfolio-ops
+operating_model: agent_first_single_founder
+
+# These actions are safe to run on every scheduled pass. They observe state,
+# verify contracts, and write evidence; they do not change product state.
+automatic_actions:
+  - discover
+  - verify_inventory_schema
+  - write_evidence_report
+  - classify_exceptions
+  - clean_controller_owned_runtime
+
+# These actions become an approval-queue item with recovery evidence. The
+# autopilot never performs them just because a path looks old or prunable.
+approval_required_actions:
+  - archive
+  - remove
+  - move
+  - worktree_remove
+  - branch_delete
+  - merge
+  - deploy
+  - production_data_mutation
+
+# These are never delegated to the autopilot.
+never_automatic_actions:
+  - reset
+  - clean
+  - rebase
+  - force_push
+  - credential_rotation
+  - gmail_delete_or_archive
+
+exception_defaults:
+  owner: founder
+  recovery: preserve_in_place_until_owner_decision
+  next_step: record_owner_decision_before_any_irreversible_action
+
+safe_cleanup:
+  enabled: true
+  root: /tmp/portfolio-ops-governance
+  ownership_marker: .governance-autopilot-owned
+  patterns:
+    - '*.tsv'
+    - '*.sha256'
+    - '*.json'
+  retention_days: 7

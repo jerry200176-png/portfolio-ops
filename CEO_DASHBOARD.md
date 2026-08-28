@@ -1,9 +1,80 @@
 # CEO Dashboard
 
-Last updated: 2026-07-25 ~22:00 +08:00 (Claude Code instructions-
-architecture audit merged; Portfolio OS optimization work now stopped —
-next session moves to AllTrue #1401 containment. See the new section
-immediately below, then "2026-07-25 round 2" for prior same-day work).
+> Current baseline: 2026-08-01. The historical entries below are retained as an audit trail; the current priority and execution state are defined by this section and `state/work-queue.yaml`.
+
+## 2026-08-01 — Platform optimization baseline and execution reset
+
+- Both products remain Tier 0 and live.
+- AllTrue canonical `main` was clean but stale locally; implementation now uses an isolated worktree from current `origin/main` (`01a34ae2`). The user's existing checkout was not reset or edited.
+- Sunrise's existing dirty `chore/dependabot-major-policy` checkout was not touched. Its current bounded work is #211 code-side hardening, #257 single deploy ownership, and #261 typecheck baseline.
+- AllTrue #1408 was stale: #1402, #1409, and #1410 are merged. The board is being reconciled before new work is opened.
+- Founder-only gates remain explicit: AllTrue #1401 privacy review, #1387 credential rotation, Sunrise production migrations/paid infrastructure, merges, and deploys.
+- New control matrix: `docs/incident-control-matrix.md`. New evidence report: `reports/2026-08-01/platform-optimization-baseline.md`.
+- Portfolio control-plane PR #27 is merged; AllTrue #1428 ([#1579](https://github.com/jerry200176-png/AllTrue_System/pull/1579)), AllTrue #1420 ([#1580](https://github.com/jerry200176-png/AllTrue_System/pull/1580)), and Sunrise #261 ([#267](https://github.com/jerry200176-png/sunrise-cafe/pull/267)) are merged and live-verified.
+
+### Live release evidence
+
+- AllTrue #1428 PR [#1579](https://github.com/jerry200176-png/AllTrue_System/pull/1579) is merged. Deploy run [30685428337](https://github.com/jerry200176-png/AllTrue_System/actions/runs/30685428337) passed; production `deployment.json` backend SHA was `0fef175a`, health was `ok`, and smoke passed.
+- AllTrue #1420 PR [#1580](https://github.com/jerry200176-png/AllTrue_System/pull/1580) is merged. Deploy run [30685651049](https://github.com/jerry200176-png/AllTrue_System/actions/runs/30685651049) passed database backup, the `security_audit_events` migration, SHA/health checks, and post-merge smoke; production backend SHA is `510f6b2e`.
+- Sunrise #261 PR [#267](https://github.com/jerry200176-png/sunrise-cafe/pull/267) is merged. Deploy run [30685328910](https://github.com/jerry200176-png/sunrise-cafe/actions/runs/30685328910) and read-only verify run [30685328925](https://github.com/jerry200176-png/sunrise-cafe/actions/runs/30685328925) passed for `6605204e`; `/api/version` matches and `/api/booking-health` is `ok`.
+- Existing Sunrise `rate_limit_mode=memory`, `rate_limit_grade=degraded_per_isolate`, and `stripe_enabled=false` remain tracked under #211; they were not silently changed by this release.
+
+### Current execution order
+
+1. Preserve live evidence and update the queue after every production release; never infer runtime state from a green PR alone.
+2. Sunrise #257 live ownership verification (read-only Founder/dashboard evidence; code contract is already on main).
+3. Sunrise #211 RLS/rate-limit/backup execution, with production migration and paid-plan Founder gates.
+4. Architecture and UX slices after reliability evidence is green.
+
+Last updated: 2026-08-01 (#1387 remains Founder-triggered; #1401 remains
+Founder-reviewed; AllTrue #1428/#1420 and Sunrise #261 now have Draft PR evidence.
+See the current baseline section above.)
+
+## 2026-07-26 — #1387 confirmed match + rotation prepared; #1401 impact audit run
+
+**#1387 — highest-priority open item.** The fingerprint audit (triggered
+from `main` after PR #1421 merged) returned **`MATCH_ROTATION_REQUIRED`**
+for `DB_PASSWORD`: the pre-fix leaked value is still the live production
+database password. Every preparatory/verification step this session can
+do without touching production is now done and merged to `main`:
+
+- Every credential consumer identified (the Laravel app + every CI
+  workflow reading `.env` fresh at SSH-run time — no hardcoded secondary
+  copy exists anywhere).
+- Backup/rollback readiness re-verified with **fresh** evidence (run
+  `30178339123`, today's 6h backup restored cleanly, core tables
+  plausible, test DB cleaned up) — not 3.5-week-old evidence.
+- A rollback-safe rotation workflow (`1387-db-password-rotation.yml`,
+  PR #1424, **merged**) that generates the new password entirely inside
+  one remote SSH session (never printed/logged anywhere), applies it via
+  `ALTER USER` + `.env`, verifies with `mysqladmin ping`, rebuilds config
+  cache, and polls health before declaring success. Dormant until
+  triggered — requires a typed `confirm=ROTATE` input.
+- Minimal Founder runbook (`docs/incidents/1387-rotation-runbook.md`):
+  the Founder never types a credential, only runs one `gh workflow run`
+  command.
+
+**This session did not trigger it.** Per this repo's own
+`OPERATIONS_RUNBOOK.md` §O.2 (DB password rotation requires explicit
+user approval at execution time) and given this is the first live-fire
+run of a brand-new script against the only production instance of a live
+system, the trigger itself is reserved as the one Founder action.
+
+**#1401 — technical containment fully complete.** Production deploy of
+PR #1400 independently confirmed via git ancestry (not just self-reported
+in the issue). Adjacent-endpoint audit found no unfixed instance of the
+pattern. Regression coverage merged and re-confirmed on `main` (56
+tests/195 assertions green). The privacy impact audit was designed,
+merged, and **run once** from `main`: 175 unverified/legacy bindings, 2
+LINE identities spanning multiple families among all-time bindings (0
+among currently-verified) — classified `insufficient-logs`, not
+`confirmed-impact` or `no-evidence-found`, since the 2 flagged identities
+have an equally plausible benign explanation only a human with production
+access can resolve. A private, no-PII manual-review checklist (PR #1425)
+gives that human the exact query and decision tree to do so.
+
+**No family notified, no #1401 closure, no regulatory report — all still
+open, human-only decisions**, per standing instruction.
 
 ## 2026-07-25 — Claude Code instructions-architecture audit (portfolio-ops itself)
 

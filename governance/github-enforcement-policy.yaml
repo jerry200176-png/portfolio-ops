@@ -1,0 +1,37 @@
+schema_version: 1
+policy_owner: founder
+maintainer_model: single_owner
+default_branch: main
+required_approvals: 0
+require_code_owner_review: false
+required_review_thread_resolution: false
+block_force_push: true
+block_branch_deletion: true
+allow_bypass_actors: []
+emergency_bypass:
+  allowed: true
+  requires: [founder_approval, incident_id, evidence_path, post_action_review]
+repositories:
+  - id: alltrue
+    github_repo: jerry200176-png/AllTrue_System
+    critical_paths: [backend/database/migrations, backend/routes, backend/app/Http, .github/workflows]
+    required_status_checks:
+      - Presubmit Checks
+      - PHPUnit Feature & Unit Tests
+      - gitleaks scan
+      - Agent Session Provenance
+  - id: sunrise
+    github_repo: jerry200176-png/sunrise-cafe
+    critical_paths: [supabase, src/app/api, .github/workflows]
+    required_status_checks:
+      - Lint & Build
+      - Playwright smoke
+      - Agent Session Provenance
+  - id: portfolio-ops
+    github_repo: jerry200176-png/portfolio-ops
+    critical_paths: [governance, schemas, scripts, .github/workflows]
+    required_status_checks:
+      - validate
+      - CodeQL
+      - Secret scan
+      - OpenSSF Scorecard

@@ -6,7 +6,16 @@
       "Bash(git reset --hard*)",
       "Bash(git clean -f*)",
       "Bash(git clean -d*)",
-      "Bash(rm -rf /*)"
+      "Bash(rm -rf /*)",
+      "Read(~/.aws/**)",
+      "Edit(~/.aws/**)",
+      "Read(~/.ssh/**)",
+      "Edit(~/.ssh/**)",
+      "Read(**/.env*)",
+      "Edit(**/.env*)",
+      "Read(.git/**)",
+      "Edit(.git/**)",
+      "Bash(rm .git/**)"
     ]
   },
   "hooks": {
@@ -16,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/guard_bash.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/guard_bash.py\"",
             "timeout": 10
           }
         ]
@@ -26,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/deny_tool.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/deny_tool.py\"",
             "timeout": 5
           }
         ]
@@ -36,11 +45,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/jerry/workspace/portfolio-ops/.claude/hooks/deny_tool.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/deny_tool.py\"",
             "timeout": 5
           }
         ]
       }
     ]
-  }
+  },
+  "_exo_governance_hash": "f45f0f00b0698aa4"
 }

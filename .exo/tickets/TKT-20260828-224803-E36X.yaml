@@ -1,0 +1,45 @@
+id: TKT-20260828-224803-E36X
+title: Synchronize Exo adapters from tracked baseline
+intent: Synchronize Exo adapters from tracked baseline
+kind: task
+parent_id: INT-20260828-195058-Y1CK
+boundary: Only regenerate the three stale Exo adapter files from the already-tracked
+  governance baseline in this isolated portfolio-ops worktree. Preserve user-authored
+  content outside Exo markers and preserve the sealed policy content; do not alter
+  constitution, config, lock, product repositories, workspace manifest, existing worktrees,
+  legacy paths, production, credentials, or cleanup behavior.
+success_condition: The three stale adapters are regenerated from the tracked Exo governance
+  hash with user-authored content preserved; exo drift reports no stale adapters,
+  exo config validation, exo check, and python3 -m pytest pass.
+priority: 1
+labels:
+- governance
+scope:
+  allow:
+  - AGENTS.md
+  - CLAUDE.md
+  - .claude/settings.json
+  - .exo/policy.sealed.json
+  - .exo/cache/**
+  - .exo/memory/**
+  - .exo/locks/**
+  - .exo/tickets/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 4
+  max_loc_changed: 700
+checks:
+- python3 -m pytest
+type: feature
+status: review
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-28T22:48:03+08:00'
+brain_dump: ''
+risk: medium
+children: []
+resource_profile: default
+commits:
+- 1b10d908d3b00cc12e6278aee8aeb27f5c801e93

@@ -1,14 +1,14 @@
 # Portfolio OS reference library — curated from GitHub Starred Repositories.
 # Built 2026-07-25. Schema: repo, category, relevant_to, use_for,
 # maintenance_status, license, confidence, status, rejection_reason.
-# status: existing_kept | existing_cleanup_candidate | added | rejected
+# status: existing_kept | existing_cleanup_candidate | added | pilot | rejected
 # confidence: how directly this maps to a real, current portfolio problem —
 # not a popularity score.
 schema_version: 1
-updated_at: "2026-07-25T13:39:00Z"
+updated_at: "2026-08-08T19:00:00+08:00"
 
 entries:
-  # ── Newly added this round (13 total) ──────────────────────────────
+  # ── Curated additions and pilots ───────────────────────────────────
   - repo: supabase/supabase-js
     category: Next.js & Vercel
     relevant_to: [sunrise]
@@ -126,6 +126,33 @@ entries:
     confidence: medium
     status: added
 
+  - repo: jhetchan/exoprotocol
+    category: AI Agent & DevEx
+    relevant_to: [portfolio-ops, alltrue, sunrise]
+    use_for: "Repo-native multi-agent governance kernel: scoped sessions, worktrees, ticket locks, sealed policy, adapters for Claude/Cursor/Codex, audit/drift checks, and CI generation"
+    maintenance_status: active; version 0.2.3 inspected 2026-08-08
+    license: MIT
+    confidence: medium
+    status: pilot
+
+  - repo: open-policy-agent/conftest
+    category: Security & Governance
+    relevant_to: [portfolio-ops]
+    use_for: Policy-as-code tests for fleet metadata and structured repository/CI configuration; keep product runtime policy in its owning repo
+    maintenance_status: active
+    license: Apache-2.0
+    confidence: medium
+    status: pilot
+
+  - repo: zizmorcore/zizmor
+    category: Security & Governance
+    relevant_to: [portfolio-ops, alltrue, sunrise]
+    use_for: Static security analysis for GitHub Actions workflows
+    maintenance_status: active
+    license: MIT
+    confidence: high
+    status: added
+
   # ── Rejected candidates (evaluated, not starred) ───────────────────
   - repo: vercel/nextjs-subscription-payments
     category: Next.js & Vercel
@@ -173,9 +200,9 @@ entries:
     use_for: Policy-as-code enforcement
     maintenance_status: active
     license: Apache-2.0
-    confidence: low
-    status: rejected
-    rejection_reason: Portfolio-ops's governance is currently lightweight Python regex hooks (guard_bash.py) — OPA is a significant new dependency/learning curve not justified by current complexity. Worth revisiting if governance needs grow.
+    confidence: medium
+    status: pilot
+    rejection_reason: Previous rejection was based on a smaller single-repo scope; the fleet-wide governance requirement now justifies a bounded Conftest/OPA pilot for structured policy, not a wholesale rewrite.
 
   - repo: sigstore/cosign
     category: Security & Governance

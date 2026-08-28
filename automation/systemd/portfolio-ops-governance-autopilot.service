@@ -1,0 +1,18 @@
+[Unit]
+Description=Portfolio Ops read-only governance autopilot
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /home/jerry/workspace/portfolio-ops/scripts/governance-autopilot.sh --policy /home/jerry/workspace/portfolio-ops/governance/autonomy-automation.yaml --scan-root /home/jerry/workspace --scan-root /home/jerry/wt --scan-root /home/jerry --output /home/jerry/evidence/workspace-admin/governance-autopilot.json
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateDevices=yes
+PrivateTmp=no
+ReadWritePaths=/home/jerry/evidence/workspace-admin /tmp/portfolio-ops-governance
+UMask=0077
+TimeoutStartSec=30min
+
+[Install]
+WantedBy=multi-user.target

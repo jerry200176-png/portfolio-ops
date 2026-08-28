@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ "${1:-}" == "--company" ]]; then
+  shift
+  TASK_ID="${1:-company-session}"
+  shift || true
+  exec "${ROOT}/agent-start" portfolio-ops "$TASK_ID" "$@"
+fi
+
+exec "${ROOT}/agent-start" "$@"
