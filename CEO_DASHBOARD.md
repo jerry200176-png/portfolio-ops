@@ -1,5 +1,25 @@
 # CEO Dashboard
 
+## 2026-08-29 — Teacher workbench next action live
+
+- AllTrue PR [#2163](https://github.com/jerry200176-png/AllTrue_System/pull/2163)
+  is squash-merged as `31795f9b6a7be7523a4b4b69358cf1a61ba135c1`. TeacherHome
+  now makes the existing highest-priority task the single `現在先做` action,
+  while later tasks remain under `接著處理`; existing data, routing,
+  permissions, and leave filtering are unchanged.
+- Main CI
+  [33196785637](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196785637),
+  Deploy to Pi
+  [33196933804](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196933804),
+  and read-only production acceptance
+  [33197207380](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33197207380)
+  passed. Production version build SHA and health matched the merge SHA.
+- Issue [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618)
+  remains open for the broader teacher daily-workflow follow-up. Current
+  six-repository inventory is 76 open issues and 15 open PRs: AllTrue 70/5,
+  Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise Cafe 4/3, and
+  both Income Statement repos 0/0.
+
 ## 2026-08-29 — Student course overview Phase 2A live
 
 - AllTrue PR [#2162](https://github.com/jerry200176-png/AllTrue_System/pull/2162)
