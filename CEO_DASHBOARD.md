@@ -1,5 +1,28 @@
 # CEO Dashboard
 
+## 2026-08-29 — Student course overview Phase 2A live
+
+- AllTrue PR [#2162](https://github.com/jerry200176-png/AllTrue_System/pull/2162)
+  is squash-merged as `a567f55e9a43d2214161347083a6e5d77067b5d6`. It adds the
+  student course overview, attention-first active-course selection, focused
+  detail card, and mobile table-scroll preservation. It is frontend-only:
+  existing course actions, API payloads, permissions, attendance, billing,
+  scheduling, and data ownership are unchanged.
+- Main CI [33194188998](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194188998),
+  Deploy to Pi [33194481228](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194481228),
+  and read-only Calendar/Course Production Acceptance
+  [33194768520](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194768520)
+  passed. Production reports build SHA `a567f55e` and health `ok`.
+- AllTrue #2007 was reopened after GitHub auto-closed it from the PR keyword;
+  the parent issue intentionally remains open for later IA phases. The current
+  cross-repo inventory is 76 open issues and 15 open PRs: AllTrue 70/5,
+  Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise Cafe 4/3, and
+  both Income Statement repos 0/0.
+- This is the next bounded UX slice in the hybrid direction: warmer learning
+  moments remain contained, while billing, attendance, PII, and other
+  safety-critical surfaces stay professional and explicit. PR #2129 remains
+  blocked by failed Presubmit/UI Smoke and its 1,279-line diff.
+
 ## 2026-08-29 — Student course IA proposal ready for review
 
 - AllTrue PR [#2161](https://github.com/jerry200176-png/AllTrue_System/pull/2161)

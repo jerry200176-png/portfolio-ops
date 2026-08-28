@@ -1,9 +1,45 @@
 schema_version: 1
-updated_at: 2026-08-29T00:25:21+08:00
+updated_at: 2026-08-29T01:30:44+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-COURSE-OVERVIEW-20260829
+    product: alltrue
+    priority: p2
+    title: Ship the student course overview and active-course selection workspace
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/2007
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2162
+    evidence:
+      - "Phase 2A adds an overview before course detail with active, attention, and history metrics; the picker defaults to a course needing attention using existing course fields."
+      - "The selected course keeps the existing payment, invoice, add-session, edit, close, and delete handlers; no API, database, auth, permission, attendance, billing, or scheduling behavior changed."
+      - "Mobile keeps the primary course workspace within the viewport and restores table scroll after row expansion or course selection; secondary columns remain horizontally available."
+      - "Local lint, focused Vitest, full production build, and the complete real-Vue UI foundation suite passed; the suite completed 124/124 cases including 390px and 1440px course-overview interactions."
+      - "PR #2162 merged as a567f55e9a43d2214161347083a6e5d77067b5d6; main CI 33194188998, Deploy to Pi 33194481228, and Calendar/Course Production Acceptance 33194768520 all passed."
+      - "Production version.json returned build SHA a567f55e9a43d2214161347083a6e5d77067b5d6 and /api/v1/health returned status=ok."
+    root_cause: "The first course-summary slice reduced card density but still left multi-course students without a clear overview, priority selection, or a reliable way to preserve the primary task on mobile."
+    non_goals:
+      - "Do not change API payloads, data ownership, permissions, billing, attendance, scheduling, course mutations, database state, or production data."
+      - "Do not claim issue #2007 complete; the parent IA issue remains open for later approved slices."
+    tests:
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run build"
+      - "npx vitest run frontend/src/components/__tests__/StudentCourseSummaryUx.test.js"
+      - "npx playwright test -c frontend/playwright.ui-foundation.config.js frontend/e2e/ui-foundation-pages.spec.js (124 passed locally)"
+      - "GitHub PR checks, main CI, deploy, and production acceptance runs 33193814658, 33194188998, 33194481228, 33194768520"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Keep the larger #2007 course-management IA work separate from #2129 and #2002 scheduling, billing, attendance, and PII-sensitive work."
+      - "Measure scan-to-first-action and course-picker usage with production-safe staff feedback before proposing the next slice."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only calendar/course acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Expanded students show course overview metrics and an attention-first active-course picker."
+      - "Course detail actions remain available on the focused course and mobile primary content stays readable."
+      - "The parent issue remains open for follow-up IA phases."
+    next_action: "Collect staff feedback on the focused course workflow, then plan the next bounded #2007 slice; do not merge the broad failing #2129 refactor as a substitute."
+
   - id: UX-ALLTRUE-COURSE-SUMMARY-20260828
     product: alltrue
     priority: p2
