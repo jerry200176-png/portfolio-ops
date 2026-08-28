@@ -1,5 +1,24 @@
 # CEO Dashboard
 
+## 2026-08-29 — DirectorDashboard view switcher live
+
+- AllTrue PR [#2167](https://github.com/jerry200176-png/AllTrue_System/pull/2167)
+  is squash-merged as `992ea7341228aec142ce6e023d1d5d44fce0f1c9`. The 主任總覽
+  「今天／完整營運」 switcher now explicitly connects each tab to its labelled,
+  keyboard-focusable work area. Existing task-first, lazy-load, data, permission,
+  and operational behavior is unchanged.
+- Targeted Vitest passed 8/8; DirectorDashboard UI foundation E2E passed 7/7
+  across 390/412/768/1280/1440px. Required PR checks and main CI
+  [33206113693](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206113693)
+  passed; Deploy to Pi
+  [33206406490](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206406490)
+  and read-only acceptance
+  [33206683512](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206683512)
+  also passed.
+- Production health is `status=ok`; `/version.json` and `/deployment.json` both
+  report `992ea7341228aec142ce6e023d1d5d44fce0f1c9`. The broader #2135 convergence
+  remains active, and LearningRecords #1621 stays behind the #957/#1080 data-truth gate.
+
 ## 2026-08-29 — StudentsList row disclosure live
 
 - AllTrue PR [#2166](https://github.com/jerry200176-png/AllTrue_System/pull/2166)

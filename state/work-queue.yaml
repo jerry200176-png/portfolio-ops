@@ -1,9 +1,48 @@
 schema_version: 1
-updated_at: 2026-08-29T02:33:00+08:00
+updated_at: 2026-08-29T04:08:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-DIRECTOR-TABS-20260829
+    product: alltrue
+    priority: p2
+    title: Connect director dashboard view tabs to labelled tab panels
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/2135
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2167
+    evidence:
+      - "The DirectorDashboard 今天／完整營運 switcher now exposes stable tab IDs, aria-controls, and labelled tabpanel regions with focusable panel content."
+      - "The existing task-first focus view, lazy loading of 完整營運, navigation, data, permissions, and operational rules are unchanged; no API, DB, billing, attendance, scheduling, or data-truth change was included."
+      - "Local targeted Vitest passed 8/8; targeted UI foundation E2E passed 7/7 across 390px, 412px, 768px, 1280px, and 1440px; the full production build, release-note checks, and design guard passed."
+      - "PR #2167 merged as 992ea7341228aec142ce6e023d1d5d44fce0f1c9 after required provenance, governance, docs, gitleaks, Vite Frontend Build, and UI Smoke checks passed."
+      - "Main CI 33206113693, Deploy to Pi 33206406490, and read-only production acceptance 33206683512 all passed; acceptance covered desktop and mobile calendar/course parity."
+      - "Production /api/v1/health returned status=ok; /version.json and /deployment.json both reported backend/frontend SHA 992ea7341228aec142ce6e023d1d5d44fce0f1c9."
+    root_cause: "The two DirectorDashboard workspaces were visually switched as tabs but lacked an explicit tab-to-tabpanel relationship, leaving the current work area ambiguous to assistive technology."
+    non_goals:
+      - "Do not change dashboard API payloads, lazy-load timing, operational decisions, permissions, billing, attendance, scheduling, or production data."
+      - "Do not claim the broader #2135 full-page convergence or AllTrue UX renewal complete."
+    tests:
+      - "npx vitest run frontend/src/components/__tests__/DirectorDashboardAccessibility.test.js frontend/src/components/__tests__/TodayProgressCard.test.js frontend/src/components/__tests__/directorPriorityRisks.test.js (8 passed)"
+      - "npm --prefix frontend run lint:design"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run test:release-notes-coverage"
+      - "npm --prefix frontend run build"
+      - "Targeted UI foundation E2E for DirectorDashboard: 7 passed"
+      - "GitHub required PR checks, main CI 33206113693, deploy 33206406490, and acceptance 33206683512"
+      - "Production /api/v1/health, /version.json, and /deployment.json read-back"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Measure dashboard scan-to-first-action, view-switch usage, and keyboard navigation with production-safe staff feedback before another dashboard slice."
+      - "Keep LearningRecords #1621 behind #957/#1080 and keep #2007, #1618, #2129, and production-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Today and 完整營運 tabs expose their selected state and controlled tabpanel relationship."
+      - "Both dashboard panels remain keyboard focusable without changing the existing task-first or lazy-load behavior."
+      - "The broader full-page convergence work remains open for future bounded slices."
+    next_action: "Collect staff feedback and usage evidence, then plan the next safe bounded UX slice; do not unlock LearningRecords preview-queue work before #957/#1080."
+
   - id: UX-ALLTRUE-STUDENTS-ROW-20260829
     product: alltrue
     priority: p2
