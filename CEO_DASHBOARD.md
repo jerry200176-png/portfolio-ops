@@ -1,6 +1,15 @@
 # CEO Dashboard
 
-## 2026-08-28 — GitHub portfolio and AllTrue UI V1
+## 2026-08-28 — AllTrue V1 live verification
+
+- AllTrue PR [#2154](https://github.com/jerry200176-png/AllTrue_System/pull/2154) was squash-merged as `2e1d0cd28ae936f74285dbbea835244779c6aa7c` after all required PR checks passed.
+- CI deploy run [33166606478](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478) passed. Production `version.json`, Pi HEAD, deployment manifest, health, API smoke, and authenticated director UI smoke all matched the merge SHA; the director UI smoke passed at 390, 412, 768, 1280, and 1440px.
+- Issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911) is now closed as completed by the bounded daily-progress implementation. AllTrue currently has 70 open issues and 6 open PRs; the newest UI follow-up is [#2155](https://github.com/jerry200176-png/AllTrue_System/pull/2155). Current cross-repo totals are 76 open issues and 17 open PRs.
+- Portfolio triage is refreshed in [`reports/2026-08-28/github-triage.md`](reports/2026-08-28/github-triage.md); portfolio-ops PR [#50](https://github.com/jerry200176-png/portfolio-ops/pull/50) has all five remote checks passing and remains ready for a separate merge session.
+
+> This is a bounded UX release, not a claim that every open issue/PR is resolved. Production verification is complete for this slice; #2086, #2007, #2155, and the remaining queues stay separately tracked.
+
+## 2026-08-28 — GitHub portfolio and AllTrue UI V1 (pre-release snapshot)
 
 - Fresh GitHub read-back covers six owner-visible repositories: 79 open issues
   and 15 open PRs. AllTrue has 73 open issues (33 P1-labelled) and five open

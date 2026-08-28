@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-28
 
-Capture time: 2026-08-28 18:52 +08:00. Source of truth for repository and
+Capture time: 2026-08-28 19:23 +08:00. Source of truth for repository and
 collaboration state: GitHub API/`gh` read-back in this session. Labels are
 signals only; the shortlist below is cross-checked against PR checks, local
 worktrees, and production read-only endpoints.
@@ -9,9 +9,9 @@ worktrees, and production read-only endpoints.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 73 | 33 | 38 | 5 | UI PR #2129 fails size and UI smoke gates; safety/reliability work remains higher risk |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 6 | PR #2154 is merged and live-verified; PR #2155 is the newest UI delivery item; #2129 remains failed/oversized |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
-| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #40 is draft/failing; dependency and governance PRs otherwise have no recorded failure |
+| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 7 | PR #50 is ready and all five of its checks pass; PR #40 remains draft/failing |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
 | [Income Statement App](https://github.com/jerry200176-png/income-statement-app) | 0 | 0 | 0 | 0 | No open GitHub work items |
 | [Income Statement App Releases](https://github.com/jerry200176-png/income-statement-app-releases) | 0 | 0 | 0 | 0 | No open GitHub work items |
@@ -26,12 +26,14 @@ GitHub project.
 
 | Repository | PR | State/check signal | Next action |
 |---|---|---|---|
+| AllTrue | [#2155](https://github.com/jerry200176-png/AllTrue_System/pull/2155) | Open; improved director sidebar focus UX | Read the diff and keep it sequenced separately from the now-deployed progress cue |
 | AllTrue | [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) | Open; Presubmit and UI Smoke failed; Vite build passed | Split the 1,279-line UI change into reviewable slices and repair the course-management smoke contract before review |
 | AllTrue | [#2112](https://github.com/jerry200176-png/AllTrue_System/pull/2112) | Open; failing check read back | Re-run/read the failing dependency check and merge only after required checks are green |
 | AllTrue | [#2092](https://github.com/jerry200176-png/AllTrue_System/pull/2092) | Draft; no checks recorded | Decide whether the unused-variable ratchet is still needed, then make the PR reviewable or close it with evidence |
 | AllTrue | [#2021](https://github.com/jerry200176-png/AllTrue_System/pull/2021) | Open; recorded checks have no failure | Obtain independent review and confirm it does not compete with the current production release gate |
 | AllTrue | [#1991](https://github.com/jerry200176-png/AllTrue_System/pull/1991) | Draft; no checks recorded | Review RFC scope and either mark ready with evidence or close as stale |
 | Engineering Intelligence | [#1](https://github.com/jerry200176-png/engineering-intelligence/pull/1) | Open; failing check read back | Inspect the failed real-LLM pipeline check before review |
+| Portfolio Ops | [#50](https://github.com/jerry200176-png/portfolio-ops/pull/50) | Ready; CodeQL, Scorecard, Secret scan, governance-check, and validate passed | Merge in a separate portfolio-ops session after recording the refreshed snapshot |
 | Portfolio Ops | [#47](https://github.com/jerry200176-png/portfolio-ops/pull/47) | Open; no failure recorded | Review Dependabot change |
 | Portfolio Ops | [#42](https://github.com/jerry200176-png/portfolio-ops/pull/42) | Open; no failure recorded | Review governance documentation change |
 | Portfolio Ops | [#40](https://github.com/jerry200176-png/portfolio-ops/pull/40) | Draft; failing check read back | Repair or close after checking current workspace manifest |
@@ -54,9 +56,9 @@ GitHub project.
    contract before any materialization or data repair.
 3. [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) —
    broad UI refactor; failed size/UI gates prove it is not a release candidate.
-4. [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911) —
-   director drill-down and explanation layer; the new daily progress V1 is a
-   bounded implementation slice for this issue.
+4. [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) —
+   student course page information density; the next UI/UX slice after the
+   director progress release should reduce clutter without changing data ownership.
 5. [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618) —
    teacher daily workflow; follow after the director pattern is measured.
 
@@ -80,8 +82,15 @@ maintenance items, not product release blockers.
 ## Read-only release and workspace evidence
 
 - AllTrue `https://daan.lifenet.com.tw/version.json` returned HTTP 200 with
-  serving build SHA `4a6b2a3276f69e32e627dc1cb1930c37fee2ef91`, and
+  serving build SHA `2e1d0cd28ae936f74285dbbea835244779c6aa7c`, and
   `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.
+- AllTrue PR [#2154](https://github.com/jerry200176-png/AllTrue_System/pull/2154)
+  closed issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911)
+  and deployed through run
+  [33166606478](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478);
+  production version, Pi HEAD, health, API smoke, and authenticated director UI
+  smoke all matched the merge SHA. This is the post-release evidence for the
+  bounded daily-progress slice.
 - Sunrise `https://sunrise-cafe-six.vercel.app/api/version` returned commit
   `f8927b174b04ff7e026be5f4cb341396e1d120c6`; booking health returned `ok`,
   with the existing documented degraded per-isolate rate-limit mode and
@@ -103,5 +112,6 @@ gh pr checks <number> --repo jerry200176-png/<repo>
 bash scripts/workspace-inventory.sh <output.tsv> /home/jerry/workspace
 ```
 
-This report does not close issues, merge PRs, delete branches, change labels,
-deploy, or modify production data. Those remain separate governed actions.
+This refresh does not close additional issues, merge PRs, delete branches,
+change labels, deploy, or modify production data. The earlier #911 closure and
+#2154 release are recorded above as completed evidence.

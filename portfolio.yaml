@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-28T18:52:00+08:00"
+updated_at: "2026-08-28T19:23:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-28"
-    last_verified_at: "2026-08-28T18:52:00+08:00"
-    source_commit: "4a146e262db6f330e97d2d9f2777367239246225"
-    evidence_expires_at: "2026-08-29T18:52:00+08:00"
+    last_verified_at: "2026-08-28T19:23:00+08:00"
+    source_commit: "2e1d0cd28ae936f74285dbbea835244779c6aa7c"
+    evidence_expires_at: "2026-08-29T19:23:00+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: OPS-ALLTRUE-2086 — 新店 8 堂合約的手動排課流程已完成根因修正與回歸驗證，最新取消過期請求補強的 CI 已全綠但尚待獨立審核；正式環境目前仍是 5e659805，8/29 唯讀檢查可建立且剩餘 1 堂。
-    next_action: "完成 PR #2086 最新 head 的獨立審核後再合併；部署工作流完成後，以 version.json、health 與 8/29 唯讀檢查做發布驗收，再將主任實際操作結果回寫 Portfolio。"
+    current_priority: "UX-ALLTRUE-DAILY-PROGRESS-20260828 — PR #2154 已 merge/deploy，production version、health、API smoke 與 authenticated director UI smoke 均以 merge SHA 2e1d0cd2 驗證；最新 UI follow-up PR #2155 與 production-sensitive #2086 仍分開排隊。"
+    next_action: "閱讀 PR #2155 並以 issue #2007 作為下一個 UI/UX slice；維持每次 AllTrue 僅一個 deployable change，所有後續 release 仍須 version.json、health 與 smoke 驗收。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -47,6 +47,10 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1690
       - https://github.com/jerry200176-png/AllTrue_System/issues/1007
       - https://github.com/jerry200176-png/AllTrue_System/pull/2086
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2154
+      - https://github.com/jerry200176-png/AllTrue_System/issues/911
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2155
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478
       - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
@@ -75,9 +79,9 @@ projects:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
     latest_activity: "2026-08-28"
-    last_verified_at: "2026-08-28T18:52:00+08:00"
+    last_verified_at: "2026-08-28T19:23:00+08:00"
     source_commit: "f8927b174b04ff7e026be5f4cb341396e1d120c6"
-    evidence_expires_at: "2026-08-28T10:04:18+08:00"
+    evidence_expires_at: "2026-08-29T19:23:00+08:00"
     open_p0: 0
     open_p1: 3
     current_priority: OPS-SUNRISE-257 — production health and serving commit are currently verified, but dashboard-level single deploy-owner verification remains open; rate limiting is explicitly degraded per isolate and Stripe remains disabled.
@@ -118,7 +122,7 @@ governance_baseline:
   inventory_rows: 222
   unresolved_inventory_rows: 8
   audit_script: scripts/portfolio-governance-audit.sh
-  latest_evidence: reports/2026-08-27/workspace-inventory.md
+  latest_evidence: reports/2026-08-28/workspace-inventory.md
   required_controls:
     - README
     - CONTRIBUTING
