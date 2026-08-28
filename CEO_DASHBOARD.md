@@ -1,5 +1,29 @@
 # CEO Dashboard
 
+## 2026-08-29 — TeachersList status workspace live
+
+- AllTrue PR [#2169](https://github.com/jerry200176-png/AllTrue_System/pull/2169)
+  is squash-merged as `4f7ce50c841f9cd920614142e93afd3b3baacfb9`. TeachersList
+  status tabs now connect to labelled panels, pending/suspended count badges
+  use semantic treatments, and RFID identifiers are easier to scan. Teacher
+  data, accounts, RFID binding, API, permissions, and workflows are unchanged.
+- Local checks passed: TeachersList accessibility 3/3, full UI foundation
+  141/141, Vitest 72 files / 339 tests, release-note gates, design guard, and
+  production build. Main CI
+  [33210657923](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33210657923),
+  Deploy to Pi
+  [33211140431](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211140431),
+  and read-only production acceptance
+  [33211414610](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211414610)
+  passed.
+- Production health is `status=ok`; `/version.json` and `/deployment.json`
+  both report `4f7ce50c841f9cd920614142e93afd3b3baacfb9`. Evidence is recorded
+  on [AllTrue issue #693](https://github.com/jerry200176-png/AllTrue_System/issues/693#issuecomment-5457810311).
+  The broader TeachersList governance and UX renewal remain open.
+- Fresh six-repository inventory is 76 open issues and 15 open PRs: AllTrue
+  70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise Cafe 4/3,
+  and both Income Statement repos 0/0.
+
 ## 2026-08-29 — Billing workspace reliability slice live
 
 - AllTrue PR [#2168](https://github.com/jerry200176-png/AllTrue_System/pull/2168)

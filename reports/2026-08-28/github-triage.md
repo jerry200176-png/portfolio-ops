@@ -17,6 +17,29 @@ Additional capture: 2026-08-29 04:08 +08:00.
 
 Additional capture: 2026-08-29 04:38 +08:00.
 
+Additional capture: 2026-08-29 05:12 +08:00.
+
+- AllTrue PR [#2169](https://github.com/jerry200176-png/AllTrue_System/pull/2169)
+  shipped a bounded TeachersList status-workspace slice for [issue #693](https://github.com/jerry200176-png/AllTrue_System/issues/693):
+  status tabs now have explicit tab-to-tabpanel relationships, pending and
+  suspended counts use semantic treatments, and RFID identifiers are quieter
+  and easier to scan. Teacher data, account, RFID binding, API, permissions,
+  and workflow behavior were not changed.
+- PR #2169 merged as `4f7ce50c841f9cd920614142e93afd3b3baacfb9` after required
+  checks passed. Main CI
+  [33210657923](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33210657923),
+  deploy
+  [33211140431](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211140431),
+  and read-only production acceptance
+  [33211414610](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211414610)
+  passed.
+- Production `/version.json` and `/deployment.json` both matched `4f7ce50c`,
+  `/api/v1/health` returned `status=ok`, and the release evidence is recorded
+  on [issue #693](https://github.com/jerry200176-png/AllTrue_System/issues/693#issuecomment-5457810311).
+- Fresh owner-visible GitHub read-back is 76 open issues and 15 open PRs:
+  AllTrue 70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise
+  Cafe 4/3, and both Income Statement repos 0/0.
+
 - AllTrue PR [#2168](https://github.com/jerry200176-png/AllTrue_System/pull/2168)
   shipped a bounded billing-center reliability slice: selecting 已結清課程彙總
   no longer renders the 收據紀錄 workspace at the same time, and all three
@@ -163,7 +186,7 @@ Additional capture: 2026-08-29 04:38 +08:00.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2166 is merged/deployed for keyboard-accessible StudentsList disclosure; #2007 remains open |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2169 is merged/deployed for TeachersList status-workspace clarity; #693 and #2007 remain open |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
 | [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #54 merged the prior refresh; this release evidence refresh is now queued |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
