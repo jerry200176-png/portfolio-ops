@@ -127,6 +127,8 @@ This repository uses ExoProtocol governance. All work must go through the sessio
   - TKT-20260828-224803-E36X: Synchronize Exo adapters from tracked baseline [allow: AGENTS.md, CLAUDE.md, .claude/settings.json, .exo/policy.sealed.json, .exo/cache/**, .exo/memory/**, .exo/locks/**, .exo/tickets/**, .exo/logs/**]
 - **INT-20260828-225521-D3AV**: Make Exo scaffold reproducible and workspace hygiene explicit — boundary: *Only modify the Exo static scaffold, Exo ticket definitions, generated adapters, sealed-policy runtime artifact, and root ignore rules in this isolated portfolio-ops worktree. Do not alter product repositories, workspace manifest, existing worktrees, legacy paths, production, credentials, or delete unknown data.*
   - TKT-20260828-225531-ND05: Track Exo scaffold and ignore ephemeral state [allow: .gitignore, AGENTS.md, CLAUDE.md, .claude/settings.json, .exo/LEARNINGS.md, .exo/policy.sealed.json, .exo/schemas/**, .exo/scripts/**, .exo/templates/**, .exo/memory/index.yaml, .exo/scratchpad/INBOX.md, .exo/tickets/**, .exo/cache/**, .exo/memory/**, .exo/locks/**, .exo/logs/**]
+- **INT-20260828-230615-VU12**: Record ownership-gated workspace cleanup proposal — boundary: *Only add the cleanup proposal report and its Exo governance metadata in this isolated portfolio-ops review worktree. Do not archive, remove, move, reset, clean, merge, rebase, or modify product repositories, workspace manifest, existing worktrees, legacy paths, production, credentials, or user-authored files.*
+  - TKT-20260828-230624-20B2: Write durable workspace cleanup proposal [allow: reports/**, AGENTS.md, CLAUDE.md, .claude/settings.json, .exo/policy.sealed.json, .exo/tickets/**, .exo/cache/**, .exo/memory/**, .exo/locks/**, .exo/logs/**]
 
 ### Source of Truth
 
