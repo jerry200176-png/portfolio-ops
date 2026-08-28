@@ -9,7 +9,7 @@ worktrees, and production read-only endpoints.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2157 is merged/deployed for the first #2007 course-summary slice; #2129 remains failed/oversized |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2158 is merged/deployed for the teacher queue clarity slice; Calendar/Course acceptance still exposes a stale selector |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
 | [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 7 | PR #50 is ready and all five of its checks pass; PR #40 remains draft/failing |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
@@ -88,8 +88,9 @@ maintenance items, not product release blockers.
   `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.
   The slice changes active-course presentation only; issue #2007 remains open
   for the larger course-management IA work.
-- AllTrue's post-#2157 read-only Calendar/Course Production Acceptance run
+- AllTrue's post-#2157 read-only Calendar/Course Production Acceptance runs
   [33184796064](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184796064)
+  and [33187279382](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33187279382)
   reached both calendar viewports and completed the API parity reads, but
   failed before the course-page assertions because the test still required
   the removed `.smart-cal-title` class while production renders the same
@@ -97,6 +98,11 @@ maintenance items, not product release blockers.
   controls, and course cards; this is an acceptance-selector contract failure,
   not evidence of an API or deployment outage. The selector follow-up remains
   open and must pass before claiming the acceptance workflow green.
+- TeacherHome queue clarity PR [#2158](https://github.com/jerry200176-png/AllTrue_System/pull/2158)
+  was squash-merged as `1a43a4ad0303458abacd71f5c0e04325f911f500`; main CI
+  [33186834949](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33186834949)
+  and deploy [33186993773](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33186993773)
+  passed. Production `version.json` matched that SHA and health returned `ok`.
 - AllTrue `https://daan.lifenet.com.tw/version.json` returned HTTP 200 with
   serving build SHA `84c9e2e6e7767627c8befb55af00d53514f3d08d`, and
   `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.

@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-28T23:34:34+08:00"
+updated_at: "2026-08-28T23:55:24+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,12 +30,12 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-28"
-    last_verified_at: "2026-08-28T23:22:19+08:00"
-    source_commit: "84c9e2e6e7767627c8befb55af00d53514f3d08d"
-    evidence_expires_at: "2026-08-29T23:22:19+08:00"
+    last_verified_at: "2026-08-28T23:52:55+08:00"
+    source_commit: "1a43a4ad0303458abacd71f5c0e04325f911f500"
+    evidence_expires_at: "2026-08-29T23:52:55+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-COURSE-SUMMARY-20260828 — issue #2007 的第一個 student course summary slice 已由 PR #2157 merge/deploy；production version 與 health 以 84c9e2e6 驗證，較大的 course-management IA 仍未完成；另有 production acceptance selector follow-up。"
+    current_priority: "UX-ALLTRUE-TEACHER-QUEUE-20260828 — TeacherHome 優先順序說明已由 PR #2158 merge/deploy；production version 與 health 以 1a43a4ad 驗證；Calendar/Course read-only acceptance 仍被既有 AtPageHeader selector 阻擋。"
     next_action: "維持 issue #2007 的後續 IA 工作與 #2002 等 production-sensitive work 分開；先修正 Calendar/Course read-only acceptance 的 AtPageHeader selector 並取得 green run；每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
@@ -59,6 +59,8 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184142519
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184486346
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184796064
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33187279382
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33186993773
       - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
