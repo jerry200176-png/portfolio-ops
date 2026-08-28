@@ -1,5 +1,30 @@
 # Portfolio Ops
 
+Portfolio Ops is the portfolio control plane: company-level governance,
+evidence, approvals, and project health are coordinated here while product
+source remains in its own canonical repository.
+
+The workspace operating model is documented in
+[`docs/workspace-operating-model.md`](docs/workspace-operating-model.md), and
+the research benchmark is in
+[`docs/research/2026-08-company-governance-benchmark.md`](docs/research/2026-08-company-governance-benchmark.md).
+
+Safe workspace scripts:
+
+```bash
+scripts/phase1-inventory-backup.sh <evidence-root> <repo>...
+scripts/phase2-fetch-only.sh <evidence-root> <phase1-evidence> <repo>...
+scripts/phase3-cleanup-proposal.sh <evidence-root> <repo>...
+scripts/portfolio-governance-audit.sh <output.tsv> <repo>...
+scripts/workspace-inventory.sh <output.tsv> <discovery-root>...
+scripts/github-governance-audit.sh <output-dir> <owner/repo>...
+python scripts/validate-governance-contract.py
+```
+
+They are read-only or proposal-only. They do not reset, clean, merge, rebase,
+prune, remove, move, delete, change GitHub rulesets, merge pull requests,
+deploy, or mutate production data.
+
 This directory is the portfolio control plane for jerry200176-png's product
 portfolio:
 
@@ -33,7 +58,9 @@ which granted broader autonomy; that grant was revoked 2026-07-25 — see
 4. `PORTFOLIO.md` — narrative overview and change log.
 5. `governance/AUTONOMY_POLICY.md` and `governance/COMPANY_CONSTITUTION.md`
    — the full policy behind `CLAUDE.md`'s summary.
-6. `state/work-queue.yaml` — live work items and evidence.
+6. `governance/repository-governance.yaml` — fleet policy and required agent
+   adapters/enforcement.
+7. `state/work-queue.yaml` — live work items and evidence.
 
 ## Standard launch flow
 
@@ -55,6 +82,13 @@ re-baseline; use `triage` to refresh signals; use `execute` to do the
 highest-ROI safe work as Draft PRs; use `weekly-review` for the wider
 weekly sweep.
 
+From Ubuntu, `governance-audit` audits GitHub enforcement without writing.
+`governance-onboard owner/repo --dry-run` previews a new project; `--apply`
+creates an isolated onboarding worktree with the pinned ExoProtocol governance
+core and only missing adapters. After that bootstrap PR merges,
+`governance-onboard owner/repo --apply --enable-ci` adds the Exo CI workflow as
+a separate reviewable change.
+
 ## Definition of done (this control plane's scope)
 
 A portfolio-maintenance task is complete only when: the relevant finding or
@@ -65,3 +99,29 @@ lint/build were actually run in-session, `portfolio.yaml` and
 deploy, production data mutation, or another item on `CLAUDE.md`'s "never"
 list is surfaced to the Founder as a Decision Required rather than done
 silently.
+
+## GitHub platform governance
+
+Audit outputs: [`docs/github-governance/`](docs/github-governance/README.md) (2026-07 Operator audit).
+
+The gateway source is versioned under [`agent-control/`](agent-control/). Use
+`scripts/install-agent-control.sh --apply` to update the local runtime with
+backup-preserving behavior.
+
+Company context and contract checks:
+
+```bash
+python scripts/validate-company-agent-contract.py
+python scripts/company-context.py --check
+```
+
+Recommended gateway for a company session:
+
+```bash
+~/workspace/agent-control/bin/portfolio-agent-start --company <task-id> --claude
+```
+
+It creates an isolated Portfolio Ops task worktree, runs preflight, and writes
+a session provenance manifest. Versioned workspace entrypoint sources are in
+`docs/workspace-entrypoints/`; install them with
+`scripts/install-workspace-entrypoints.sh --apply` when needed.

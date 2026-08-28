@@ -1,0 +1,55 @@
+schema_version: 1
+policy_version: "2026-08-08.1"
+canonical_policy: governance/AGENT_BOOTSTRAP.md
+agent_kernel:
+  name: exoprotocol
+  version: "0.2.3"
+  rollout: pilot_then_fleet
+  generated_adapters: [AGENTS.md, CLAUDE.md, .cursorrules, codex.md]
+  generated_ci: .github/workflows/exo-governance.yml
+agents: [cursor, codex, claude-code, cubelv]
+remote_enforcement:
+  default_branch: main
+  require_pull_request: true
+  require_human_review: false
+  block_deletion: true
+  block_force_push: true
+  required_governance_check: "ExoProtocol Governance / governance-check"
+  governance_check_rollout: post_bootstrap_ci
+  bypass_actors: []
+repositories:
+  - id: alltrue
+    github_repo: jerry200176-png/AllTrue_System
+    local_path: /home/jerry/workspace/AllTrue_System-clean
+    lifecycle: production
+    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+  - id: sunrise
+    github_repo: jerry200176-png/sunrise-cafe
+    local_path: /home/jerry/workspace/sunrise-cafe
+    lifecycle: production
+    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+  - id: portfolio-ops
+    github_repo: jerry200176-png/portfolio-ops
+    local_path: /home/jerry/workspace/portfolio-ops
+    lifecycle: control_plane
+    required_adapters: [AGENTS.md, CLAUDE.md]
+  - id: engineering-intelligence
+    github_repo: jerry200176-png/engineering-intelligence
+    local_path: /home/jerry/workspace/engineering-intelligence
+    lifecycle: active
+    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+  - id: korea-trip-plan
+    github_repo: jerry200176-png/korea-trip-plan
+    local_path: /home/jerry/workspace/korea-trip-plan
+    lifecycle: active
+    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+  - id: income-statement-app
+    github_repo: jerry200176-png/income-statement-app
+    local_path: /home/jerry/workspace/income-statement-app
+    lifecycle: active
+    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+  - id: income-statement-app-releases
+    github_repo: jerry200176-png/income-statement-app-releases
+    local_path: /home/jerry/workspace/income-statement-app-releases
+    lifecycle: release_artifact
+    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]

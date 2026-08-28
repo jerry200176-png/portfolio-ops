@@ -2,7 +2,12 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-07-25T16:30:00+08:00"
+updated_at: "2026-08-09T10:22:46+08:00"
+freshness:
+  p0_evidence_ttl_hours: 24
+  inventory_ttl_days: 7
+  status_ttl_hours: 24
+  stale_policy: "stale evidence cannot close incidents or authorize merge/deploy decisions"
 projects:
   - id: alltrue
     name: AllTrue System
@@ -24,17 +29,22 @@ projects:
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-07-25"
-    open_p0: 3 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, containment unexecuted); SEC-ALLTRUE-GITGUARDIAN-0717 (3-secret cluster, dedup unconfirmed); SEC-ALLTRUE-003 (visibility RESOLVED, credential-reuse verification still pending — see work-queue.yaml)
-    open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed)
-    current_priority: SEC-ALLTRUE-1401 — parent-portal cross-student PII exposure (minors); fix merged (PR #1400) but containment checklist (notification, evidence retention, exposure review) entirely unexecuted and production deploy unverified. Ranked above SEC-ALLTRUE-003 — active authorization-boundary bug outranks a now-contained historical exposure.
-    next_action: Founder confirms production deploy of #1400 and executes containment checklist (Founder-only, legal/PII, not execute-mode work); in parallel, Founder merges PR #1414 and triggers its workflow to resolve SEC-ALLTRUE-003's last blocker (credential-reuse confirmation); GitGuardian 2026-07-17 3-secret cluster dedup still unconfirmed
+    latest_activity: "2026-08-08"
+    last_verified_at: "2026-08-08T00:00:00+08:00"
+    source_commit: "592d08d5c140b6206693f0f03f74f2c92a0c4267"
+    evidence_expires_at: "2026-08-09T00:00:00+08:00"
+    open_p0: 2 # SEC-ALLTRUE-1401 (parent-portal cross-student exposure, technical containment done, Founder legal/notification decision left, explicitly non-automatable per issue's 2026-08-07 comment — Founder said not to pursue further right now); SEC-ALLTRUE-003 (staged 3-phase rotation built as deploy.yml jobs, PR #1713 open awaiting Founder review/merge, then 3 Founder-triggered phase dispatches — see work-queue.yaml)
+    open_p1: 2 # OPS-ALLTRUE-1096 (billing calc bug 0/2998 vs 3000); DEC-ALLTRUE-1100 (A/B package overlap, product decision needed) — not re-checked this pass
+    current_priority: SEC-ALLTRUE-003 — PR #1713 (staged 3-phase named-principal DB rotation, built as gated jobs inside deploy.yml per I1) is open, CI green, awaiting Founder review/merge. GITGUARDIAN-0717's Telegram token leg RESOLVED 2026-08-08 (provider-side rotation by an engineer + GitHub alert #1 marked resolved/revoked) — only the APP_KEY/Bearer Token legs of the original cluster remain unconfirmed, non-urgent. SEC-ALLTRUE-1401 unchanged: technical containment complete, Founder legal/notification decision remains but Founder has deprioritized pursuing it further for now.
+    next_action: "Founder: (1) review/merge PR #1713, then dispatch deploy.yml workflow_dispatch phase1-create → phase2-cutover → (observe) → phase3-lock, each with its typed confirmation phrase per docs/incidents/1387-staged-rotation-runbook.md; (2) optional/lower-priority: confirm APP_KEY/Bearer Token legs of GITGUARDIAN-0717; (3) #1401 parked at Founder's request, no action expected."
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
       - https://github.com/jerry200176-png/AllTrue_System/issues/1387
       - https://github.com/jerry200176-png/AllTrue_System/pull/1395
-      - https://github.com/jerry200176-png/AllTrue_System/pull/1414
+      - https://github.com/jerry200176-png/AllTrue_System/pull/1709
+      - https://github.com/jerry200176-png/AllTrue_System/security/secret-scanning/1
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1690
       - https://github.com/jerry200176-png/AllTrue_System/issues/1007
       - reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
       - reports/2026-07-25/github-triage.md
@@ -58,14 +68,18 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-07-25"
-    open_p0: 2 # OPS-SUNRISE-001: Vercel capacity now confirmed hitting PRODUCTION (escalated); SEC-SUNRISE-002: RLS/rate-limit/backup decided 2026-07-19 but zero execution PRs since — fail-open rate limiting live now
-    open_p1: 1 # CI-SUNRISE-PROVENANCE: Agent Session Provenance check failing repeatedly, confirmed on PR #253
-    current_priority: OPS-SUNRISE-001 — Vercel deployment-capacity cap now confirmed hitting production deploys directly (not just preview); no GitHub issue tracks this distinctly from #211. SELECTED as the single execute-mode candidate this pass (see 2026-07-25 reordering note below) — highest real recurrence + production impact of the three compared items, even though its durable fix (Vercel plan tier) may ultimately be a Founder billing decision, not pure code.
-    next_action: direct Vercel dashboard/API verification of current capacity (not yet performed); vercel.json already has an ignoreCommand + 7 cron entries (Hobby-plan-tuned across prior PRs #203/#206) — worth a focused look at further reducing build/deploy volume before assuming a plan upgrade is the only lever; open a GitHub issue for the production-impacting cap distinct from #211
+    latest_activity: "2026-08-08"
+    last_verified_at: "2026-08-08T00:00:00+08:00"
+    source_commit: "9b5aabdc1ba40e181636a4b18453b2c9b5fe7b87"
+    evidence_expires_at: "2026-08-09T00:00:00+08:00"
+    open_p0: 2 # OPS-SUNRISE-001: Vercel capacity still requires Founder dashboard action; SEC-SUNRISE-002: PR #276 code fix is CI green but not merged/deployed
+    open_p1: 1 # CI-SUNRISE-PROVENANCE: not re-verified this pass
+    current_priority: SEC-SUNRISE-002 — PR #276 fixes the rate-limit regression and all required CI/Playwright checks are green; Founder review/merge is still required before any Vercel production deployment can occur.
+    next_action: Founder reviews/merges PR #276 after confirming production-risk acceptance; separately resolve Vercel duplicate-project capacity in the dashboard and keep Supabase plan/migration decisions Founder-gated.
     evidence_links:
       - https://github.com/jerry200176-png/sunrise-cafe/issues/211
       - https://github.com/jerry200176-png/sunrise-cafe/pull/253
+      - https://github.com/jerry200176-png/sunrise-cafe/pull/276
       - reports/2026-07-25/github-triage.md
       - reports/2026-07-25/gmail-signals.md
 
@@ -81,3 +95,41 @@ meta:
     local_path: /home/jerry/workspace/agent-control
     github_repo: null
     note: safe preflight/session launcher used before editing product code
+  - id: engineering-intelligence
+    name: Engineering Intelligence
+    local_path: /home/jerry/workspace/engineering-intelligence
+    github_repo: jerry200176-png/engineering-intelligence
+    note: 工程情報管線 — 監控 AI coding agent / CI/CD security / governance 相關來源，產出每日/週報與候選提案。2026-08-08 首次真實 LLM 分析完成（104/105 項，Groq Llama 3.1 8B），PR #1 待合併
+
+# Governance profile is maintained separately from product risk scoring.
+governance_baseline:
+  schema_version: 1
+  profile: company-control-plane-v1
+  manifest: workspace.manifest.yaml
+  component_contract: catalog/*.yaml
+  last_inventory_at: "2026-08-08T00:00:00+08:00"
+  inventory_rows: 58
+  unresolved_inventory_rows: 8
+  audit_script: scripts/portfolio-governance-audit.sh
+  latest_evidence: /home/jerry/evidence/workspace-admin/governance-baseline-acceptance/portfolio-governance-audit.tsv
+  required_controls:
+    - README
+    - CONTRIBUTING
+    - SECURITY
+    - CODE_OF_CONDUCT
+    - LICENSE_DECISION
+    - CODEOWNERS
+    - ISSUE_PR_TEMPLATES
+    - CI_DEPENDABOT
+  lifecycle_policy: proposal-only-until-founder-approval
+  integration_policy: high-divergence-worktree-only
+  projects:
+    - id: alltrue
+      governance_score: 8
+      note: canonical checkout passes baseline; legacy checkout remains dirty and divergent
+    - id: sunrise
+      governance_score: 8
+      note: canonical checkout passes baseline; current dirty Dependabot change is preserved
+    - id: portfolio-ops
+      governance_score: 1
+      note: baseline is implemented on main-targeted PR #19; one-person maintainer mode keeps approval and CODEOWNER review disabled while CI/security gates remain required

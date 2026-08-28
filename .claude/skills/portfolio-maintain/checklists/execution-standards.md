@@ -10,7 +10,8 @@ Tier 0 first, then Tier 1, then Tier 2. One repo, one branch/worktree, per
 ## Every unit of work needs
 
 - evidence and root cause (`../../../../docs/evidence-policy.md`)
-- success criteria defined before starting
+- success criteria defined before starting, as commands when the work is
+  eligible for `docs/verify-retry-loop.md`
 - the minimal necessary change — no drive-by refactors
 - regression tests, lint, typecheck, static analysis, test, build — actually
   run in this session

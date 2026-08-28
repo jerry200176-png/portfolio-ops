@@ -1,0 +1,39 @@
+id: TKT-20260828-195105-O0H6
+title: Implement deterministic workspace inventory
+intent: Implement deterministic workspace inventory
+kind: task
+parent_id: INT-20260828-195058-Y1CK
+boundary: Only modify the inventory script and its governance regression test in this
+  isolated portfolio-ops worktree; do not modify products, manifest, existing worktrees,
+  legacy paths, production, or credentials.
+success_condition: Nested task worktrees are discovered, task roots are classified
+  correctly, serialized records have fixed safe fields including dirty count, and
+  python3 -m pytest passes.
+priority: 1
+labels:
+- inventory
+scope:
+  allow:
+  - scripts/workspace-inventory.sh
+  - tests/test_governance_baseline.py
+  - .exo/cache/**
+  - .exo/memory/**
+  - .exo/locks/**
+  - .exo/tickets/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 2
+  max_loc_changed: 220
+checks:
+- python3 -m pytest
+type: feature
+status: review
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-28T19:51:05+08:00'
+brain_dump: ''
+risk: medium
+children: []
+resource_profile: default

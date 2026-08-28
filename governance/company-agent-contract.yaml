@@ -1,0 +1,160 @@
+schema_version: 1
+contract_id: company-agent-operating-contract
+version: 1.0.0
+policy_version: "2026-08-08.1"
+owner: jerry200176-png
+company_name: Jerry Software Portfolio
+workspace_root: /home/jerry/workspace
+canonical_policy: governance/AGENT_BOOTSTRAP.md
+constitution: governance/COMPANY_CONSTITUTION.md
+autonomy_policy: governance/AUTONOMY_POLICY.md
+fleet_manifest: governance/repository-governance.yaml
+
+maintainer_model: single_owner
+
+control_plane:
+  repository: jerry200176-png/portfolio-ops
+  default_branch: main
+  manifest: workspace.manifest.yaml
+  first_read:
+    - CLAUDE.md
+    - AGENTS.md
+    - governance/company-agent-contract.yaml
+    - docs/agent-operating-loop.md
+    - portfolio.yaml
+    - state/work-queue.yaml
+
+agent_entrypoints:
+  workspace_command: "cd ~/workspace && claude --add-dir ~/workspace"
+  control_plane_command: "cd ~/workspace/portfolio-ops && claude --add-dir ~/workspace"
+  product_gateway: /home/jerry/workspace/agent-control/bin/agent-start
+  supported_projects: [portfolio-ops, alltrue, sunrise]
+  default_mode: status
+  gateway_source: agent-control/
+  gateway_installer: scripts/install-agent-control.sh --apply
+
+session_invariants:
+  one_repository_per_session: true
+  one_task_one_branch: true
+  isolated_worktree_required: true
+  session_manifest_required: true
+  evidence_before_claim: true
+  draft_pr_is_default_finish_line: true
+  production_mutation_default: false
+
+project_intake:
+  required_fields:
+    - id
+    - name
+    - github_repo
+    - owner
+    - lifecycle
+    - tier
+    - data_sensitivity
+    - deploy_target
+    - health_endpoint
+    - version_endpoint
+    - backup_recovery_owner
+    - last_verified_at
+  required_steps:
+    - inventory_repository_and_worktrees
+    - add_portfolio_manifest_record
+    - add_component_catalog_record
+    - add_product_governance_overlay
+    - add_ci_security_baseline
+    - run_baseline_audit
+    - open_github_plan_issue
+    - record_evidence_and_next_review
+
+delivery_loop:
+  phases:
+    - id: discover
+      required_artifacts: [problem_statement, scope, success_criteria]
+    - id: research
+      required_artifacts: [research_record, reference_repositories, adoption_hypotheses]
+    - id: plan
+      required_artifacts: [github_issue_or_project_note, risk, rollback_plan]
+    - id: implement
+      required_artifacts: [isolated_branch, minimal_diff, tests]
+    - id: verify
+      required_artifacts: [test_results, security_results, production_readonly_check]
+    - id: review
+      required_artifacts: [draft_pr, independent_evidence_review]
+    - id: learn
+      required_artifacts: [decision_record, regression_guard, stale_items_update]
+
+research_policy:
+  minimum_source_classes:
+    - official_documentation_or_primary_source
+    - mature_company_engineering_practice
+    - maintained_open_source_or_starred_repository
+  maximum_reference_repositories_per_problem: 3
+  record_path: docs/research/YYYY-MM-<slug>.md
+  never_copy_code_without_license_and_fit_review: true
+
+verification_policy:
+  required_before_done:
+    - diff_check
+    - focused_tests
+    - lint_or_typecheck
+    - build_when_applicable
+    - secret_scan
+    - dependency_or_supply_chain_check
+    - independent_evidence_review
+    - production_readonly_verification_plan
+  stale_evidence_must_be_marked: true
+  inner_loop:
+    doc: docs/verify-retry-loop.md
+    record: docs/templates/verify-retry-record.md
+    does_not_authorize_founder_actions: true
+
+learning_policy:
+  required_after_failure_or_incident:
+    - root_cause_record
+    - regression_test_or_guard
+    - prevention_rule_update
+    - reference_pattern_update
+    - github_issue_or_pr_comment
+  preferred_records:
+    - docs/AI_REGRESSION_LESSONS.md
+    - docs/TECH_DEBT.md
+    - docs/research/
+    - reports/
+
+github_records:
+  plans: issue_or_project_note
+  implementation: draft_pull_request
+  verification: pr_check_and_evidence_record
+  decision: founder_decision_record
+  weekly_health: scheduled_governance_report
+
+agents:
+  - cursor
+  - codex
+  - claude-code
+  - cubelv
+
+required_controls:
+  local:
+    - identify_repository_branch_worktree_scope_and_risk
+    - use_agent_control_or_governance_onboard
+    - preserve_existing_repository_instructions
+  remote:
+    - pull_request_required
+    - independent_human_review_required
+    - force_push_blocked
+    - branch_deletion_blocked
+    - provenance_or_exo_session_required
+
+cloud_boundary:
+  local_home_visible: false
+  enforcement_source: committed_repository_files_and_github_rulesets
+  bypass_actors: []
+
+irreversible_actions:
+  founder_approval_required:
+    - merge
+    - deploy
+    - production_data_mutation
+    - credential_rotation_or_revocation
+    - git_history_rewrite

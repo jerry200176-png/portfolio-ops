@@ -1,0 +1,10 @@
+# Jerry Software Portfolio workspace entry point
+
+Read `AGENTS.md`, `CLAUDE.md`, and the Portfolio Ops company-agent contract
+before acting.
+The `/home/jerry/workspace/portfolio-ops` repository is the company control
+plane.
+Use `workspace.manifest.yaml` for inventory and
+`agent-control/bin/agent-start` for isolated worktrees. Do not edit dirty
+canonical checkouts. Follow discover -> research -> plan -> implement ->
+verify -> review -> learn, and record decisions and evidence in GitHub.

@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: portfolio-ops
+  description: Company control plane for portfolio inventory, governance, evidence, approvals, and project health.
+  annotations:
+    github.com/project-slug: jerry200176-png/portfolio-ops
+    portfolio.company/source-path: /home/jerry/workspace/portfolio-ops
+    portfolio.company/governance-overlay: governance/COMPANY_CONSTITUTION.md
+spec:
+  owner: founder
+  lifecycle: production
+  tier: 0
+  dataSensitivity: high
+  deployTarget: local_control_plane
+  healthUrl: file:///home/jerry/workspace/portfolio-ops/CEO_DASHBOARD.md
+  versionUrl: file:///home/jerry/workspace/portfolio-ops/portfolio.yaml
+  recoveryOwner: founder
+  lastVerifiedAt: "2026-08-01T00:00:00+08:00"
+  evidenceTtlHours: 24
