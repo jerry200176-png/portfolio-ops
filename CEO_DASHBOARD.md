@@ -1,5 +1,29 @@
 # CEO Dashboard
 
+## 2026-08-29 — Navigation shell More surfaces live
+
+- AllTrue PR [#2173](https://github.com/jerry200176-png/AllTrue_System/pull/2173)
+  is squash-merged as `70323793f17a5caca1d3bb6d7ed6047fe8066e94`. The shared
+  navigation shell now gives desktop More and mobile More predictable open,
+  Escape/backdrop/close, focus-entry, and focus-return behavior; mobile More is
+  an explicitly labelled modal dialog. Role-scoped page keys, badges, API,
+  permissions, and business navigation remain unchanged.
+- Local targeted navigation contracts passed 10/10; `lint:no-undef`, production
+  build, design lint, `exo check`, PR UI Smoke, and Vite Frontend Build passed.
+  The broad #1600 epic remains open; the failing 1,279-line #2129 refactor was
+  not merged.
+- Deploy to Pi [33220048573](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220048573),
+  read-only production acceptance
+  [33220266993](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220266993),
+  and Pi Health [33220353183](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220353183)
+  passed. Production identity is GREEN: `/version.json`, `/deployment.json`,
+  and frontend build SHA align to the merge SHA; public health returned HTTP
+  200/status `ok`.
+- Evidence is recorded on
+  [AllTrue issue #1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458802888).
+  Next: page-level teacher daily workflow evidence and a bounded #1618 slice;
+  this does not close #1600.
+
 ## 2026-08-29 — Notifications workspace semantics live
 
 - AllTrue PR [#2172](https://github.com/jerry200176-png/AllTrue_System/pull/2172)
