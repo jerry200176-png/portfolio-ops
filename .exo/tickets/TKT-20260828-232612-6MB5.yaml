@@ -1,0 +1,33 @@
+id: TKT-20260828-232612-6MB5
+title: Implement policy-driven governance autopilot
+intent: Implement policy-driven governance autopilot
+kind: task
+parent_id: INT-20260828-232604-2O7V
+boundary: Do not modify product repositories, existing worktrees, legacy checkouts, production, credentials, GitHub settings, or perform archive/remove/move/reset/clean/merge/rebase actions.
+success_condition: Autopilot is policy-driven and idempotent; automatically discovers, verifies, classifies, and reports; only known generated artifacts may be auto-cleaned; dirty or unresolved paths become approval-required exceptions with owner/recovery metadata; focused tests pass.
+priority: 90
+labels:
+- automation
+scope:
+  allow:
+  - scripts/governance-autopilot.sh
+  - governance/autonomy-automation.yaml
+  - tests/test_governance_autopilot.py
+  - docs/autonomous-governance.md
+  - .exo/**
+  deny: []
+budgets:
+  max_files_changed: 8
+  max_loc_changed: 700
+checks:
+- python3 -m pytest
+type: feature
+status: todo
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-28T23:26:13+08:00'
+brain_dump: ''
+risk: medium
+children: []
+resource_profile: default
