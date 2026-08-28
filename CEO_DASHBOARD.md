@@ -1,5 +1,29 @@
 # CEO Dashboard
 
+## 2026-08-29 — Billing workspace reliability slice live
+
+- AllTrue PR [#2168](https://github.com/jerry200176-png/AllTrue_System/pull/2168)
+  is squash-merged as `4c65f733ad90b2b53aa19fc77395460a491b7611`. The 帳務中心
+  now renders only the selected 「待處理／已結清課程彙總／收據紀錄」workspace;
+  the previous settled view could show the payments workspace at the same time.
+- The three billing tabs now expose explicit tab-to-tabpanel relationships for
+  keyboard and screen-reader clarity. Payment rules, receipt data, API, database,
+  permissions, and mobile layout were not changed.
+- UI foundation Playwright passed 140/140; required PR checks and main CI
+  [33208340027](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33208340027)
+  passed. Deploy to Pi
+  [33208618827](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33208618827)
+  and read-only production acceptance
+  [33208883887](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33208883887)
+  also passed.
+- Production health is `status=ok`; `/version.json` and `/deployment.json` both
+  report `4c65f733ad90b2b53aa19fc77395460a491b7611`. Evidence is recorded on
+  [AllTrue issue #2135](https://github.com/jerry200176-png/AllTrue_System/issues/2135#issuecomment-5457506355).
+  The broader #2135 billing-center convergence remains open.
+- Fresh six-repository inventory remains 76 open issues and 15 open PRs:
+  AllTrue 70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise Cafe
+  4/3, and both Income Statement repos 0/0.
+
 ## 2026-08-29 — DirectorDashboard view switcher live
 
 - AllTrue PR [#2167](https://github.com/jerry200176-png/AllTrue_System/pull/2167)

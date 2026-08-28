@@ -15,6 +15,27 @@ Additional capture: 2026-08-29 03:32 +08:00.
 
 Additional capture: 2026-08-29 04:08 +08:00.
 
+Additional capture: 2026-08-29 04:38 +08:00.
+
+- AllTrue PR [#2168](https://github.com/jerry200176-png/AllTrue_System/pull/2168)
+  shipped a bounded billing-center reliability slice: selecting 已結清課程彙總
+  no longer renders the 收據紀錄 workspace at the same time, and all three
+  billing tabs now expose explicit tab-to-tabpanel relationships.
+- PR #2168 merged as `4c65f733ad90b2b53aa19fc77395460a491b7611` after required
+  checks passed. Main CI
+  [33208340027](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33208340027),
+  deploy
+  [33208618827](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33208618827),
+  and read-only production acceptance
+  [33208883887](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33208883887)
+  passed.
+- Production `version.json` and `deployment.json` both matched `4c65f733`,
+  `/api/v1/health` returned `status=ok`, and the release evidence is recorded
+  on [issue #2135](https://github.com/jerry200176-png/AllTrue_System/issues/2135#issuecomment-5457506355).
+- Fresh owner-visible GitHub read-back remains 76 open issues and 15 open PRs:
+  AllTrue 70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise
+  Cafe 4/3, and both Income Statement repos 0/0.
+
 - AllTrue PR [#2167](https://github.com/jerry200176-png/AllTrue_System/pull/2167)
   shipped a bounded DirectorDashboard accessibility slice: the 「今天／完整營運」
   switcher now exposes stable tab-to-tabpanel relationships and focusable panels;

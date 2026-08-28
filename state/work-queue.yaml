@@ -1,9 +1,49 @@
 schema_version: 1
-updated_at: 2026-08-29T04:08:00+08:00
+updated_at: 2026-08-29T04:38:22+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-BILLING-TABS-20260829
+    product: alltrue
+    priority: p2
+    title: Keep billing top-level tabs on one selected workspace
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/2135
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2168
+    evidence:
+      - "TuitionCollectionPage now renders only the selected receivables, settled-course, or payments workspace; the previous v-else rendered the payments workspace together with the settled summary when 已結清 was selected."
+      - "The three billing tabs expose stable IDs, aria-controls, and focusable labelled tabpanel regions; payment rules, receipt data, API, database, permissions, and mobile layout were not changed."
+      - "Static accessibility coverage passed 2/2; the real-Vue UI foundation suite passed 140/140; release-note checks, design guard, and production build passed."
+      - "PR #2168 merged as 4c65f733ad90b2b53aa19fc77395460a491b7611 after required provenance, governance, docs, gitleaks, Vite Frontend Build, and UI Smoke checks passed."
+      - "Main CI 33208340027, Deploy to Pi 33208618827, and read-only production acceptance 33208883887 all passed."
+      - "Production /api/v1/health returned status=ok; /version.json and /deployment.json reported backend/frontend SHA 4c65f733ad90b2b53aa19fc77395460a491b7611."
+    root_cause: "The top-level accounting section used v-else after the receivables branch, so selecting settled rendered the payments workspace in addition to the separate settled summary section."
+    non_goals:
+      - "Do not change payment rules, receipt data, accounting API payloads, database schema, permissions, or mobile layout."
+      - "Do not claim the broader #2135 billing-center convergence or AllTrue UX renewal complete."
+    tests:
+      - "npx vitest run frontend/src/components/__tests__/TuitionCollectionTabsAccessibility.test.js (2 passed)"
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run lint:design"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run test:release-notes-coverage"
+      - "npm --prefix frontend run build"
+      - "UI foundation Playwright suite: 140 passed"
+      - "GitHub required PR checks, main CI 33208340027, deploy 33208618827, and acceptance 33208883887"
+      - "Production /api/v1/health, /version.json, and /deployment.json read-back"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Collect billing workspace scan-to-first-action, tab usage, and error-rate evidence before another billing-center slice."
+      - "Keep LearningRecords #1621 behind #957/#1080 and keep #2007, #1618, #2129, and production-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Each billing tab exposes selected state and a controlled tabpanel, and only the selected workspace is rendered."
+      - "The settled tab no longer displays the payments workspace at the same time."
+      - "The broader billing-center convergence remains open for future bounded slices."
+    next_action: "Collect staff feedback and usage evidence, then plan the next safe bounded billing UX slice; do not unlock LearningRecords preview-queue work before #957/#1080."
+
   - id: UX-ALLTRUE-DIRECTOR-TABS-20260829
     product: alltrue
     priority: p2
