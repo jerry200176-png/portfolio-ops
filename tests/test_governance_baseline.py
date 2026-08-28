@@ -105,6 +105,12 @@ class GovernanceBaselineTests(unittest.TestCase):
         policy = (ROOT / "governance" / "repository-governance.yaml").read_text(encoding="utf-8")
         self.assertIn("require_human_review: false", policy)
 
+    def test_workspace_inventory_has_fixed_width_and_explicit_dirty_count(self):
+        script = (ROOT / "scripts" / "workspace-inventory.sh").read_text(encoding="utf-8")
+        self.assertIn("write_row discovery_root candidate git_top role remote branch head status dirty_count upstream last_commit error", script)
+        self.assertIn("tr '\\t\\n' '  '", script)
+        self.assertIn("dirty_count=", script)
+
 
 if __name__ == "__main__":
     unittest.main()
