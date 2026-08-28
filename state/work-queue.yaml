@@ -1,9 +1,45 @@
 schema_version: 1
-updated_at: 2026-08-28T19:31:00+08:00
+updated_at: 2026-08-28T23:22:19+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-COURSE-SUMMARY-20260828
+    product: alltrue
+    priority: p2
+    title: Clarify active student course summaries with a task-first card hierarchy
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/2007
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2157
+    evidence:
+      - "Issue #2007 requested an audit and proposal for the dense student course page; this first slice changes only active-course presentation in StudentsList.vue."
+      - "The card hierarchy puts subject/status, one primary action, verified session progress, schedule, teacher, fee/payment context, and progressive-disclosure actions in that order."
+      - "Monthly courses do not receive a fabricated percentage; missing session totals show an explicit confirmation state. Existing payment, add-on, invoice, payment-info, edit, close, and delete handlers remain wired."
+      - "Research evidence combines official Duolingo home-path/daily-goal guidance, GitLab Pajamas and Primer component guidance, pinned GibbonEdu/Frappe implementations, and the AllTrue design/copy/UI QA contracts; no source code was copied."
+      - "Local focused tests, lint, build, design-hex guard, release-note checks, and 136/136 UI Foundation cases passed; the remote UI Smoke passed on run 33183649648 and Vite Frontend Build passed on run 33183649649."
+      - "PR #2157 merged normally as 84c9e2e6e7767627c8befb55af00d53514f3d08d; main CI run 33184142519 passed; Deploy to Pi run 33184486346 passed. Production version.json returned the merge SHA and /api/v1/health returned ok."
+    root_cause: "The expanded student record placed nine course columns and seven inline actions into one dense row, increasing scan cost and obscuring the next safe task."
+    non_goals:
+      - "Do not change API payloads, data ownership, permissions, billing, attendance, scheduling, course mutations, database state, or production data."
+      - "Do not claim issue #2007 complete; broader course-management information architecture remains a separate follow-up slice."
+    tests:
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run build"
+      - "npm --prefix frontend run test:e2e:ui-foundation"
+      - "GitHub UI Smoke (Playwright) run 33183649648"
+      - "GitHub main CI / Vite Frontend Build run 33184142519"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Keep the larger #2007 course-management IA work separate from #2086 scheduling/billing-sensitive work."
+      - "Measure scan-to-first-action and secondary-disclosure use with existing production-safe evidence before proposing the next slice."
+    founder_gate: "Required GitHub checks, governed squash merge, and CI deployment completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "Active student courses render as readable task-first cards at the required responsive widths."
+      - "Session progress is labeled and honest, including monthly and missing-data states."
+      - "Secondary actions remain keyboard accessible and existing handlers are preserved."
+      - "Production version identity and health match the merged commit after deployment."
+    next_action: "Keep #2007 open for the next approved IA slice; do not bundle it with production-sensitive scheduling, billing, or attendance work."
+
   - id: UX-ALLTRUE-DAILY-PROGRESS-20260828
     product: alltrue
     priority: p2

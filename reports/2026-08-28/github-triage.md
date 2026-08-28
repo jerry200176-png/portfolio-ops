@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-28
 
-Capture time: 2026-08-28 19:31 +08:00. Source of truth for repository and
+Capture time: 2026-08-28 23:22 +08:00. Source of truth for repository and
 collaboration state: GitHub API/`gh` read-back in this session. Labels are
 signals only; the shortlist below is cross-checked against PR checks, local
 worktrees, and production read-only endpoints.
@@ -9,7 +9,7 @@ worktrees, and production read-only endpoints.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PRs #2154 and #2155 are merged and live-verified; #2129 remains failed/oversized |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2157 is merged/deployed for the first #2007 course-summary slice; #2129 remains failed/oversized |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
 | [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 7 | PR #50 is ready and all five of its checks pass; PR #40 remains draft/failing |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
@@ -56,8 +56,8 @@ GitHub project.
 3. [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) —
    broad UI refactor; failed size/UI gates prove it is not a release candidate.
 4. [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) —
-   student course page information density; the next UI/UX slice after the
-   director progress release should reduce clutter without changing data ownership.
+   first student course-summary slice is live through PR #2157; the broader
+   course-management IA cleanup remains open and must stay presentation-only per slice.
 5. [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618) —
    teacher daily workflow; follow after the director pattern is measured.
 
@@ -80,6 +80,15 @@ maintenance items, not product release blockers.
 
 ## Read-only release and workspace evidence
 
+- AllTrue PR [#2157](https://github.com/jerry200176-png/AllTrue_System/pull/2157)
+  was squash-merged as `84c9e2e6e7767627c8befb55af00d53514f3d08d` after the
+  required GitHub checks passed, including Vite Frontend Build and authenticated
+  UI Smoke. Deploy run
+  [33184486346](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184486346)
+  passed; production `version.json` returned the same build SHA and
+  `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.
+  The slice changes active-course presentation only; issue #2007 remains open
+  for the larger course-management IA work.
 - AllTrue `https://daan.lifenet.com.tw/version.json` returned HTTP 200 with
   serving build SHA `2e1d0cd28ae936f74285dbbea835244779c6aa7c`, and
   `https://daan.lifenet.com.tw/api/v1/health` returned `{"status":"ok"}`.
@@ -119,7 +128,7 @@ bash scripts/workspace-inventory.sh <output.tsv> /home/jerry/workspace
 ```
 
 This refresh does not close additional issues, merge PRs, delete branches,
-change labels, or modify production data. The #2155 merge/deploy was performed
+change labels, or modify production data. The #2157 merge/deploy was performed
 by the existing AllTrue release flow; this report records its read-back only.
 The earlier #911 closure and #2154 release are recorded above as completed
 evidence.

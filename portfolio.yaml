@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-28"
-    last_verified_at: "2026-08-28T19:31:00+08:00"
-    source_commit: "c44ea6aff907d79f8ea80da56edd06619e899e32"
-    evidence_expires_at: "2026-08-29T19:31:00+08:00"
+    last_verified_at: "2026-08-28T23:22:19+08:00"
+    source_commit: "84c9e2e6e7767627c8befb55af00d53514f3d08d"
+    evidence_expires_at: "2026-08-29T23:22:19+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-DAILY-PROGRESS-20260828 — PR #2154 的 daily progress 與 PR #2155 的 sidebar focus 均已 merge/deploy；production version、health、API smoke、bundle 與 director endpoint probes 以 c44ea6af 驗證。"
-    next_action: "以 issue #2007 作為下一個 UI/UX slice，並持續把 #2086 等 production-sensitive work 分開；維持每次 AllTrue 僅一個 deployable change，所有後續 release 仍須 version.json、health 與 smoke 驗收。"
+    current_priority: "UX-ALLTRUE-COURSE-SUMMARY-20260828 — issue #2007 的第一個 student course summary slice 已由 PR #2157 merge/deploy；production version 與 health 以 84c9e2e6 驗證，較大的 course-management IA 仍未完成。"
+    next_action: "維持 issue #2007 的後續 IA 工作與 #2086 等 production-sensitive work 分開；每次 AllTrue 僅一個 deployable change，所有後續 release 仍須 version.json、health 與 smoke 驗收。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -50,8 +50,14 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/pull/2154
       - https://github.com/jerry200176-png/AllTrue_System/issues/911
       - https://github.com/jerry200176-png/AllTrue_System/pull/2155
+      - https://github.com/jerry200176-png/AllTrue_System/issues/2007
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2157
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33183649649
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33183649648
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184142519
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184486346
       - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health

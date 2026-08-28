@@ -1,5 +1,13 @@
 # CEO Dashboard
 
+## 2026-08-28 — AllTrue student course summary slice live verification
+
+- AllTrue issue [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) now has a bounded first slice: active student courses use task-first summary cards with explicit session progress, honest monthly/missing-session states, one primary action, and keyboard-accessible secondary actions. Existing API payloads, mutation handlers, permissions, billing, attendance, scheduling, and history behavior were preserved.
+- The implementation was merged through PR [#2157](https://github.com/jerry200176-png/AllTrue_System/pull/2157) as `84c9e2e6e7767627c8befb55af00d53514f3d08d`. Required GitHub checks passed, including Presubmit, Vite Frontend Build, UI Smoke (Playwright), security, docs, control-plane, and golden-scenario checks.
+- Deploy run [33184486346](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184486346) passed. Production `version.json` reports build SHA `84c9e2e6e7767627c8befb55af00d53514f3d08d`; `/api/v1/health` returned `ok`.
+- This is a first course-summary slice, not completion of #2007's broader course-management IA cleanup. AllTrue remains at 70 open issues and five open PRs; cross-repo totals remain 76 open issues and 16 open PRs.
+- Exo's merge audit required an explicit break-glass record because stale session metadata produced a false ungoverned/drift result; the override reason, green required checks, and normal squash merge are recorded in the product session audit. No admin or force operation was used.
+
 ## 2026-08-28 — AllTrue UI slices live verification
 
 - AllTrue PR [#2154](https://github.com/jerry200176-png/AllTrue_System/pull/2154) was squash-merged as `2e1d0cd28ae936f74285dbbea835244779c6aa7c` after all required PR checks passed.
