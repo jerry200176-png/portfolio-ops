@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-29
 
-Capture time: 2026-08-29 07:25 +08:00. GitHub API/`gh` read-back is the
+Capture time: 2026-08-29 07:52 +08:00. GitHub API/`gh` read-back is the
 source of truth for issue and pull-request state. Existing dirty or diverged
 checkouts were preserved; the workspace inventory is recorded in
 [`workspace-inventory.tsv`](workspace-inventory.tsv).
@@ -23,6 +23,32 @@ issues are now marked CLOSED/COMPLETED by GitHub; the active broad UX epic is
 [#1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600).
 
 ## AllTrue release evidence
+
+- [PR #2174](https://github.com/jerry200176-png/AllTrue_System/pull/2174)
+  shipped the bounded TeacherHome daily-queue trust slice and was squash-merged
+  as `95a7f7d79b479549284ace4a72c43db36a447212`. The queue now waits for core
+  attendance, learning, overdue, schedule, and parent-reply sources; failed or
+  incomplete data is shown as `待確認` with an accessible alert and retry action,
+  never as an all-clear state.
+- Local TeacherHome accessibility passed 3/3 and real Vue page E2E passed 5/5;
+  the documented production build, lint, design/fixture gates, and `exo check`
+  passed. Main CI
+  [33221362938](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362938),
+  control-plane enforce
+  [33221362903](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362903),
+  Deploy to Pi
+  [33221455473](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221455473),
+  read-only production acceptance
+  [33221646376](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221646376),
+  and Pi Health
+  [33221727676](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221727676)
+  passed.
+- Production identity read-back is GREEN: remote main, backend, frontend build,
+  and deployment manifest all match the merge SHA; health is HTTP 200/status
+  `ok` with no drift. Evidence is recorded on
+  [AllTrue #1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458952298).
+- This is a bounded slice only; #1618 and broad #1600 remain open for further
+  authenticated visual review and workflow work.
 
 - [PR #2173](https://github.com/jerry200176-png/AllTrue_System/pull/2173)
   shipped the bounded navigation-shell More-surface slice and was
@@ -110,8 +136,9 @@ issues are now marked CLOSED/COMPLETED by GitHub; the active broad UX epic is
 
 1. Keep #1600 as the broad UX renewal epic; continue one deployable bounded
    slice per AllTrue release.
-2. Collect Attendance scan-to-first-action, tab-switch, keyboard, and status
-   misclassification evidence before selecting the next slice.
+2. Continue #1618 with authenticated teacher workflow visual review and collect
+   scan-to-first-action, tab-switch, keyboard/focus, and remaining state evidence
+   before selecting the next slice.
 3. Keep LearningRecords #1621 behind the #957/#1080 data-truth gate; do not
    merge the 1,279-line #2129/sidebar or other production-sensitive work as a
    side effect of this UI release.
