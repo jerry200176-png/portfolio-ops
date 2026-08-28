@@ -13,3 +13,16 @@ failure_modes:
       issue separately from product failures.
   severity: low
   frequency: recurring
+- id: FM-20260829-062031-2RS4
+  name: A deployed frontend-only slice must update portfolio freshness and preserve
+    the data-truth gate
+  detection:
+    signal: A deployed frontend-only slice must update portfolio freshness and preserve
+      the data-truth gate
+    source: reflection:REF-20260829-062031-O2HM
+  mitigation:
+    practice: TeacherHome control semantics shipped without touching attendance, schedule,
+      assessment data truth, APIs, permissions, or navigation handlers; record the
+      merge/deploy/acceptance SHA and keep broader issues open.
+  severity: low
+  frequency: recurring

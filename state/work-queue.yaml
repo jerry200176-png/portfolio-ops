@@ -1,9 +1,70 @@
 schema_version: 1
-updated_at: 2026-08-29T05:12:10+08:00
+updated_at: 2026-08-29T06:18:46+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-TEACHER-CARD-A11Y-20260829
+    product: alltrue
+    priority: p2
+    title: Stabilize TeacherHome clock-in and schedule controls
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1618
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2171
+    evidence:
+      - >-
+        TeacherHome's clock-in status card is now a native button with explicit
+        labelledby/describedby relationships and a polite live status label;
+        native keyboard activation preserves the existing attendance navigation.
+      - >-
+        Weekly previous/next controls and schedule assessment/report icon
+        buttons now declare button types and readable accessible names.
+      - >-
+        No attendance, schedule, assessment data truth, API, permission,
+        database, or existing navigation handler changed.
+      - >-
+        Local TeacherHome accessibility tests passed 2/2; full Vitest passed
+        74 files / 343 tests; TeacherHome daily workflow E2E passed 5/5.
+      - >-
+        PR #2171 merged as
+        a637338026ab71e2a5d91ca5361ab388386829cd after required governance,
+        docs, provenance, security, UI Smoke, and Vite Frontend Build checks
+        passed; the initial unrelated CourseManagement smoke was rerun green.
+      - >-
+        Main CI 33215612471, Deploy to Pi 33215875727, and read-only
+        production acceptance 33216138420 all passed.
+      - >-
+        Production health returned status=ok; version.json and deployment.json
+        reported backend/frontend SHA
+        a637338026ab71e2a5d91ca5361ab388386829cd.
+    root_cause: "The clock-in status card used a styled div with role=button and only Enter handling, while icon-only schedule controls relied on title/tooltips and several buttons omitted an explicit type."
+    non_goals:
+      - "Do not change attendance, schedule, assessment data truth, APIs, permissions, database schema, or navigation handlers."
+      - "Do not claim the broader #1618 teacher daily workflow or #1600 UX renewal complete; this is one bounded control-semantics slice."
+    tests:
+      - "npx vitest run src/components/__tests__/TeacherHomeAccessibility.test.js (2 passed)"
+      - "npm --prefix frontend run test:unit (74 files / 343 tests passed)"
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run lint:design"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run test:release-notes-coverage"
+      - "npm --prefix frontend run build"
+      - "TeacherHome daily workflow Playwright: 5 passed"
+      - "GitHub required PR checks, main CI 33215612471, deploy 33215875727, and acceptance 33216138420"
+      - "Production /api/v1/health, /version.json, and /deployment.json read-back"
+      - "git diff --check"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Collect TeacherHome scan-to-first-action, keyboard, clock-in-card, and weekly schedule navigation evidence before another teacher workflow slice."
+      - "Keep LearningRecords #1621 behind #957/#1080 and keep #2007, #2129, and production-sensitive work separate."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "The clock-in status card is a native labelled button and Space/Enter preserve the attendance route."
+      - "Weekly navigation and schedule icon controls expose explicit accessible names and button semantics."
+      - "TeacherHome data, API, permissions, and existing navigation behavior remain unchanged."
+      - "The broader #1618 teacher daily workflow and #1600 UX epic remain open for future bounded slices."
+    next_action: "Collect staff feedback and usage evidence, then plan the next non-data-truth TeacherHome slice; do not unlock LearningRecords preview-queue work before #957/#1080."
+
   - id: UX-ALLTRUE-ATTENDANCE-TABS-20260829
     product: alltrue
     priority: p2
