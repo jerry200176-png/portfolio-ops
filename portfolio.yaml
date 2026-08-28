@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T07:25:40+08:00"
+updated_at: "2026-08-29T07:52:04+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T07:25:40+08:00"
-    source_commit: "70323793f17a5caca1d3bb6d7ed6047fe8066e94"
-    evidence_expires_at: "2026-08-30T07:25:40+08:00"
+    last_verified_at: "2026-08-29T07:52:04+08:00"
+    source_commit: "95a7f7d79b479549284ace4a72c43db36a447212"
+    evidence_expires_at: "2026-08-30T07:52:04+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-NAVIGATION-SHELL-A11Y-20260829 — PR #2173 將桌面 More 面板與手機 More bottom sheet 的開啟、Escape、backdrop、關閉、焦點進入與回復契約統一，手機明確標為 labelled modal dialog；production identity 綠。#1600 broad UX epic 與 #1618 teacher workflow 維持開啟。六 repo inventory 為 76 open issues / 15 open PRs；LearningRecords #1621 受 #957/#1080 資料真相 gate，#2129 與 production-sensitive work 仍獨立追蹤。"
-    next_action: "以 #1618 teacher daily workflow 為下一個 page-level bounded UX slice，先收集 scan-to-first-action、tab-switch、keyboard/focus 與狀態誤判證據；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-TEACHER-QUEUE-TRUST-20260829 — PR #2174 修正 TeacherHome 今日工作隊列的資料可信度：核心來源載入失敗或尚未完成時不再誤顯示「今天完成了」，改顯示待確認、alert 與重新整理入口；production identity 綠。#1600 broad UX epic 與 #1618 teacher workflow 維持開啟。六 repo inventory 為 76 open issues / 15 open PRs；LearningRecords #1621 受 #957/#1080 資料真相 gate，#2129 與 production-sensitive work 仍獨立追蹤。"
+    next_action: "在 #1618 繼續做 teacher daily workflow 的 authenticated visual review 與 scan-to-first-action、tab-switch、keyboard/focus 證據，下一個切片仍需獨立 bounded change；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -71,6 +71,7 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/pull/2171
       - https://github.com/jerry200176-png/AllTrue_System/pull/2172
       - https://github.com/jerry200176-png/AllTrue_System/pull/2173
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2174
       - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458607891
       - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458802888
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218067240
@@ -81,6 +82,12 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220048573
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220266993
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220353183
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458952298
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362938
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362903
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221455473
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221646376
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221727676
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
       - https://github.com/jerry200176-png/AllTrue_System/releases/tag/v2026.08.29.11

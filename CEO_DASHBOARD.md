@@ -1,5 +1,31 @@
 # CEO Dashboard
 
+## 2026-08-29 — Teacher daily queue trust state live
+
+- AllTrue PR [#2174](https://github.com/jerry200176-png/AllTrue_System/pull/2174)
+  is squash-merged as `95a7f7d79b479549284ace4a72c43db36a447212`. TeacherHome
+  now keeps the daily queue in loading state until its core sources resolve;
+  failed or incomplete attendance, learning, overdue, schedule, or parent-reply
+  data shows an explicit alert, `待確認` count, and retry action instead of an
+  incorrect all-clear state.
+- Local TeacherHome accessibility passed 3/3; real Vue page E2E passed 5/5;
+  production build, lint, design/fixture gates, and `exo check` passed. Main CI
+  [33221362938](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362938),
+  control-plane enforce
+  [33221362903](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362903),
+  Deploy to Pi
+  [33221455473](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221455473),
+  read-only acceptance
+  [33221646376](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221646376),
+  and Pi Health
+  [33221727676](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221727676)
+  passed.
+- Production identity is GREEN: remote main, backend, frontend build, and
+  deployment manifest all report the merge SHA; health returned HTTP 200 with
+  no drift. Evidence is recorded on
+  [AllTrue issue #1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458952298).
+  #1618 and broad #1600 remain open for the next bounded workflow slice.
+
 ## 2026-08-29 — Navigation shell More surfaces live
 
 - AllTrue PR [#2173](https://github.com/jerry200176-png/AllTrue_System/pull/2173)
