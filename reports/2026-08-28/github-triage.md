@@ -7,6 +7,26 @@ worktrees, and production read-only endpoints.
 
 ## 2026-08-29 refresh
 
+Capture update: 2026-08-29 02:33 +08:00.
+
+- AllTrue PR [#2164](https://github.com/jerry200176-png/AllTrue_System/pull/2164)
+  shipped the next bounded #2007 course IA slice: the selected course is now
+  labeled as the current-course workspace, history is an explicit accessible
+  disclosure, and the history lookup bug that reused the active-only collection
+  was fixed. It merged as `350da457ec9010aca90d2e718b0055cd77156b86`; the
+  parent issue remains open.
+- Main CI
+  [33198942210](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33198942210),
+  deploy
+  [33199257475](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199257475),
+  and read-only production acceptance
+  [33199540861](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199540861)
+  passed. Production `version.json` matched the merge SHA and health returned
+  `ok`.
+- Fresh read-only production checks also confirmed Sunrise booking health is
+  `ok`, with the already documented `degraded_per_isolate` rate-limit mode and
+  Stripe disabled; serving commit remains `f8927b174b04ff7e026be5f4cb341396e1d120c6`.
+
 - Fresh authenticated GitHub read-back covers six owner-visible repositories:
   76 open issues and 15 open PRs: AllTrue 70 issues / 5 PRs, Portfolio Ops 2 / 6, Engineering
   Intelligence 0 / 1, Sunrise Cafe 4 / 3, and both Income Statement repos 0 / 0.
@@ -58,9 +78,9 @@ worktrees, and production read-only endpoints.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2163 is merged/deployed for the teacher next-action slice; Calendar/Course acceptance is green |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2164 is merged/deployed for the course detail disclosure and history lookup fix; #2007 remains open |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
-| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #52 merged the refreshed inventory; superseded PR #51 is closed; PR #40 remains draft/failing |
+| [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #54 merged the prior refresh; this release evidence refresh is now queued |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
 | [Income Statement App](https://github.com/jerry200176-png/income-statement-app) | 0 | 0 | 0 | 0 | No open GitHub work items |
 | [Income Statement App Releases](https://github.com/jerry200176-png/income-statement-app-releases) | 0 | 0 | 0 | 0 | No open GitHub work items |
@@ -101,9 +121,9 @@ GitHub project.
 2. [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) —
    broad UI refactor; failed size/UI gates prove it is not a release candidate.
 3. [#2007](https://github.com/jerry200176-png/AllTrue_System/issues/2007) —
-   Phase 2A course overview and active-course selection is live through PR
-   #2162; the broader course-management IA cleanup remains open and must stay
-   presentation-only per slice.
+   Phase 2A course overview plus the Phase 2B current-course/history disclosure
+   are live through PRs #2162 and #2164; the broader course-management IA
+   cleanup remains open and must stay presentation-only per slice.
 4. [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618) —
    teacher daily workflow; the first next-action slice is live, measure scan-to-first-action before the next slice.
 5. [#2112](https://github.com/jerry200176-png/AllTrue_System/pull/2112) —
@@ -176,6 +196,16 @@ maintenance items, not product release blockers.
   deploy [33194481228](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194481228),
   and read-only acceptance [33194768520](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194768520)
   passed against the merged SHA; issue #2007 remains open for the next IA phase.
+- AllTrue PR [#2164](https://github.com/jerry200176-png/AllTrue_System/pull/2164)
+  passed all required PR checks, including UI Smoke and Vite Frontend Build,
+  then merged as `350da457ec9010aca90d2e718b0055cd77156b86`. It fixed the
+  history disclosure's active-only lookup, added explicit expansion semantics,
+  and kept existing course actions, permissions, and data paths unchanged.
+  Main CI [33198942210](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33198942210),
+  deploy [33199257475](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199257475),
+  and read-only acceptance
+  [33199540861](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199540861)
+  passed. Production version matched the merge SHA and health returned `ok`.
 - AllTrue PR [#2154](https://github.com/jerry200176-png/AllTrue_System/pull/2154)
   closed issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911)
   and deployed through run

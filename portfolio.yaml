@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T02:03:00+08:00"
+updated_at: "2026-08-29T02:33:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T02:03:00+08:00"
-    source_commit: "31795f9b6a7be7523a4b4b69358cf1a61ba135c1"
-    evidence_expires_at: "2026-08-30T02:03:00+08:00"
+    last_verified_at: "2026-08-29T02:33:00+08:00"
+    source_commit: "350da457ec9010aca90d2e718b0055cd77156b86"
+    evidence_expires_at: "2026-08-30T02:33:00+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-TEACHER-NEXT-ACTION-20260829 — PR #2163 已將老師工作台第一個待辦提升為現在先做主行動並部署驗證；#1618 維持 open，等待下一個 teacher workflow slice。#2007 課程 IA 與 #2129 廣泛重構仍獨立追蹤。"
-    next_action: "以真實 staff feedback 量測老師工作台的 scan-to-first-action，再規劃 #1618 的下一個 bounded slice；#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-COURSE-DISCLOSURE-20260829 — PR #2164 已把目前課程工作區與歷史課程揭露分層，並修正歷史課程 active-only 查詢 bug；production acceptance 綠且 #2007 維持 open。#1618、#2129 與 production-sensitive work 仍獨立追蹤。"
+    next_action: "以真實 staff feedback 量測課程工作區與老師工作台的 scan-to-first-action／歷史揭露使用率，再規劃下一個 bounded #2007 或 #1618 slice；#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -59,6 +59,11 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/pull/2162
       - https://github.com/jerry200176-png/AllTrue_System/pull/2163
       - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5455985554
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2164
+      - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5456282165
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33198942210
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199257475
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199540861
       - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455653131
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741
@@ -107,10 +112,10 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-08-28"
-    last_verified_at: "2026-08-28T19:23:00+08:00"
+    latest_activity: "2026-08-29"
+    last_verified_at: "2026-08-29T02:33:00+08:00"
     source_commit: "f8927b174b04ff7e026be5f4cb341396e1d120c6"
-    evidence_expires_at: "2026-08-29T19:23:00+08:00"
+    evidence_expires_at: "2026-08-30T02:33:00+08:00"
     open_p0: 0
     open_p1: 3
     current_priority: OPS-SUNRISE-257 — production health and serving commit are currently verified, but dashboard-level single deploy-owner verification remains open; rate limiting is explicitly degraded per isolate and Stripe remains disabled.
