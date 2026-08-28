@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-28T19:23:00+08:00"
+updated_at: "2026-08-28T19:31:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-28"
-    last_verified_at: "2026-08-28T19:23:00+08:00"
-    source_commit: "2e1d0cd28ae936f74285dbbea835244779c6aa7c"
-    evidence_expires_at: "2026-08-29T19:23:00+08:00"
+    last_verified_at: "2026-08-28T19:31:00+08:00"
+    source_commit: "c44ea6aff907d79f8ea80da56edd06619e899e32"
+    evidence_expires_at: "2026-08-29T19:31:00+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-DAILY-PROGRESS-20260828 — PR #2154 已 merge/deploy，production version、health、API smoke 與 authenticated director UI smoke 均以 merge SHA 2e1d0cd2 驗證；最新 UI follow-up PR #2155 與 production-sensitive #2086 仍分開排隊。"
-    next_action: "閱讀 PR #2155 並以 issue #2007 作為下一個 UI/UX slice；維持每次 AllTrue 僅一個 deployable change，所有後續 release 仍須 version.json、health 與 smoke 驗收。"
+    current_priority: "UX-ALLTRUE-DAILY-PROGRESS-20260828 — PR #2154 的 daily progress 與 PR #2155 的 sidebar focus 均已 merge/deploy；production version、health、API smoke、bundle 與 director endpoint probes 以 c44ea6af 驗證。"
+    next_action: "以 issue #2007 作為下一個 UI/UX slice，並持續把 #2086 等 production-sensitive work 分開；維持每次 AllTrue 僅一個 deployable change，所有後續 release 仍須 version.json、health 與 smoke 驗收。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -51,6 +51,7 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/issues/911
       - https://github.com/jerry200176-png/AllTrue_System/pull/2155
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741
       - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health

@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-28
 
-Capture time: 2026-08-28 19:23 +08:00. Source of truth for repository and
+Capture time: 2026-08-28 19:31 +08:00. Source of truth for repository and
 collaboration state: GitHub API/`gh` read-back in this session. Labels are
 signals only; the shortlist below is cross-checked against PR checks, local
 worktrees, and production read-only endpoints.
@@ -9,7 +9,7 @@ worktrees, and production read-only endpoints.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 6 | PR #2154 is merged and live-verified; PR #2155 is the newest UI delivery item; #2129 remains failed/oversized |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PRs #2154 and #2155 are merged and live-verified; #2129 remains failed/oversized |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
 | [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 7 | PR #50 is ready and all five of its checks pass; PR #40 remains draft/failing |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
@@ -26,7 +26,6 @@ GitHub project.
 
 | Repository | PR | State/check signal | Next action |
 |---|---|---|---|
-| AllTrue | [#2155](https://github.com/jerry200176-png/AllTrue_System/pull/2155) | Open; improved director sidebar focus UX | Read the diff and keep it sequenced separately from the now-deployed progress cue |
 | AllTrue | [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129) | Open; Presubmit and UI Smoke failed; Vite build passed | Split the 1,279-line UI change into reviewable slices and repair the course-management smoke contract before review |
 | AllTrue | [#2112](https://github.com/jerry200176-png/AllTrue_System/pull/2112) | Open; failing check read back | Re-run/read the failing dependency check and merge only after required checks are green |
 | AllTrue | [#2092](https://github.com/jerry200176-png/AllTrue_System/pull/2092) | Draft; no checks recorded | Decide whether the unused-variable ratchet is still needed, then make the PR reviewable or close it with evidence |
@@ -91,6 +90,13 @@ maintenance items, not product release blockers.
   production version, Pi HEAD, health, API smoke, and authenticated director UI
   smoke all matched the merge SHA. This is the post-release evidence for the
   bounded daily-progress slice.
+- AllTrue PR [#2155](https://github.com/jerry200176-png/AllTrue_System/pull/2155)
+  was subsequently merged as `c44ea6aff907d79f8ea80da56edd06619e899e32`.
+  Deploy run [33167200741](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741)
+  passed exact-SHA deployment, health, read-only API smoke, bundle checks, and
+  director endpoint probes. Production `version.json` returned the same SHA
+  and health remained `ok`; the authenticated UI smoke gate for this PR was
+  already green before merge.
 - Sunrise `https://sunrise-cafe-six.vercel.app/api/version` returned commit
   `f8927b174b04ff7e026be5f4cb341396e1d120c6`; booking health returned `ok`,
   with the existing documented degraded per-isolate rate-limit mode and
@@ -113,5 +119,7 @@ bash scripts/workspace-inventory.sh <output.tsv> /home/jerry/workspace
 ```
 
 This refresh does not close additional issues, merge PRs, delete branches,
-change labels, deploy, or modify production data. The earlier #911 closure and
-#2154 release are recorded above as completed evidence.
+change labels, or modify production data. The #2155 merge/deploy was performed
+by the existing AllTrue release flow; this report records its read-back only.
+The earlier #911 closure and #2154 release are recorded above as completed
+evidence.
