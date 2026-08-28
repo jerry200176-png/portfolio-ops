@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T06:24:57+08:00"
-    source_commit: "a637338026ab71e2a5d91ca5361ab388386829cd"
-    evidence_expires_at: "2026-08-30T06:24:57+08:00"
+    last_verified_at: "2026-08-29T06:56:28+08:00"
+    source_commit: "08fba2c0874da160d8ab1b8c71709788c68e5b4f"
+    evidence_expires_at: "2026-08-30T06:56:28+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-TEACHER-CARD-A11Y-20260829 — PR #2171 將 TeacherHome 今日打卡卡片改為原生 button，補上狀態宣告與週課表／課表操作的 accessible names；production acceptance 綠，#1618 維持開啟以追蹤更完整的老師每日工作流。六 repo fresh inventory 為 76 open issues / 15 open PRs；#1600 維持 broad UX epic。LearningRecords #1621 受 #957/#1080 資料真相 gate；#2007、#2129 與 production-sensitive work 仍獨立追蹤。"
-    next_action: "收集 TeacherHome scan-to-first-action、鍵盤操作、打卡卡片與週課表導覽證據，再規劃下一個不依賴資料真相的 bounded UX slice；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-NOTIFICATIONS-DIALOG-A11Y-20260829 — PR #2172 將主任收件匣 tabs 連到明確 tabpanel，核帳登記改用共用 dialog primitive，production acceptance 綠；#1600 broad UX epic 與 #1618 teacher workflow 維持開啟。六 repo inventory 為 76 open issues / 15 open PRs；LearningRecords #1621 受 #957/#1080 資料真相 gate，#2129 與 production-sensitive work 仍獨立追蹤。"
+    next_action: "收集主任收件匣 tab-switch、核帳 dialog、鍵盤與 scan-to-first-action 證據，再規劃下一個不依賴資料真相的 bounded UX slice；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -69,6 +69,15 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/issues/693#issuecomment-5457810311
       - https://github.com/jerry200176-png/AllTrue_System/pull/2170
       - https://github.com/jerry200176-png/AllTrue_System/pull/2171
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2172
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458607891
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218067240
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218300044
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218527188
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218547562
+      - https://daan.lifenet.com.tw/version.json
+      - https://daan.lifenet.com.tw/api/v1/health
+      - https://github.com/jerry200176-png/AllTrue_System/releases/tag/v2026.08.29.11
       - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458347820
       - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458393226
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215612471

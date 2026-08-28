@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-29
 
-Capture time: 2026-08-29 06:24 +08:00. GitHub API/`gh` read-back is the
+Capture time: 2026-08-29 06:56 +08:00. GitHub API/`gh` read-back is the
 source of truth for issue and pull-request state. Existing dirty or diverged
 checkouts were preserved; the workspace inventory is recorded in
 [`workspace-inventory.tsv`](workspace-inventory.tsv).
@@ -23,6 +23,23 @@ issues are now marked CLOSED/COMPLETED by GitHub; the active broad UX epic is
 [#1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600).
 
 ## AllTrue release evidence
+
+- [PR #2172](https://github.com/jerry200176-png/AllTrue_System/pull/2172)
+  shipped the bounded NotificationsCenter workspace-semantics slice and was
+  squash-merged as `08fba2c0874da160d8ab1b8c71709788c68e5b4f`.
+- The主任收件匣 tabs now expose stable tab-to-panel relationships; tuition report
+  uses shared AtDialog semantics for initial focus, Escape, close, and scroll
+  locking; notification action buttons explicitly stay out of form submission.
+  Payment, reconciliation, receipt, notification data, API, permission, and
+  navigation behavior were unchanged.
+- Main CI [33218067240](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218067240),
+  Deploy to Pi [33218300044](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218300044),
+  Pi Health [33218547562](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218547562),
+  and read-only production acceptance
+  [33218527188](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218527188)
+  passed. Release tag `v2026.08.29.11` was created from the same merge SHA.
+- Evidence is recorded on
+  [AllTrue #1600](https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458607891).
 
 - [PR #2171](https://github.com/jerry200176-png/AllTrue_System/pull/2171)
   shipped the bounded TeacherHome control-semantics slice and was squash-merged
