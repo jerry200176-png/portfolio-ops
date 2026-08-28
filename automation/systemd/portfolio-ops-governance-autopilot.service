@@ -10,7 +10,7 @@ ProtectSystem=strict
 ProtectHome=read-only
 PrivateDevices=yes
 PrivateTmp=no
-ReadWritePaths=/home/jerry/evidence/workspace-admin /tmp/portfolio-ops-governance
+ReadWritePaths=/home/jerry/evidence/workspace-admin
 UMask=0077
 TimeoutStartSec=30min
 
