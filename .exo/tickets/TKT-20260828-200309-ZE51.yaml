@@ -1,0 +1,44 @@
+id: TKT-20260828-200309-ZE51
+title: Track reproducible Exo governance baseline
+intent: Track reproducible Exo governance baseline
+kind: task
+parent_id: INT-20260828-195058-Y1CK
+boundary: Only track the already-reviewed Exo governance baseline in this isolated
+  portfolio-ops worktree. Do not alter policy contents, adapters, product repositories,
+  workspace manifest, existing worktrees, production, credentials, or cleanup behavior.
+success_condition: The existing Exo constitution, config, compiled lock, learnings,
+  and sealed policy are tracked without content drift; exo config validation, exo
+  check, and python3 -m pytest pass.
+priority: 1
+labels:
+- governance
+scope:
+  allow:
+  - .exo/CONSTITUTION.md
+  - .exo/config.yaml
+  - .exo/governance.lock.json
+  - .exo/LEARNINGS.md
+  - .exo/policy.sealed.json
+  - .exo/cache/**
+  - .exo/memory/**
+  - .exo/locks/**
+  - .exo/tickets/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 5
+  max_loc_changed: 900
+checks:
+- python3 -m pytest
+type: feature
+status: review
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-28T20:03:09+08:00'
+brain_dump: ''
+risk: medium
+children: []
+resource_profile: default
+commits:
+- d5f66f9ef6cbfe40e1e7124097a8b0709d3febf7

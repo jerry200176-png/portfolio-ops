@@ -125,6 +125,8 @@ This repository uses ExoProtocol governance. All work must go through the sessio
   - TKT-20260828-200309-ZE51: Track reproducible Exo governance baseline [allow: .exo/CONSTITUTION.md, .exo/config.yaml, .exo/governance.lock.json, .exo/LEARNINGS.md, .exo/policy.sealed.json, .exo/cache/**, .exo/memory/**, .exo/locks/**, .exo/tickets/**, .exo/logs/**]
   - TKT-20260828-224425-WVAG: Synchronize generated Exo adapters [allow: AGENTS.md, CLAUDE.md, .claude/settings.json, .exo/cache/**, .exo/memory/**, .exo/locks/**, .exo/tickets/**, .exo/logs/**]
   - TKT-20260828-224803-E36X: Synchronize Exo adapters from tracked baseline [allow: AGENTS.md, CLAUDE.md, .claude/settings.json, .exo/policy.sealed.json, .exo/cache/**, .exo/memory/**, .exo/locks/**, .exo/tickets/**, .exo/logs/**]
+- **INT-20260828-225521-D3AV**: Make Exo scaffold reproducible and workspace hygiene explicit — boundary: *Only modify the Exo static scaffold, Exo ticket definitions, generated adapters, sealed-policy runtime artifact, and root ignore rules in this isolated portfolio-ops worktree. Do not alter product repositories, workspace manifest, existing worktrees, legacy paths, production, credentials, or delete unknown data.*
+  - TKT-20260828-225531-ND05: Track Exo scaffold and ignore ephemeral state [allow: .gitignore, AGENTS.md, CLAUDE.md, .claude/settings.json, .exo/LEARNINGS.md, .exo/policy.sealed.json, .exo/schemas/**, .exo/scripts/**, .exo/templates/**, .exo/memory/index.yaml, .exo/scratchpad/INBOX.md, .exo/tickets/**, .exo/cache/**, .exo/memory/**, .exo/locks/**, .exo/logs/**]
 
 ### Source of Truth
 

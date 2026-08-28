@@ -3,3 +3,11 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .agent-session/
+# ExoProtocol runtime state is local/ephemeral; keep static governance and
+# ticket definitions versioned, but do not commit private logs or lock state.
+.exo/cache/
+.exo/locks/
+.exo/logs/
+.exo/memory/sessions/
+.exo/memory/suspended/
+.exo/memory/index.jsonl

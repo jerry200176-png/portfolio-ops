@@ -1,0 +1,50 @@
+id: INT-20260828-225521-D3AV
+title: Make Exo scaffold reproducible and workspace hygiene explicit
+intent: Make Exo scaffold reproducible and workspace hygiene explicit
+kind: intent
+brain_dump: Scan the governance engineering and environment workspace, improve reproducibility,
+  and clean generated workspace state without deleting unknown user work.
+boundary: Only modify the Exo static scaffold, Exo ticket definitions, generated adapters,
+  sealed-policy runtime artifact, and root ignore rules in this isolated portfolio-ops
+  worktree. Do not alter product repositories, workspace manifest, existing worktrees,
+  legacy paths, production, credentials, or delete unknown data.
+success_condition: The Exo static scaffold and ticket definitions are tracked, ephemeral
+  cache/lock/log/session state is ignored, generated adapters are current while preserving
+  safety denies, and governance checks pass.
+risk: medium
+priority: 1
+labels:
+- governance
+scope:
+  allow:
+  - .gitignore
+  - AGENTS.md
+  - CLAUDE.md
+  - .claude/settings.json
+  - .exo/policy.sealed.json
+  - .exo/schemas/**
+  - .exo/scripts/**
+  - .exo/templates/**
+  - .exo/memory/index.yaml
+  - .exo/scratchpad/INBOX.md
+  - .exo/tickets/**
+  - .exo/cache/**
+  - .exo/memory/**
+  - .exo/locks/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 24
+  max_loc_changed: 2600
+checks:
+- python3 -m pytest
+type: feature
+status: todo
+parent_id: null
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-28T22:55:21+08:00'
+children:
+- TKT-20260828-225531-ND05
+resource_profile: default
