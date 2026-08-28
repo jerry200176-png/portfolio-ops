@@ -1,5 +1,32 @@
 # CEO Dashboard
 
+## 2026-08-28 — GitHub portfolio and AllTrue UI V1
+
+- Fresh GitHub read-back covers six owner-visible repositories: 79 open issues
+  and 15 open PRs. AllTrue has 73 open issues (33 P1-labelled) and five open
+  PRs; Sunrise has four issues (three P1-labelled) and three open PRs; the
+  remaining repositories are listed in
+  [`reports/2026-08-28/github-triage.md`](reports/2026-08-28/github-triage.md).
+- The main UI signal is AllTrue PR [#2129](https://github.com/jerry200176-png/AllTrue_System/pull/2129): it is not a release candidate because its 1,279-line diff fails the PR-size gate and UI Smoke. A bounded V1 was therefore implemented separately in isolated branch `chore/task-uiux-github-20260828`, linked to issue [#911](https://github.com/jerry200176-png/AllTrue_System/issues/911).
+- The V1 adds `TodayProgressCard` to the director focus view. It uses only
+  loaded `todaySchedules` and `attended` state, shows completed/total progress,
+  separates loading from empty state, and routes the next action through the
+  existing dashboard navigation. No API, permission, billing, schedule, or
+  production data behavior changed.
+- Read-only production checks passed: AllTrue health returned `ok` and serving
+  SHA was `4a6b2a32`; Sunrise booking health returned `ok` and serving commit
+  was `f8927b17`. These are observation evidence only; the V1 is not deployed.
+- Existing dirty/diverged worktrees were preserved. Full workspace evidence is
+  in [`reports/2026-08-28/workspace-inventory.md`](reports/2026-08-28/workspace-inventory.md).
+
+### Current decisions required
+
+1. Independent UI review and required checks for the new V1 Draft PR.
+2. Keep the production-sensitive AllTrue #2086 release gate separate from the
+   UI change; never bundle billing/attendance fixes with the UX slice.
+3. After merge/deploy, verify serving SHA, health, and UI smoke before calling
+   the UI improvement live.
+
 > Current baseline: 2026-08-27. The historical entries below are retained as an audit trail; the current priority and execution state are defined by this section and `state/work-queue.yaml`.
 
 ## 2026-08-27 — AllTrue director workflow reliability and release gate

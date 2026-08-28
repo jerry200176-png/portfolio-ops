@@ -1,9 +1,41 @@
 schema_version: 1
-updated_at: 2026-08-27T11:10:39+08:00
+updated_at: 2026-08-28T18:52:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-DAILY-PROGRESS-20260828
+    product: alltrue
+    priority: p2
+    title: Add an honest daily progress and next-action cue to the director home
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/911
+    status: draft_implementation
+    implementation: "isolated worktree chore/task-uiux-github-20260828"
+    evidence:
+      - "AllTrue #911 asks for a stronger director explanation/drill-down layer; current origin/main already has a focused Today view and severity-sorted dashboard tasks."
+      - "V1 adds a frontend-only TodayProgressCard using todaySchedules and attendedCount, with no API, authorization, billing, scheduling, or production data changes."
+      - "Duolingo official product evidence supports separating a simple daily goal from streak mechanics; Primer and Pajamas evidence supports visible units and labeled progressbar semantics."
+      - "Focused helper and Vue component tests passed on 2026-08-28; frontend lint passed."
+    root_cause: "The director home has actionable task ordering but no immediate, low-cognitive-load feedback about today's completed course workload or the next task."
+    non_goals:
+      - "Do not invent a streak, points, cross-role score, or completion count for unloaded operational work."
+      - "Do not change attendance, billing, scheduling, authorization, API, or production data behavior."
+    tests:
+      - "node frontend/src/lib/dailyWorkProgress.test.js"
+      - "npx vitest run frontend/src/components/__tests__/TodayProgressCard.test.js"
+      - "npm --prefix frontend run lint:no-undef"
+      - "npm --prefix frontend run build"
+    rollback: "Revert the isolated frontend commit; no migration or API write is included."
+    dependencies:
+      - "Open a Draft PR from the isolated branch with the research evidence and build result."
+      - "Independent UI review and required GitHub checks before merge/deploy."
+    founder_gate: "Founder/reviewer retains merge and production deploy authority."
+    acceptance:
+      - "Director focus view shows completed/total course progress, a labeled progressbar, honest loading/empty states, and one existing safe next-action path."
+      - "Mobile layout remains readable and the CTA remains keyboard/touch accessible."
+      - "Post-deploy version identity, health, and UI smoke match the reviewed commit before claiming live."
+    next_action: "Finish build and UI smoke evidence, then open a Draft PR; do not claim production launch until merge/deploy/read-only verification exists."
+
   - id: OPS-ALLTRUE-2086
     product: alltrue
     priority: p1
