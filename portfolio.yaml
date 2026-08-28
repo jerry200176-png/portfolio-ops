@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T01:30:44+08:00"
+updated_at: "2026-08-29T02:03:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -30,13 +30,13 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T01:30:44+08:00"
-    source_commit: "a567f55e9a43d2214161347083a6e5d77067b5d6"
-    evidence_expires_at: "2026-08-30T01:30:44+08:00"
+    last_verified_at: "2026-08-29T02:03:00+08:00"
+    source_commit: "31795f9b6a7be7523a4b4b69358cf1a61ba135c1"
+    evidence_expires_at: "2026-08-30T02:03:00+08:00"
     open_p0: 0
     open_p1: 33
-    current_priority: "UX-ALLTRUE-STUDENT-COURSE-IA-20260829 — PR #2162 已完成 Phase 2A 課程總覽與 active-course selection 並部署驗證；#2007 維持 open，等待下一個 IA slice。#2160 TeacherHome 視覺切片仍為 production baseline。"
-    next_action: "以真實 staff feedback 量測課程總覽的 scan-to-first-action，再規劃 #2007 的下一個 bounded slice；#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    current_priority: "UX-ALLTRUE-TEACHER-NEXT-ACTION-20260829 — PR #2163 已將老師工作台第一個待辦提升為現在先做主行動並部署驗證；#1618 維持 open，等待下一個 teacher workflow slice。#2007 課程 IA 與 #2129 廣泛重構仍獨立追蹤。"
+    next_action: "以真實 staff feedback 量測老師工作台的 scan-to-first-action，再規劃 #1618 的下一個 bounded slice；#2129 的 1,279 行失敗 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
     evidence_links:
       - https://github.com/jerry200176-png/AllTrue_System/issues/1401
       - https://github.com/jerry200176-png/AllTrue_System/pull/1400
@@ -57,6 +57,8 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/pull/2161
       - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455191359
       - https://github.com/jerry200176-png/AllTrue_System/pull/2162
+      - https://github.com/jerry200176-png/AllTrue_System/pull/2163
+      - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5455985554
       - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455653131
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478
       - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741
@@ -78,6 +80,9 @@ projects:
       - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196785637
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196933804
+      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33197207380
       - reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
       - reports/2026-07-25/github-triage.md
       - reports/2026-07-25/gmail-signals.md

@@ -1,6 +1,6 @@
 # GitHub portfolio triage — 2026-08-28
 
-Capture time: 2026-08-29 01:30 +08:00. Source of truth for repository and
+Capture time: 2026-08-29 02:03 +08:00. Source of truth for repository and
 collaboration state: GitHub API/`gh` read-back in this session. Labels are
 signals only; the shortlist below is cross-checked against PR checks, local
 worktrees, and production read-only endpoints.
@@ -10,6 +10,16 @@ worktrees, and production read-only endpoints.
 - Fresh authenticated GitHub read-back covers six owner-visible repositories:
   76 open issues and 15 open PRs: AllTrue 70 issues / 5 PRs, Portfolio Ops 2 / 6, Engineering
   Intelligence 0 / 1, Sunrise Cafe 4 / 3, and both Income Statement repos 0 / 0.
+- AllTrue PR [#2163](https://github.com/jerry200176-png/AllTrue_System/pull/2163)
+  shipped the bounded teacher next-action slice for [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618):
+  the first existing task is now shown as `現在先做`, later work remains under
+  `接著處理`, and existing task ordering, leave filtering, routing, permissions,
+  and data behavior are unchanged. It merged as `31795f9b6a7be7523a4b4b69358cf1a61ba135c1`.
+- Main CI [33196785637](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196785637),
+  deploy [33196933804](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196933804),
+  and read-only production acceptance
+  [33197207380](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33197207380)
+  passed. Production version and health matched the merge SHA; issue #1618 remains open.
 - AllTrue PR [#2159](https://github.com/jerry200176-png/AllTrue_System/pull/2159)
   repaired the calendar/course acceptance contract and merged as
   `96d2980aa8d93a88ea56fdb0b1ca8a5a980eca06`; its production acceptance run
@@ -48,7 +58,7 @@ worktrees, and production read-only endpoints.
 
 | Repository | Open issues | P1-labelled | Blocked-labelled | Open PRs | Immediate signal |
 |---|---:|---:|---:|---:|---|
-| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2160 is merged/deployed for the first visual companion slice; Calendar/Course acceptance is green after PR #2159 |
+| [AllTrue System](https://github.com/jerry200176-png/AllTrue_System) | 70 | 33 | 37 | 5 | PR #2163 is merged/deployed for the teacher next-action slice; Calendar/Course acceptance is green |
 | [Engineering Intelligence](https://github.com/jerry200176-png/engineering-intelligence) | 0 | 0 | 0 | 1 | PR #1 has failing checks and is the only open delivery item |
 | [Portfolio Ops](https://github.com/jerry200176-png/portfolio-ops) | 2 | 0 | 0 | 6 | PR #52 merged the refreshed inventory; superseded PR #51 is closed; PR #40 remains draft/failing |
 | [Sunrise Cafe](https://github.com/jerry200176-png/sunrise-cafe) | 4 | 3 | 0 | 3 | PR #298 fails checks; #257 remains the production ownership issue |
@@ -95,7 +105,7 @@ GitHub project.
    #2162; the broader course-management IA cleanup remains open and must stay
    presentation-only per slice.
 4. [#1618](https://github.com/jerry200176-png/AllTrue_System/issues/1618) —
-   teacher daily workflow; follow after the director pattern is measured.
+   teacher daily workflow; the first next-action slice is live, measure scan-to-first-action before the next slice.
 5. [#2112](https://github.com/jerry200176-png/AllTrue_System/pull/2112) —
    Dependabot action update; keep dependency review separate from the UI work.
 

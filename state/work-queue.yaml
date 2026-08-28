@@ -1,9 +1,42 @@
 schema_version: 1
-updated_at: 2026-08-29T01:30:44+08:00
+updated_at: 2026-08-29T02:03:00+08:00
 wip_limits:
   production_changes_per_product: 1
   company_p0_incidents: unlimited
 queue:
+  - id: UX-ALLTRUE-TEACHER-NEXT-ACTION-20260829
+    product: alltrue
+    priority: p2
+    title: Make the teacher workbench next action obvious
+    source: https://github.com/jerry200176-png/AllTrue_System/issues/1618
+    status: deployed_verified
+    implementation: https://github.com/jerry200176-png/AllTrue_System/pull/2163
+    evidence:
+      - "TeacherHome promotes the existing highest-priority task into one 現在先做 action card; remaining tasks stay under 接著處理."
+      - "Existing task ordering, leave-request exclusion, routing, permissions, data source, and empty/error states are unchanged; no API, database, auth, or production-data behavior changed."
+      - "Local targeted teacher workflow tests passed 5/5; full real-Vue UI foundation passed 138/138 across mobile and desktop widths."
+      - "PR #2163 merged as 31795f9b6a7be7523a4b4b69358cf1a61ba135c1; main CI 33196785637, Deploy to Pi 33196933804, and Calendar/Course Production Acceptance 33197207380 all passed."
+      - "Production version.json build_sha and /api/v1/health matched the merge SHA and status=ok."
+    root_cause: "The teacher queue already had reliable priority ordering, but every task had the same visual weight and still required a first-glance choice."
+    non_goals:
+      - "Do not change API payloads, data ownership, permissions, billing, attendance, scheduling, course mutations, database state, or production data."
+      - "Do not claim issue #1618 complete; the broader daily-workflow follow-up remains open."
+    tests:
+      - "npm --prefix frontend run test:teacher-daily-workflow"
+      - "npm --prefix frontend run test:release-notes"
+      - "npm --prefix frontend run build"
+      - "npm --prefix frontend run test:e2e:ui-foundation (138 passed locally)"
+      - "npm --prefix frontend run lint:design"
+    rollback: "Revert the reviewed frontend presentation commit through a normal PR and redeploy; no migration or production-data repair is included."
+    dependencies:
+      - "Collect staff feedback on scan-to-first-action and keep the broader #1618 workflow work separate from #2007, #2002, and the failing #2129 refactor."
+    founder_gate: "Required GitHub checks, governed squash merge, main CI, deployment, production version/health read-back, and read-only acceptance completed; future AllTrue production changes remain subject to the same risk-based release gate."
+    acceptance:
+      - "TeacherHome shows one clear 現在先做 action for the first existing task and keeps later work discoverable under 接著處理."
+      - "Mobile and desktop layouts remain readable, keyboard accessible, and free of horizontal overflow."
+      - "Issue #1618 remains open for future bounded workflow slices."
+    next_action: "Measure scan-to-first-action with real staff feedback, then plan the next bounded #1618 slice; do not merge the broad failing #2129 refactor as a substitute."
+
   - id: UX-ALLTRUE-COURSE-OVERVIEW-20260829
     product: alltrue
     priority: p2
