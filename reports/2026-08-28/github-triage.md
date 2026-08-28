@@ -13,6 +13,28 @@ Additional capture: 2026-08-29 03:07 +08:00.
 
 Additional capture: 2026-08-29 03:32 +08:00.
 
+Additional capture: 2026-08-29 04:08 +08:00.
+
+- AllTrue PR [#2167](https://github.com/jerry200176-png/AllTrue_System/pull/2167)
+  shipped a bounded DirectorDashboard accessibility slice: the 「今天／完整營運」
+  switcher now exposes stable tab-to-tabpanel relationships and focusable panels;
+  existing task-first, lazy-load, navigation, permission, and operational behavior
+  remains unchanged.
+- PR #2167 merged as `992ea7341228aec142ce6e023d1d5d44fce0f1c9` after required
+  checks passed. Main CI
+  [33206113693](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206113693),
+  deploy
+  [33206406490](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206406490),
+  and read-only production acceptance
+  [33206683512](https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206683512)
+  passed; acceptance covered desktop and mobile calendar/course parity.
+- Production `version.json` and `deployment.json` both matched `992ea734` and
+  `/api/v1/health` returned `status=ok`. The release is recorded on
+  [issue #2135](https://github.com/jerry200176-png/AllTrue_System/issues/2135#issuecomment-5457238044).
+- Fresh owner-visible GitHub read-back remains 76 open issues and 15 open PRs:
+  AllTrue 70/5, Portfolio Ops 2/6, Engineering Intelligence 0/1, Sunrise
+  Cafe 4/3, and both Income Statement repos 0/0.
+
 - AllTrue PR [#2166](https://github.com/jerry200176-png/AllTrue_System/pull/2166)
   shipped a bounded StudentsList accessibility slice: student rows can now be
   expanded and collapsed with Enter/Space, expose their controlled course
