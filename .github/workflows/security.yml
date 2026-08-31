@@ -46,6 +46,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   scorecard:
     name: OpenSSF Scorecard
+    # Scorecard's GraphQL history query is not available to the GitHub
+    # integration for private repositories. Keep the check active for public
+    # repositories, but report the private-repository case as skipped instead
+    # of turning the scheduled security baseline red with an infrastructure
+    # error ("Resource not accessible by integration").
+    if: github.repository_visibility == 'public'
     runs-on: ubuntu-latest
     permissions:
       contents: read
