@@ -11,7 +11,9 @@ Before changing any repository, read:
 Use `/home/jerry/workspace/agent-control/bin/agent-start` for isolated task
 worktrees. Follow discover -> research -> plan -> implement -> verify -> review
 -> learn. Eligible T0/T1 work uses the inner loop in
-`docs/verify-retry-loop.md`. After required GitHub checks, squash-merge
-R0–R3 (`docs/fleet-merge-policy.md`). Then finish the task (issue close,
-mail, committed workflow dispatch). Machine bans: secrets, force-push,
-production SSH, Gmail delete. The owner is not an approval queue.
+`docs/verify-retry-loop.md`. If the same step fails twice or a gate is stuck
+for five minutes, record the blocker and stop retrying silently. On 收工,
+follow `docs/session-closeout.md`. Record plans and evidence in GitHub and in
+the control plane. After required GitHub checks, the Agent operates within
+`docs/fleet-merge-policy.md`; machine bans and product-specific protected
+boundaries remain in force.

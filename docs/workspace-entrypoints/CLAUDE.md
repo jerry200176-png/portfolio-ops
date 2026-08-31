@@ -12,9 +12,12 @@ discover -> research -> plan -> implement -> verify -> review -> learn
 ```
 
 Eligible T0/T1 work runs the inner verify-retry loop in
-`docs/verify-retry-loop.md` before verify is done. R0–R2 squash-merge after
-required GitHub checks (`docs/fleet-merge-policy.md`). The Agent is the
-operator. Machine bans stay (secrets, force-push, production SSH).
+`docs/verify-retry-loop.md` before verify is done. A green inner loop is not
+itself a merge; required GitHub checks remain authoritative. After required
+checks, the Agent operates within `docs/fleet-merge-policy.md`. Machine bans
+stay (secrets, force-push, production SSH); if the same step fails twice or a
+gate is stuck for five minutes, record the blocker and stop retrying silently.
+On 收工, follow `docs/session-closeout.md`.
 
 The Portfolio Ops repository is the company control plane. Record the plan,
 evidence, verification result, and learning record in GitHub and the control

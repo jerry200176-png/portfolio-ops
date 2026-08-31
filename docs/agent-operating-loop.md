@@ -47,13 +47,27 @@ machine-checkable acceptance, implementer/reviewer split, bounded retries,
 and a `docs/templates/verify-retry-record.md`. A green inner loop is not by
 itself a merge; GitHub required checks are.
 
+## Stall escalation
+
+Stop retrying silently when the same step fails twice in a row, or the same
+gate is stuck for five minutes (long installs, builds, and tests are not
+stalls). Record the exact blocker and continue with other safe work when
+possible; do not widen scope to make a red gate pass.
+
 After a failure, incident, or surprise, record root cause, add a regression
 guard, update the prevention rule and reference pattern, and link the GitHub
-issue or PR.
+issue or PR. Promote a one-line hard lesson when `docs/HARD_LESSONS.md`
+says to. Merge, deploy, production data changes, credentials, deletion,
+and history rewrites remain subject to the applicable fleet policy and
+machine bans.
+
+When the operator says 收工 / close out, follow `docs/session-closeout.md`.
 
 ## New project intake
 
 Register the repository, owner, lifecycle, tier, data sensitivity, deploy
 target, health/version endpoints, backup/recovery owner, source-of-truth paths,
 governance overlay, CI/security baseline, GitHub plan issue, and next review in
-the manifest and catalog before implementation begins.
+the manifest and catalog before implementation begins. New small tools that
+are not AllTrue, Sunrise, or this control plane also follow
+`docs/small-project-harness.md`.

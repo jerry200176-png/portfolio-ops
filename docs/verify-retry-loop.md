@@ -95,6 +95,18 @@ Default: **3** implement attempts. Exhaustion is a successful use of the
 loop: it proved the spec or the checks are wrong. Record that and rewrite
 the spec; do not burn a fourth attempt.
 
+## Stall escalation
+
+Also stop retrying silently, even before attempt 3, when **either** is true:
+
+- the same step failed **twice** in a row; or
+- the same gate has been stuck for **five minutes** (installs, builds, and
+  expected long tests do not count as a stall).
+
+Record what is stuck and what was tried, then continue with other safe work
+when possible. Do not widen scope or bypass a gate to force progress. This is
+the same rule as `docs/agent-operating-loop.md`.
+
 ## Record
 
 Fill `docs/templates/verify-retry-record.md` (or the same fields in the
