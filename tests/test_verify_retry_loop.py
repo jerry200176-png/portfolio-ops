@@ -16,6 +16,7 @@ class VerifyRetryLoopTests(unittest.TestCase):
             "## Eligibility",
             "## Generate / review split",
             "## Stop-loss",
+            "## Stall escalation",
             "machine-banned",
             "captain-balung-blog.ghost.io/seven-stages-ai-agent-workflow",
             "docs/templates/verify-retry-record.md",
@@ -31,6 +32,7 @@ class VerifyRetryLoopTests(unittest.TestCase):
             sop,
             r"(?i)autonomous deploy",
         )
+        self.assertNotIn("Founder-gated", sop)
 
 
 if __name__ == "__main__":
