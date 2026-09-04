@@ -7,11 +7,11 @@ Usage:
   governance-onboard <owner/repo> [--local-path <path>]
       [--dry-run|--apply] [--enable-ci]
 
-Default is read-only. --apply creates an isolated onboarding worktree and
-installs the pinned ExoProtocol governance core plus only missing adapters.
-Existing adapters are never overwritten. --enable-ci is a second-stage action
-for a repository that already has .exo/; it adds Exo's CI workflow separately.
-The command never pushes, merges, or changes GitHub rulesets.
+Default is read-only. Fleet onboarding uses agent-control as the canonical
+session path. ExoProtocol is experiment-only: --apply installs an isolated
+experiment worktree only when EXO_EXPERIMENT=1 is set. --enable-ci remains a
+second-stage experiment action and is not a fleet ruleset requirement. The
+command never pushes, merges, or changes GitHub rulesets.
 EOF
 }
 
@@ -41,17 +41,23 @@ gh repo view "$REPO" --json name,defaultBranchRef >/dev/null
 if [[ "$APPLY" == 0 ]]; then
   echo "governance-onboard: dry-run OK: $REPO"
   echo "local_path=$LOCAL_PATH"
+  echo "canonical session path: agent-start (agent-control)"
   if [[ "$ENABLE_CI" == 1 ]]; then
-    echo "would add .github/workflows/exo-governance.yml in a second-stage worktree"
+    echo "would add experimental .github/workflows/exo-governance.yml (not a fleet gate)"
   else
-    echo "would create .exo/ and generate only missing adapters"
-    echo "CI is intentionally a second-stage action: add --enable-ci after bootstrap merges"
+    echo "Exo bootstrap is experiment-only; set EXO_EXPERIMENT=1 with --apply to create .exo/"
   fi
   exit 0
 fi
 
+if [[ "${EXO_EXPERIMENT:-0}" != "1" ]]; then
+  echo "Refusing --apply: Exo onboarding is experiment-only." >&2
+  echo "Use agent-start for canonical sessions, or re-run with EXO_EXPERIMENT=1." >&2
+  exit 2
+fi
+
 command -v exo >/dev/null || {
-  echo "exo is required; install exoprotocol==0.2.3 in the governed runtime" >&2
+  echo "exo is required for EXO_EXPERIMENT=1; install exoprotocol==0.2.3 only for experiments" >&2
   exit 1
 }
 

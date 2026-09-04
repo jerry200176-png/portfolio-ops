@@ -1,12 +1,20 @@
 schema_version: 1
-policy_version: "2026-08-08.1"
+policy_version: "2026-09-04.1"
 canonical_policy: governance/AGENT_BOOTSTRAP.md
 agent_kernel:
+  name: agent-control
+  version: "0.5.0"
+  rollout: canonical
+  session_entrypoint: /home/jerry/workspace/agent-control/bin/agent-start
+  task_root: /home/jerry/workspace/tasks
+  bare_repos: /home/jerry/workspace/repos
+exo_experiment:
   name: exoprotocol
   version: "0.2.3"
-  rollout: pilot_then_fleet
-  generated_adapters: [AGENTS.md, CLAUDE.md, .cursorrules, codex.md]
-  generated_ci: .github/workflows/exo-governance.yml
+  status: experiment_only
+  required_in_ci: false
+  required_in_rulesets: false
+  note: "Do not dual-track governance; agent-control remains the only required session path."
 agents: [cursor, codex, claude-code, cubelv]
 remote_enforcement:
   default_branch: main
@@ -14,42 +22,40 @@ remote_enforcement:
   require_human_review: false
   block_deletion: true
   block_force_push: true
-  required_governance_check: "ExoProtocol Governance / governance-check"
-  governance_check_rollout: post_bootstrap_ci
+  required_governance_check: null
+  governance_check_rollout: not_applicable
   bypass_actors: []
 repositories:
   - id: alltrue
     github_repo: jerry200176-png/AllTrue_System
-    local_path: /home/jerry/workspace/AllTrue_System-clean
+    local_path: /home/jerry/workspace/repos/AllTrue_System.git
+    write_path: /home/jerry/workspace/tasks/alltrue/
     lifecycle: production
     required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
   - id: sunrise
     github_repo: jerry200176-png/sunrise-cafe
-    local_path: /home/jerry/workspace/sunrise-cafe
+    local_path: /home/jerry/workspace/repos/sunrise-cafe.git
+    write_path: /home/jerry/workspace/tasks/sunrise/
     lifecycle: production
     required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
   - id: portfolio-ops
     github_repo: jerry200176-png/portfolio-ops
-    local_path: /home/jerry/workspace/portfolio-ops
+    local_path: /home/jerry/workspace/repos/portfolio-ops.git
+    write_path: /home/jerry/workspace/tasks/portfolio-ops/
     lifecycle: control_plane
     required_adapters: [AGENTS.md, CLAUDE.md]
   - id: engineering-intelligence
     github_repo: jerry200176-png/engineering-intelligence
     local_path: /home/jerry/workspace/engineering-intelligence
     lifecycle: active
-    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
-  - id: korea-trip-plan
-    github_repo: jerry200176-png/korea-trip-plan
-    local_path: /home/jerry/workspace/korea-trip-plan
-    lifecycle: active
-    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+    required_adapters: [AGENTS.md]
   - id: income-statement-app
     github_repo: jerry200176-png/income-statement-app
     local_path: /home/jerry/workspace/income-statement-app
     lifecycle: active
-    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+    required_adapters: [CLAUDE.md]
   - id: income-statement-app-releases
     github_repo: jerry200176-png/income-statement-app-releases
     local_path: /home/jerry/workspace/income-statement-app-releases
     lifecycle: release_artifact
-    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+    required_adapters: []

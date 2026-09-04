@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-08-29T07:52:04+08:00"
+updated_at: "2026-09-04T18:05:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -11,10 +11,12 @@ freshness:
 projects:
   - id: alltrue
     name: AllTrue System
-    local_path: /home/jerry/workspace/AllTrue_System-clean
+    local_path: /home/jerry/workspace/repos/AllTrue_System.git
     github_repo: jerry200176-png/AllTrue_System
     forbidden_checkouts:
       - /home/jerry/alltrue
+      - /home/jerry/workspace/AllTrue_System
+      - /home/jerry/workspace/AllTrue_System-clean
     tier: 0
     lifecycle: production
     product_type: school/course operations platform (attendance, billing, scheduling)
@@ -29,135 +31,26 @@ projects:
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T07:52:04+08:00"
-    source_commit: "95a7f7d79b479549284ace4a72c43db36a447212"
-    evidence_expires_at: "2026-08-30T07:52:04+08:00"
+    latest_activity: "2026-09-04"
+    last_verified_at: "2026-09-04T18:05:00+08:00"
+    source_commit: "e17d36ba838d36e6598af9f9b1d27a1f2134c204"
+    evidence_expires_at: "2026-09-05T18:05:00+08:00"
     open_p0: 0
-    open_p1: 33
-    current_priority: "UX-ALLTRUE-TEACHER-QUEUE-TRUST-20260829 — PR #2174 修正 TeacherHome 今日工作隊列的資料可信度：核心來源載入失敗或尚未完成時不再誤顯示「今天完成了」，改顯示待確認、alert 與重新整理入口；production identity 綠。#1600 broad UX epic 與 #1618 teacher workflow 維持開啟。六 repo inventory 為 76 open issues / 15 open PRs；LearningRecords #1621 受 #957/#1080 資料真相 gate，#2129 與 production-sensitive work 仍獨立追蹤。"
-    next_action: "在 #1618 繼續做 teacher daily workflow 的 authenticated visual review 與 scan-to-first-action、tab-switch、keyboard/focus 證據，下一個切片仍需獨立 bounded change；LearningRecords #1621 等待 #957/#1080，#2129 的 1,279 行 PR 不直接合併，#2002 等 production-sensitive work 維持獨立 gate，每次 AllTrue 僅一個 deployable change。"
+    open_p1: 71
+    current_priority: "GOV-PATH-CONVERGE-20260904 — Agent writes only via agent-start + tasks/alltrue; inventory refreshed against live production identity."
+    next_action: "Keep using agent-start alltrue <task-id>; treat AllTrue_System / AllTrue_System-clean /home/jerry/alltrue as read-only forbidden checkouts."
     evidence_links:
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1401
-      - https://github.com/jerry200176-png/AllTrue_System/pull/1400
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1387
-      - https://github.com/jerry200176-png/AllTrue_System/pull/1395
-      - https://github.com/jerry200176-png/AllTrue_System/pull/1709
-      - https://github.com/jerry200176-png/AllTrue_System/security/secret-scanning/1
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1690
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1007
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2086
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2154
-      - https://github.com/jerry200176-png/AllTrue_System/issues/911
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2155
-      - https://github.com/jerry200176-png/AllTrue_System/issues/2007
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2157
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2159
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2160
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2161
-      - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455191359
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2162
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2163
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5455985554
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2164
-      - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5456282165
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2165
-      - https://github.com/jerry200176-png/AllTrue_System/issues/691#issuecomment-5456611507
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2168
-      - https://github.com/jerry200176-png/AllTrue_System/issues/2135#issuecomment-5457506355
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2169
-      - https://github.com/jerry200176-png/AllTrue_System/issues/693#issuecomment-5457810311
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2170
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2171
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2172
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2173
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2174
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458607891
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458802888
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218067240
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218300044
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218527188
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33218547562
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33219813217
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220048573
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220266993
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33220353183
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458952298
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362938
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221362903
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221455473
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221646376
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33221727676
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
-      - https://github.com/jerry200176-png/AllTrue_System/releases/tag/v2026.08.29.11
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458347820
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1618#issuecomment-5458393226
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215612471
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33215875727
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33216138420
-      - https://github.com/jerry200176-png/AllTrue_System/issues/1600#issuecomment-5458089013
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213233077
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213514877
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33213775735
-      - https://daan.lifenet.com.tw/version.json
-      - https://daan.lifenet.com.tw/api/v1/health
-      - https://daan.lifenet.com.tw/deployment.json
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33210657923
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211140431
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33211414610
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201485946
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33201790150
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33202081650
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2166
-      - https://github.com/jerry200176-png/AllTrue_System/pull/2167
-      - https://github.com/jerry200176-png/AllTrue_System/issues/2135#issuecomment-5457238044
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206113693
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206406490
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33206683512
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203497304
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33203794209
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33204061441
-      - https://daan.lifenet.com.tw/version.json
-      - https://daan.lifenet.com.tw/api/v1/health
-      - https://daan.lifenet.com.tw/deployment.json
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33198942210
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199257475
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33199540861
-      - https://github.com/jerry200176-png/AllTrue_System/issues/2007#issuecomment-5455653131
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33166606478
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33167200741
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33183649649
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33183649648
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184142519
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184486346
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33184796064
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33187279382
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33186993773
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33188121141
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33188295787
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33188606426
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194188998
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194481228
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33194768520
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33189424753
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33189578837
-      - https://github.com/jerry200176-png/AllTrue_System/security/dependabot
-      - https://daan.lifenet.com.tw/version.json
-      - https://daan.lifenet.com.tw/api/v1/health
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196785637
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33196933804
-      - https://github.com/jerry200176-png/AllTrue_System/actions/runs/33197207380
-      - reports/2026-07-25/alltrue-sec-1387-incident-status-card.md
-      - reports/2026-07-25/github-triage.md
-      - reports/2026-07-25/gmail-signals.md
-      - reports/2026-08-28/github-triage.md
-      - reports/2026-08-28/workspace-inventory.md
+      - https://github.com/jerry200176-png/AllTrue_System
+      - docs/observability-baseline.md
 
   - id: sunrise
     name: Sunrise Cafe
-    local_path: /home/jerry/workspace/sunrise-cafe
+    local_path: /home/jerry/workspace/repos/sunrise-cafe.git
     github_repo: jerry200176-png/sunrise-cafe
+    forbidden_checkouts:
+      - /home/jerry/workspace/sunrise-cafe
     tier: 0
     lifecycle: production
     product_type: cafe booking/ordering platform
@@ -172,39 +65,52 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-08-29"
-    last_verified_at: "2026-08-29T02:33:00+08:00"
-    source_commit: "f8927b174b04ff7e026be5f4cb341396e1d120c6"
-    evidence_expires_at: "2026-08-30T02:33:00+08:00"
+    latest_activity: "2026-09-04"
+    last_verified_at: "2026-09-04T18:05:00+08:00"
+    source_commit: "6630b9eb003e2d5459c84c9452f2413cc93ba8ab"
+    evidence_expires_at: "2026-09-05T18:05:00+08:00"
     open_p0: 0
-    open_p1: 3
-    current_priority: OPS-SUNRISE-257 — production health and serving commit are currently verified, but dashboard-level single deploy-owner verification remains open; rate limiting is explicitly degraded per isolate and Stripe remains disabled.
-    next_action: "完成 Vercel dashboard 的 serving project／deploy owner 唯讀核對，並將結果與目前 production health、version evidence 一起回寫 Portfolio；不要在未確認前觸發 redeploy。"
+    open_p1: 4
+    current_priority: "GOV-SUNRISE-RULESET-20260904 — required checks now enforced on portfolio-governance-main; rate_limit still degraded_per_isolate."
+    next_action: "Use agent-start sunrise <task-id> for writes; track durable rate-limit as a product hardening item (not a Founder merge gate)."
     evidence_links:
-      - https://github.com/jerry200176-png/sunrise-cafe/issues/211
-      - https://github.com/jerry200176-png/sunrise-cafe/pull/253
-      - https://github.com/jerry200176-png/sunrise-cafe/pull/276
-      - reports/2026-07-25/github-triage.md
-      - reports/2026-07-25/gmail-signals.md
-      - reports/2026-08-28/github-triage.md
+      - https://sunrise-cafe-six.vercel.app/api/version
+      - https://sunrise-cafe-six.vercel.app/api/booking-health
+      - https://github.com/jerry200176-png/sunrise-cafe/rules
+      - docs/observability-baseline.md
 
 # Non-product infrastructure tracked for context, not scored/tiered as a product.
 meta:
   - id: portfolio-ops
     name: Portfolio Ops (this repository)
-    local_path: /home/jerry/workspace/portfolio-ops
-    github_repo: null
+    local_path: /home/jerry/workspace/repos/portfolio-ops.git
+    github_repo: jerry200176-png/portfolio-ops
     note: control plane, not a product — excluded from Tier scoring
   - id: agent-control
     name: Agent session launcher
     local_path: /home/jerry/workspace/agent-control
     github_repo: null
-    note: safe preflight/session launcher used before editing product code
+    note: canonical session kernel (source under portfolio-ops/agent-control; installed runtime at workspace/agent-control)
   - id: engineering-intelligence
     name: Engineering Intelligence
     local_path: /home/jerry/workspace/engineering-intelligence
     github_repo: jerry200176-png/engineering-intelligence
-    note: 工程情報管線 — 監控 AI coding agent / CI/CD security / governance 相關來源，產出每日/週報與候選提案。2026-08-08 首次真實 LLM 分析完成（104/105 項，Groq Llama 3.1 8B），PR #1 待合併
+    note: read-only engineering intelligence pipeline relative to product repos
+  - id: income-statement-app
+    name: Income Statement App
+    local_path: /home/jerry/workspace/income-statement-app
+    github_repo: jerry200176-png/income-statement-app
+    note: Windows desktop P&L tool — separate product from AllTrue web/Pi stack
+  - id: income-statement-app-releases
+    name: Income Statement Releases
+    local_path: /home/jerry/workspace/income-statement-app-releases
+    github_repo: jerry200176-png/income-statement-app-releases
+    note: public .exe release artifacts only
+  - id: korea-trip-plan
+    name: Korea Trip Plan
+    local_path: /home/jerry/workspace/korea-trip-plan
+    github_repo: null
+    note: personal/archive local checkout — remote no longer resolves; not a governed product
 
 # Governance profile is maintained separately from product risk scoring.
 governance_baseline:
@@ -212,11 +118,11 @@ governance_baseline:
   profile: company-control-plane-v1
   manifest: workspace.manifest.yaml
   component_contract: catalog/*.yaml
-  last_inventory_at: "2026-08-27T10:04:18+08:00"
-  inventory_rows: 222
-  unresolved_inventory_rows: 8
+  last_inventory_at: "2026-09-04T18:05:00+08:00"
+  inventory_rows: 9
+  unresolved_inventory_rows: 0
   audit_script: scripts/portfolio-governance-audit.sh
-  latest_evidence: reports/2026-08-28/workspace-inventory.md
+  latest_evidence: reports/2026-09-04/portfolio-freshness.md
   required_controls:
     - README
     - CONTRIBUTING
@@ -226,15 +132,15 @@ governance_baseline:
     - CODEOWNERS
     - ISSUE_PR_TEMPLATES
     - CI_DEPENDABOT
-  lifecycle_policy: proposal-only-until-founder-approval
-  integration_policy: high-divergence-worktree-only
+  lifecycle_policy: risk-based-agent-operator
+  integration_policy: agent-start-task-worktree-only
   projects:
     - id: alltrue
       governance_score: 8
-      note: canonical checkout is dirty and 279 commits behind its remote-tracking ref; existing work is preserved, and release work uses isolated task worktrees
+      note: canonical write path is tasks/alltrue via agent-start; legacy checkouts forbidden
     - id: sunrise
       governance_score: 8
-      note: canonical checkout passes baseline; current dirty Dependabot change is preserved
+      note: ruleset now enforces Lint & Build, Playwright smoke, Agent Session Provenance
     - id: portfolio-ops
       governance_score: 7
-      note: current read-only governance audit passes 7/8 required controls; LICENSE is the only missing baseline artifact and must be handled as a separate reviewed control-plane change
+      note: control plane; agent-control canonical; Exo experiment-only

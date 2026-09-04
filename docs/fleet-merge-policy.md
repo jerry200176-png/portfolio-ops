@@ -2,20 +2,20 @@
 
 **Canonical owner:** portfolio-ops (`governance/AUTONOMY_POLICY.md` is the
 capability table; this file is the merge procedure).  
-**Operator:** the implementing Agent. The owner is not an approval queue.
+**Operator:** the implementing Agent for low-risk reversible work.
 
-Product repositories (AllTrue, Sunrise, others) **do not override** this
-capability table. They may add **stricter required checks** and domain P0
-bans (no Pi tests, campus isolation). They may not add a Founder
-rubber-stamp.
+Product repositories may add **stricter required checks** and domain P0
+bans. They may not add a Founder rubber-stamp for docs/UI/small reversible
+fixes.
 
-## Merge vs deploy vs extra mutation
+## Merge vs deploy vs Founder risk
 
 | Action | Autonomous after gates? |
 |---|---|
-| Squash-merge a PR whose **required** checks are green (R0–R3) | **Yes** |
-| AllTrue `deploy.yml` running *because* `main` moved | **Yes** — product control plane (I1) |
-| `workflow_dispatch` of a workflow **already on** the default branch | **Yes** — Agent fills inputs; records the run URL |
+| Squash-merge low-risk reversible PR (R0–R1; scoped reversible R2) after **required** checks | **Yes** |
+| Product deploy path that runs because `main` moved (risk class allows it) | **Yes** — deploy is not itself a Founder gate |
+| `workflow_dispatch` of a **committed** reversible workflow already on default branch | **Yes** — record the run URL |
+| Production data mutation, irreversible migration, identity/permission/security policy, billing, major data repair, destructive ops, major product direction, activation without reliable rollback | **No** — Founder approval |
 | SSH / artisan / phpunit on the production host | **No** — machine ban |
 | Force-push, history rewrite, `--admin` | **No** — machine ban |
 
@@ -26,32 +26,34 @@ After opening the PR, wait until:
 1. `Risk-Class: R0|R1|R2|R3` is in the PR body.
 2. GitHub `mergeStateStatus` is `CLEAN` / mergeable.
 3. Every **required** status check is `SUCCESS` (skipped is OK only when
-   the workflow is designed to skip for this diff, e.g. docs-only PHPUnit).
+   the workflow is designed to skip for this diff).
 4. No unresolved review threads that the ruleset requires resolved.
-5. R3: Repair Manifest or execution package is **in the diff or a linked
-   committed path**, with backup/recovery point and blast radius. Do not
-   merge R3 on chat claims alone.
+5. R3 / Founder-risk classes include an explicit Founder decision record
+   before any irreversible activation. Do not merge irreversible production
+   activation on chat claims alone.
 6. The diff does not print credential values or add a force-push / `--admin`
    bypass.
+7. The change does not delete tests, lower assertions, broaden allowlists,
+   or bypass security controls to pass CI.
 
-Then: `gh pr merge --squash --delete-branch`. Do not `--admin`. Do not
-skip hooks. Record the merge SHA in the session note.
+Then: `gh pr merge --squash --delete-branch`. Do not `--admin`. Record the
+merge SHA and runtime verification evidence.
 
 If checks fail: fix in a new commit on the same branch; do not merge red.
+If production verification fails after deploy: stop further mutation,
+rollback/report through the product path, and do not lower gates.
 
 ## Risk classes (fleet)
 
-Same letters as AllTrue’s table; meaning is fleet-wide:
-
-| Class | Meaning | Merge |
+| Class | Meaning | Merge / deploy |
 |---|---|---|
-| R0 | Docs, INDEX, radar, no production behavior | After checks, agent merges |
-| R1 | Isolated fix, no migration/authz/billing/deploy-workflow change | After checks, agent merges |
-| R2 | Scheduling, billing, authz, schema, deploy workflow, major deps | After checks, agent merges |
-| R3 | Production data repair, privilege expansion, mass recalculation, credential rotation workflow | After checks **and** Repair Manifest / execution package, agent merges |
+| R0 | Docs, INDEX, radar, no production behavior | Agent merges after checks |
+| R1 | Isolated fix, no migration/authz/billing/security-policy change | Agent merges + deploys after checks |
+| R2 | Scheduling/UX/API behavior that remains reversible with rollback | Agent merges + deploys after checks |
+| R3 / Founder-risk | Production data repair, irreversible migration, privilege/security policy, billing rules, destructive ops, activation without reliable rollback | Code may be prepared as PR; **activation/mutation requires Founder** |
 
-When unsure between R1 and R2, declare R2. When unsure between R2 and R3,
-declare R3 and include the manifest; do not stop for a human click.
+When unsure between R1 and R2, declare R2. When unsure whether Founder risk
+applies, treat it as Founder-risk and stop before irreversible activation.
 
 ## What is not “acceptance”
 
@@ -59,16 +61,16 @@ declare R3 and include the manifest; do not stop for a human click.
   required GitHub check.
 - Admin merge to bypass a failing required check.
 - Merging a second repository in the same session.
+- Claiming deploy success without health/version identity evidence.
 
 ## After merge
 
 Close the GitHub issue when the product Evidence Contract is satisfied
 (AllTrue in-app bugs: public reporter reply still required). Confirm
-deploy/Actions. Dispatch follow-up committed workflows if that was the
-task.
+deploy/Actions and runtime identity. Dispatch follow-up committed
+**reversible** workflows if that was the task.
 
 ## Rollback
 
-R0/R1: revert commit. R2: revert or prior deploy SHA via the product
-control plane (Agent opens the revert PR or dispatches the product
-rollback workflow). R3: Repair Manifest rollback path.
+R0/R1/R2: revert commit or prior deploy SHA via the product control plane.
+Founder-risk: use the approved Repair Manifest / Founder-directed path only.

@@ -5,7 +5,8 @@ metadata:
   description: Company control plane for portfolio inventory, governance, evidence, approvals, and project health.
   annotations:
     github.com/project-slug: jerry200176-png/portfolio-ops
-    portfolio.company/source-path: /home/jerry/workspace/portfolio-ops
+    portfolio.company/source-path: /home/jerry/workspace/repos/portfolio-ops.git
+    portfolio.company/write-path: /home/jerry/workspace/tasks/portfolio-ops/
     portfolio.company/governance-overlay: governance/COMPANY_CONSTITUTION.md
 spec:
   owner: founder
@@ -16,5 +17,5 @@ spec:
   healthUrl: file:///home/jerry/workspace/portfolio-ops/CEO_DASHBOARD.md
   versionUrl: file:///home/jerry/workspace/portfolio-ops/portfolio.yaml
   recoveryOwner: founder
-  lastVerifiedAt: "2026-08-01T00:00:00+08:00"
+  lastVerifiedAt: "2026-09-04T18:05:00+08:00"
   evidenceTtlHours: 24

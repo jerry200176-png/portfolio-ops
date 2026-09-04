@@ -8,6 +8,7 @@
   "task_root": "/home/jerry/workspace/tasks/alltrue",
   "forbidden_exact": [
     "/home/jerry/alltrue",
+    "/home/jerry/workspace/AllTrue_System",
     "/home/jerry/workspace/AllTrue_System-clean",
     "/home/jerry/workspace/repos/AllTrue_System.git"
   ],
@@ -15,7 +16,8 @@
     "/actions-runner-alltrue/",
     "/workspace-backups/",
     "/mnt/c/",
-    "/workspace/repos/"
+    "/workspace/repos/",
+    "/workspace/AllTrue_System"
   ],
   "allowed_path_prefixes": [
     "/home/jerry/workspace/tasks/alltrue/"

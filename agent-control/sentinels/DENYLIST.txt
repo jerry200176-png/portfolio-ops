@@ -3,5 +3,6 @@
 /home/jerry/workspace-backups
 /mnt/c/
 /home/jerry/workspace/repos/*.git
+/home/jerry/workspace/AllTrue_System
 /home/jerry/workspace/AllTrue_System-clean
 /home/jerry/workspace/sunrise-cafe
