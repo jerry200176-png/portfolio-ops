@@ -1,13 +1,14 @@
 schema_version: 1
 workspace_root: /home/jerry/workspace
 manifest_owner: /home/jerry/workspace/portfolio-ops
-last_verified_at: "2026-08-27T10:48:55+08:00"
+last_verified_at: "2026-09-04T18:05:00+08:00"
 inventory_policy:
   discover_immediate_git_roots:
     - /home/jerry/workspace
     - /home/jerry/wt
     - /home/jerry
   worktree_roots:
+    - /home/jerry/workspace/tasks
     - /home/jerry/workspace/worktrees
     - /home/jerry/wt
   forbidden_mutations:
@@ -21,113 +22,82 @@ inventory_policy:
     - delete
 paths:
   bare_repos: /home/jerry/workspace/repos
-  canonical_checkouts: /home/jerry/workspace
-  active_worktrees: /home/jerry/workspace/worktrees
+  canonical_checkouts: /home/jerry/workspace/repos
+  active_worktrees: /home/jerry/workspace/tasks
   tasks: /home/jerry/workspace/tasks
   archives: /home/jerry/workspace/archives
   evidence: /home/jerry/evidence/workspace-admin
   backups: /home/jerry/evidence/workspace-admin
   agent_control: /home/jerry/workspace/agent-control
   control_plane: /home/jerry/workspace/portfolio-ops
-inventory_observation:
-  generated_at: "2026-08-27T10:04:18+08:00"
-  source_report: reports/2026-08-27/workspace-inventory.md
-  candidate_rows: 222
-  unresolved_rows: 8
-  discovery_roots:
-    - /home/jerry/workspace
-    - /home/jerry/wt
-    - /home/jerry
-    - /home/jerry/workspace/tasks/alltrue
-    - /home/jerry/workspace/tasks/portfolio-ops
-  policy: "classify and preserve first; archive, remove, move, reset, clean, or prune only with explicit approval"
 repositories:
-  - id: alltrue-canonical
-    path: /home/jerry/workspace/AllTrue_System-clean
-    role: canonical-checkout
+  - id: alltrue-bare
+    path: /home/jerry/workspace/repos/AllTrue_System.git
+    role: canonical-bare
     remote: https://github.com/jerry200176-png/AllTrue_System.git
-    branch_policy: integration-worktree-only-for-divergence
-    mutation_policy: no-reset-no-clean-no-in-place-rewrite
+    branch_policy: fetch-only
+    mutation_policy: no-app-code-writes
     approval_for_archive_or_remove: required
-  - id: alltrue-legacy
+  - id: alltrue-task-root
+    path: /home/jerry/workspace/tasks/alltrue
+    role: agent-write-root
+    remote: https://github.com/jerry200176-png/AllTrue_System.git
+    branch_policy: isolated-task-branch
+    mutation_policy: agent-start-only
+    approval_for_archive_or_remove: required
+  - id: alltrue-legacy-home
     path: /home/jerry/alltrue
-    role: legacy-checkout
+    role: forbidden-checkout
     remote: https://github.com/jerry200176-png/AllTrue_System.git
     branch_policy: evidence-and-investigation-only
     mutation_policy: no-edit
     approval_for_archive_or_remove: required
-  - id: alltrue-ci867-legacy-worktree
-    path: /home/jerry/alltrue-ci867
-    role: legacy-worktree
+  - id: alltrue-legacy-workspace
+    path: /home/jerry/workspace/AllTrue_System
+    role: forbidden-checkout
     remote: https://github.com/jerry200176-png/AllTrue_System.git
     branch_policy: evidence-and-investigation-only
     mutation_policy: no-edit
     approval_for_archive_or_remove: required
-  - id: sunrise-canonical
+  - id: alltrue-legacy-clean
+    path: /home/jerry/workspace/AllTrue_System-clean
+    role: forbidden-checkout
+    remote: https://github.com/jerry200176-png/AllTrue_System.git
+    branch_policy: evidence-and-investigation-only
+    mutation_policy: no-edit
+    approval_for_archive_or_remove: required
+  - id: sunrise-bare
+    path: /home/jerry/workspace/repos/sunrise-cafe.git
+    role: canonical-bare
+    remote: https://github.com/jerry200176-png/sunrise-cafe.git
+    branch_policy: fetch-only
+    mutation_policy: no-app-code-writes
+    approval_for_archive_or_remove: required
+  - id: sunrise-task-root
+    path: /home/jerry/workspace/tasks/sunrise
+    role: agent-write-root
+    remote: https://github.com/jerry200176-png/sunrise-cafe.git
+    branch_policy: isolated-task-branch
+    mutation_policy: agent-start-only
+    approval_for_archive_or_remove: required
+  - id: sunrise-legacy-workspace
     path: /home/jerry/workspace/sunrise-cafe
-    role: canonical-checkout
+    role: forbidden-checkout
     remote: https://github.com/jerry200176-png/sunrise-cafe.git
-    branch_policy: dedicated-branch-or-worktree
-    mutation_policy: preserve-dirty-state-before-sync
+    branch_policy: evidence-and-investigation-only
+    mutation_policy: no-edit
     approval_for_archive_or_remove: required
-  - id: alltrue-governance-contract-worktree
-    path: /home/jerry/workspace/worktrees/alltrue-governance-contract-20260801
-    role: active-worktree
-    remote: https://github.com/jerry200176-png/AllTrue_System.git
-    branch_policy: isolated-task-branch
-    mutation_policy: preserve-dirty-state-before-sync
-    approval_for_archive_or_remove: required
-  - id: sunrise-governance-contract-worktree
-    path: /home/jerry/workspace/worktrees/sunrise-governance-contract-20260801
-    role: active-worktree
-    remote: https://github.com/jerry200176-png/sunrise-cafe.git
-    branch_policy: isolated-task-branch
-    mutation_policy: preserve-dirty-state-before-sync
-    approval_for_archive_or_remove: required
-  - id: alltrue-booking-regression-task
-    path: /home/jerry/workspace/tasks/alltrue/booking-regression-20260827
-    role: active-worktree
-    remote: https://github.com/jerry200176-png/AllTrue_System.git
-    branch_policy: isolated-task-branch
-    mutation_policy: preserve-dirty-state-before-sync
-    approval_for_archive_or_remove: required
-    task_ref: AllTrue-2086
-  - id: alltrue-dashboard-workbench-task
-    path: /home/jerry/workspace/tasks/alltrue/dashboard-workbench-20260827
-    role: active-worktree
-    remote: https://github.com/jerry200176-png/AllTrue_System.git
-    branch_policy: isolated-task-branch
-    mutation_policy: preserve-dirty-state-before-sync
-    approval_for_archive_or_remove: required
-    task_ref: AllTrue-2085
-  - id: alltrue-manual-session-diagnose-task
-    path: /home/jerry/workspace/tasks/alltrue/manual-session-diagnose-20260827
-    role: active-worktree
-    remote: https://github.com/jerry200176-png/AllTrue_System.git
-    branch_policy: isolated-task-branch
-    mutation_policy: preserve-dirty-state-before-sync
-    approval_for_archive_or_remove: required
-    task_ref: AllTrue-incident-read-only
-  - id: alltrue-platform-optimization-task
-    path: /home/jerry/workspace/tasks/alltrue/platform-optimization-20260827
-    role: active-worktree
-    remote: https://github.com/jerry200176-png/AllTrue_System.git
-    branch_policy: isolated-task-branch
-    mutation_policy: preserve-dirty-state-before-sync
-    approval_for_archive_or_remove: required
-    task_ref: AllTrue-platform-optimization
-  - id: portfolio-freshness-rebaseline-task
-    path: /home/jerry/workspace/tasks/portfolio-ops/freshness-rebaseline-20260827
-    role: active-worktree
+  - id: portfolio-ops-bare
+    path: /home/jerry/workspace/repos/portfolio-ops.git
+    role: canonical-bare
     remote: https://github.com/jerry200176-png/portfolio-ops.git
-    branch_policy: isolated-task-branch
-    mutation_policy: preserve-dirty-state-before-sync
+    branch_policy: fetch-only
+    mutation_policy: no-app-code-writes
     approval_for_archive_or_remove: required
-    task_ref: portfolio-freshness-rebaseline
   - id: portfolio-ops
-    path: /home/jerry/workspace/portfolio-ops
+    path: /home/jerry/workspace/tasks/portfolio-ops
     role: control-plane
     remote: https://github.com/jerry200176-png/portfolio-ops.git
-    branch_policy: dedicated-governance-branch
-    mutation_policy: evidence-first
+    branch_policy: isolated-task-branch
+    mutation_policy: agent-start-only
     approval_for_archive_or_remove: required

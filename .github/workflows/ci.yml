@@ -36,4 +36,6 @@ jobs:
       - name: Validate company context
         run: python scripts/company-context.py --check
       - name: Validate freshness report
-        run: python scripts/portfolio-freshness.py --now 2026-08-01T12:00:00+00:00 --json-out "$RUNNER_TEMP/portfolio-freshness.json"
+        run: python scripts/portfolio-freshness.py --fail-on-stale --json-out "$RUNNER_TEMP/portfolio-freshness.json"
+      - name: Check production identity script syntax
+        run: python -m py_compile scripts/check-production-identity.py scripts/portfolio-freshness.py

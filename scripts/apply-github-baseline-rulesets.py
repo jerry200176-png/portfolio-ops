@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Create the non-bypass baseline ruleset for every governed GitHub repo.
+"""Create/update the non-bypass baseline ruleset for governed GitHub repos.
 
 The default is a dry run. ``--apply`` is deliberately required because this
-changes GitHub repository enforcement. The ExoProtocol status check is added
-in a later rollout stage, after each repository has a passing workflow.
+changes GitHub repository enforcement.
+
+Required status checks are sourced from
+``governance/github-enforcement-policy.yaml`` so policy and rulesets cannot
+silently drift.
 """
 
 from __future__ import annotations
@@ -20,32 +23,53 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "governance" / "repository-governance.yaml"
+ENFORCEMENT = ROOT / "governance" / "github-enforcement-policy.yaml"
 RULESET_NAME = "portfolio-governance-main"
 RULESET_FIELDS = ("name", "target", "enforcement", "conditions", "rules", "bypass_actors")
 
 
-def payload() -> dict[str, Any]:
+def load_required_checks() -> dict[str, list[str]]:
+    data = yaml.safe_load(ENFORCEMENT.read_text(encoding="utf-8"))
+    out: dict[str, list[str]] = {}
+    for entry in data.get("repositories", []):
+        out[entry["github_repo"]] = list(entry.get("required_status_checks") or [])
+    return out
+
+
+def payload(required_checks: list[str] | None = None) -> dict[str, Any]:
+    rules: list[dict[str, Any]] = [
+        {"type": "deletion"},
+        {"type": "non_fast_forward"},
+        {
+            "type": "pull_request",
+            "parameters": {
+                "required_approving_review_count": 0,
+                "dismiss_stale_reviews_on_push": False,
+                "require_code_owner_review": False,
+                "require_last_push_approval": False,
+                "required_review_thread_resolution": False,
+                "required_reviewers": [],
+                "allowed_merge_methods": ["merge", "squash", "rebase"],
+            },
+        },
+    ]
+    if required_checks:
+        rules.append(
+            {
+                "type": "required_status_checks",
+                "parameters": {
+                    "strict_required_status_checks_policy": True,
+                    "do_not_enforce_on_create": False,
+                    "required_status_checks": [{"context": name} for name in required_checks],
+                },
+            }
+        )
     return {
         "name": RULESET_NAME,
         "target": "branch",
         "enforcement": "active",
         "conditions": {"ref_name": {"include": ["~DEFAULT_BRANCH"], "exclude": []}},
-        "rules": [
-            {"type": "deletion"},
-            {"type": "non_fast_forward"},
-            {
-                "type": "pull_request",
-                "parameters": {
-                    "required_approving_review_count": 0,
-                    "dismiss_stale_reviews_on_push": False,
-                    "require_code_owner_review": False,
-                    "require_last_push_approval": False,
-                    "required_review_thread_resolution": False,
-                    "required_reviewers": [],
-                    "allowed_merge_methods": ["merge", "squash", "rebase"],
-                },
-            },
-        ],
+        "rules": rules,
         "bypass_actors": [],
     }
 
@@ -101,22 +125,24 @@ def main() -> int:
         parser.error("--replace-existing requires --apply")
 
     data = yaml.safe_load(MANIFEST.read_text())
+    checks_by_repo = load_required_checks()
     entries = data["repositories"]
     if args.repo:
         entries = [entry for entry in entries if entry["github_repo"] in args.repo]
 
-    rule_payload = payload()
-    plans: list[tuple[dict[str, Any], str, dict[str, Any] | None, dict[str, Any] | None]] = []
+    plans: list[tuple[dict[str, Any], str, dict[str, Any] | None, dict[str, Any]]] = []
     for entry in entries:
         repo = entry["github_repo"]
+        rule_payload = payload(checks_by_repo.get(repo, []))
         if not args.apply:
-            print(f"DRY-RUN {repo}: create/update {RULESET_NAME}")
+            check_names = ", ".join(checks_by_repo.get(repo, [])) or "(none)"
+            print(f"DRY-RUN {repo}: create/update {RULESET_NAME} checks=[{check_names}]")
             continue
 
         existing = gh_json(repo, f"repos/{repo}/rulesets") or []
         match = next((item for item in existing if item.get("name") == RULESET_NAME), None)
         if not match:
-            plans.append((entry, "created", None, None))
+            plans.append((entry, "created", None, rule_payload))
             continue
 
         detail = gh_json(repo, f"repos/{repo}/rulesets/{match['id']}") or match
@@ -128,9 +154,9 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 2
-        plans.append((entry, action, match, detail))
+        plans.append((entry, action, match, rule_payload))
 
-    for entry, action, match, _detail in plans:
+    for entry, action, match, rule_payload in plans:
         repo = entry["github_repo"]
         if action == "unchanged":
             print(f"VERIFIED {repo}: unchanged {RULESET_NAME}")

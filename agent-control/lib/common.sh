@@ -36,6 +36,7 @@ FORBIDDEN_SUBSTRINGS=(
   "/workspace-backups/"
   "/mnt/c/"
   "/AllTrue_System-clean"
+  "/workspace/AllTrue_System"
   "/workspace/sunrise-cafe"
 )
 

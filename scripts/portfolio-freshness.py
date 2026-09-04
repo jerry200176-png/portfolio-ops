@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -29,23 +30,29 @@ def load_report(now: datetime) -> dict:
 
     updated_at = parse_time(str(portfolio["updated_at"]))
     projects = []
+    any_project_stale = False
     for project in portfolio.get("projects", []):
         verified_at = parse_time(str(project["last_verified_at"]))
         evidence_expires = parse_time(str(project["evidence_expires_at"]))
         p0 = int(project.get("open_p0", 0))
+        status_stale = verified_at + status_ttl <= now
+        evidence_stale = evidence_expires <= now
+        any_project_stale = any_project_stale or status_stale or evidence_stale
         projects.append({
             "id": project["id"],
             "last_verified_at": project["last_verified_at"],
             "evidence_expires_at": project["evidence_expires_at"],
-            "status_stale": verified_at + status_ttl <= now,
-            "evidence_stale": evidence_expires <= now,
+            "status_stale": status_stale,
+            "evidence_stale": evidence_stale,
             "p0_evidence_stale": p0 > 0 and evidence_expires <= now + evidence_ttl,
             "source_commit": project.get("source_commit"),
         })
+    inventory_stale = updated_at + inventory_ttl <= now
     return {
         "generated_at": now.isoformat(),
         "inventory_updated_at": portfolio["updated_at"],
-        "inventory_stale": updated_at + inventory_ttl <= now,
+        "inventory_stale": inventory_stale,
+        "any_stale": inventory_stale or any_project_stale,
         "projects": projects,
     }
 
@@ -55,6 +62,7 @@ def render_markdown(report: dict) -> str:
         "## Portfolio freshness",
         f"Generated: `{report['generated_at']}`",
         f"Inventory stale: **{'YES' if report['inventory_stale'] else 'NO'}**",
+        f"Any stale: **{'YES' if report['any_stale'] else 'NO'}**",
         "",
         "| Project | Status stale | Evidence stale | P0 evidence warning | Source commit |",
         "|---|---:|---:|---:|---|",
@@ -74,6 +82,11 @@ def main() -> int:
     parser.add_argument("--now", help="UTC/ISO timestamp, useful for deterministic tests")
     parser.add_argument("--json-out", type=Path)
     parser.add_argument("--github-summary", action="store_true")
+    parser.add_argument(
+        "--fail-on-stale",
+        action="store_true",
+        help="exit 1 when inventory or any project status/evidence is stale",
+    )
     args = parser.parse_args()
     now = parse_time(args.now) if args.now else datetime.now(timezone.utc)
     report = load_report(now)
@@ -85,6 +98,9 @@ def main() -> int:
     if args.github_summary and summary_path:
         with open(summary_path, "a", encoding="utf-8") as handle:
             handle.write(render_markdown(report))
+    if args.fail_on_stale and report["any_stale"]:
+        print("FAIL: portfolio inventory/evidence is stale", file=sys.stderr)
+        return 1
     return 0
 
 

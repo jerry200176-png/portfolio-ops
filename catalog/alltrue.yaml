@@ -5,7 +5,8 @@ metadata:
   description: School course-operations platform for attendance, billing, scheduling, and parent communication.
   annotations:
     github.com/project-slug: jerry200176-png/AllTrue_System
-    portfolio.company/source-path: /home/jerry/workspace/AllTrue_System-clean
+    portfolio.company/source-path: /home/jerry/workspace/repos/AllTrue_System.git
+    portfolio.company/write-path: /home/jerry/workspace/tasks/alltrue/
     portfolio.company/governance-overlay: docs/governance/README.md
 spec:
   owner: founder
@@ -16,5 +17,5 @@ spec:
   healthUrl: https://daan.lifenet.com.tw/api/v1/health
   versionUrl: https://daan.lifenet.com.tw/version.json
   recoveryOwner: founder
-  lastVerifiedAt: "2026-08-01T00:00:00+08:00"
+  lastVerifiedAt: "2026-09-04T18:05:00+08:00"
   evidenceTtlHours: 24

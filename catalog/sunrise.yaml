@@ -5,7 +5,8 @@ metadata:
   description: Cafe booking and ordering platform with LINE deposits, waitlists, and staff workflows.
   annotations:
     github.com/project-slug: jerry200176-png/sunrise-cafe
-    portfolio.company/source-path: /home/jerry/workspace/sunrise-cafe
+    portfolio.company/source-path: /home/jerry/workspace/repos/sunrise-cafe.git
+    portfolio.company/write-path: /home/jerry/workspace/tasks/sunrise/
     portfolio.company/governance-overlay: docs/governance/OVERLAY.md
 spec:
   owner: founder
@@ -16,5 +17,5 @@ spec:
   healthUrl: https://sunrise-cafe-six.vercel.app/api/booking-health
   versionUrl: https://sunrise-cafe-six.vercel.app/api/version
   recoveryOwner: founder
-  lastVerifiedAt: "2026-08-01T00:00:00+08:00"
+  lastVerifiedAt: "2026-09-04T18:05:00+08:00"
   evidenceTtlHours: 24

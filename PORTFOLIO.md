@@ -11,36 +11,36 @@ School course-operations platform: attendance, billing, scheduling, for
 school staff, instructors, and parents/guardians of enrolled students. Self-
 hosted on a Raspberry Pi at `daan.lifenet.com.tw`. Handles minors' PII and
 billing data — the highest data-sensitivity product in the portfolio.
-Currently in active P0 containment (SEC-ALLTRUE-003 — see
-`state/work-queue.yaml`) following a credential exposure in a public Actions
-log. The 2026-08-27 operational priority is a director-reported eighth-
-session booking failure: the defect was reproduced as a stale asynchronous
-HTTP 422 race, and AllTrue PR #2086 carries the guarded workflow and a
-page-level regression test. It is awaiting independent review and deployment;
-production remains unchanged until then.
+
+**Canonical agent write path:** `agent-start alltrue <task-id>` →
+`/home/jerry/workspace/tasks/alltrue/<task-id>/` on bare
+`/home/jerry/workspace/repos/AllTrue_System.git`. Legacy checkouts
+(`/home/jerry/alltrue`, `workspace/AllTrue_System`,
+`workspace/AllTrue_System-clean`) are forbidden for agent edits.
 
 ## Sunrise Cafe — Tier 0
 
 Public-facing cafe booking/ordering platform for customers and cafe staff.
-Deployed on Vercel with a Supabase backend. Public repository. No stored
-card data. Recent operating friction has been Vercel preview-deployment
-capacity limits and an open RLS/rate-limit/backup hardening decision queue
-(SEC-SUNRISE-002).
+Deployed on Vercel with a Supabase backend. No stored card data. Agent writes
+go through `agent-start sunrise <task-id>`. Required GitHub checks for merge
+are Lint & Build, Playwright smoke, and Agent Session Provenance.
 
 ## Non-product infrastructure
 
-- `agent-control/` — safe session launcher/preflight, used before any agent
-  touches product code. Not a product; not tiered.
+- `agent-control/` — **canonical** session launcher/preflight. Not a product.
 - `portfolio-ops/` (this repo) — the control plane itself.
+- ExoProtocol — **experiment only**; not a required fleet gate.
+- `engineering-intelligence/` — read-only research pipeline relative to products.
+- `income-statement-app` (+ releases) — separate desktop product.
 
 ## Change log
 
-- 2026-08-27: rebaselined the portfolio around the AllTrue director workflow
-  incident. Recorded the production SHA/health evidence, PR #2086's root
-  cause and regression coverage, the release-evidence gate, and the next
-  cross-date calendar consistency risk. No production data was changed.
+- 2026-09-04: converged AllTrue/Sunrise path model to bare+tasks, refreshed
+  inventory against live production identity, enforced Sunrise required
+  checks, demoted Exo to experiment, and reset autonomy to risk-based
+  Agent operator (Founder only for irreversible/high-blast risk).
 
-- 2026-07-25: restructured from `company-os` into `portfolio-ops` under a
-  conservative autonomy policy (no autonomous merge/deploy/production-data
-  mutation/Gmail mutation). See `governance/AUTONOMY_POLICY.md`.
-- 2026-07-19: initial portfolio baseline established (AllTrue, Sunrise).
+- 2026-08-27: rebaselined the portfolio around the AllTrue director workflow
+  incident. Recorded the production SHA/health evidence and PR #2086.
+
+- 2026-07-25: restructured from `company-os` into `portfolio-ops`.

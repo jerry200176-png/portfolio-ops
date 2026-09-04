@@ -26,9 +26,17 @@ def main() -> int:
     if data["maintainer_model"] != "single_owner":
         raise SystemExit("maintainer_model must be single_owner")
     invariants = data["session_invariants"]
-    required_true = [key for key in invariants if key != "production_mutation_default"]
+    # draft_pr_is_default_finish_line may be false: low-risk work finishes at
+    # merge/deploy/verify, not at Draft PR.
+    required_true = [
+        key
+        for key in invariants
+        if key not in {"production_mutation_default", "draft_pr_is_default_finish_line"}
+    ]
     if any(invariants.get(key) is not True for key in required_true):
         raise SystemExit("all non-mutation session invariants must be true")
+    if invariants.get("draft_pr_is_default_finish_line") not in (True, False):
+        raise SystemExit("draft_pr_is_default_finish_line must be boolean")
     if invariants.get("production_mutation_default") is not False:
         raise SystemExit("production_mutation_default must be false")
     intake = data["project_intake"]

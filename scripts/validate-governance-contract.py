@@ -66,7 +66,16 @@ def validate_manifest(errors: list[str], check_paths: bool) -> None:
 
     ids: set[str] = set()
     paths_seen: set[str] = set()
-    allowed_roles = {"canonical-checkout", "control-plane", "active-worktree", "legacy-checkout", "legacy-worktree"}
+    allowed_roles = {
+        "canonical-checkout",
+        "canonical-bare",
+        "agent-write-root",
+        "forbidden-checkout",
+        "control-plane",
+        "active-worktree",
+        "legacy-checkout",
+        "legacy-worktree",
+    }
     for index, repository in enumerate(repositories):
         label = f"workspace.manifest.yaml.repositories[{index}]"
         if not isinstance(repository, dict):

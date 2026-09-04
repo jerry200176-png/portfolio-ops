@@ -1,7 +1,7 @@
 schema_version: 1
 contract_id: company-agent-operating-contract
 version: 1.0.0
-policy_version: "2026-08-15.2"
+policy_version: "2026-09-04.1"
 owner: jerry200176-png
 company_name: Jerry Software Portfolio
 workspace_root: /home/jerry/workspace
@@ -39,7 +39,7 @@ session_invariants:
   isolated_worktree_required: true
   session_manifest_required: true
   evidence_before_claim: true
-  draft_pr_is_default_finish_line: true
+  draft_pr_is_default_finish_line: false
   production_mutation_default: false
 
 project_intake:
@@ -151,7 +151,7 @@ required_controls:
     - required_status_checks_before_merge
     - force_push_blocked
     - branch_deletion_blocked
-    - provenance_or_exo_session_required
+    - agent_session_provenance_required
 
 cloud_boundary:
   local_home_visible: false
@@ -168,10 +168,22 @@ irreversible_actions:
     - restore_compromised_credential
     - gmail_trash_delete
     - enable_disabled_self_dispatch_loop
+    - weaken_tests_assertions_allowlists_or_security_controls
   agent_owns_with_evidence:
-    - r0_r1_r2_r3_squash_merge
+    - low_risk_reversible_squash_merge
+    - r0_r1_r2_squash_merge
     - close_github_issue
     - gmail_send_reply_label
-    - product_workflow_dispatch
-    - repair_manifest_via_product_path
-    - credential_rotation_via_committed_workflow
+    - product_workflow_dispatch_reversible
+    - deploy_via_product_path_when_risk_allows
+    - production_readonly_verify
+  founder_approval_required:
+    - production_data_mutation
+    - irreversible_migration
+    - identity_permission_security_policy
+    - billing_rule_changes
+    - major_data_repair
+    - destructive_operations
+    - major_product_direction
+    - production_activation_without_reliable_rollback
+    - credential_rotation
