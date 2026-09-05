@@ -1,0 +1,45 @@
+id: INT-20260905-194224-S7JN
+title: portfolio evidence and identity hygiene
+intent: portfolio evidence and identity hygiene
+kind: intent
+brain_dump: "\u6536\u6582 portfolio audit\uFF1A\u63A1\u7528 EI evidence envelope \u8207\
+  \ OTel CI/CD naming \u4F5C\u70BA\u8DE8 repo \u6700\u5C0F evidence schema\uFF1BPortfolio\
+  \ Ops \u53EA\u505A\u805A\u5408\u8B80\u53D6\uFF1B\u4FEE\u6B63\u53EF\u8B49\u5BE6\u7684\
+  \ stale inventory\uFF1B\u7522\u51FA stale PR/branch/worktree triage\uFF1B\u4E0D\u505A\
+  \ production mutation\u3001history rewrite\u3001auto-close/delete \u6216\u65B0\u5E73\
+  \u53F0\u3002"
+boundary: Do not deploy, mutate production, change visibility/history/security/permissions,
+  close/delete GitHub work, or add DevLake/Backstage/central ETL/database.
+success_condition: Contract is documented and validated; Sunrise inventory matches
+  serving SHA; inaccessible AllTrue identity remains explicitly unknown; triage is
+  evidence-backed and proposal-only.
+risk: low
+priority: 3
+labels: []
+scope:
+  allow:
+  - governance/portfolio-evidence-contract.yaml
+  - portfolio.yaml
+  - scripts/check-production-identity.py
+  - reports/2026-09-05/**
+  - tests/test_governance_baseline.py
+  - .exo/cache/**
+  - .exo/memory/**
+  - .exo/locks/**
+  - .exo/tickets/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 8
+  max_loc_changed: 400
+checks:
+- pytest
+type: feature
+status: todo
+parent_id: null
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-09-05T19:42:24+08:00'
+children: []
+resource_profile: default

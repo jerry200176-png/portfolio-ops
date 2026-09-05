@@ -80,6 +80,16 @@ class GovernanceBaselineTests(unittest.TestCase):
         for name in ("alltrue.yaml", "sunrise.yaml", "portfolio-ops.yaml"):
             self.assertTrue((ROOT / "catalog" / name).is_file(), name)
 
+    def test_portfolio_evidence_contract_is_minimal_and_read_only(self):
+        contract = (ROOT / "governance" / "portfolio-evidence-contract.yaml").read_text(encoding="utf-8")
+        self.assertIn("contract_id: portfolio-evidence-envelope-v1", contract)
+        self.assertIn("repository: engineering-intelligence", contract)
+        self.assertIn("central_etl: false", contract)
+        self.assertIn("central_database: false", contract)
+        self.assertIn("stale_actions: proposal_only", contract)
+        for field in ("persona", "primary_cta", "loading_state", "error_state", "empty_state", "accessibility", "mobile_behavior", "cognitive_load_notes"):
+            self.assertIn(f"    - {field}", contract)
+
     def test_governance_contract_validator_passes(self):
         result = subprocess.run(
             [sys.executable, str(ROOT / "scripts/validate-governance-contract.py")],

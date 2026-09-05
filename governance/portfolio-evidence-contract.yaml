@@ -1,0 +1,77 @@
+# Minimal cross-repository evidence contract. This is a file contract, not a
+# service: Portfolio Ops reads producer evidence and does not ingest it into a
+# central ETL/database or activate a dashboard.
+contract_id: portfolio-evidence-envelope-v1
+version: 1
+owner: portfolio-ops
+source_contract:
+  repository: engineering-intelligence
+  document: docs/AI_TASK_EVIDENCE_CONTRACT.md
+  task_artifact_glob: data/research/evidence/tasks/*.json
+aggregation:
+  mode: read_only_file_and_api_observation
+  central_etl: false
+  central_database: false
+  production_activation: false
+  stale_actions: proposal_only
+envelope:
+  required_fields:
+    - evidence_artifact_version
+    - task_id
+    - system_id
+    - original_request
+    - agent_self_report
+    - commit
+    - ci
+    - pr
+    - merge
+    - deployment
+    - runtime_verification
+    - human_acceptance
+    - lifecycle_observations
+  evidence_statuses: [OBSERVED, UNKNOWN, CONFLICTING]
+  lifecycle_states:
+    - WRITTEN
+    - TESTED
+    - PR_OPEN
+    - MERGED
+    - DEPLOYED
+    - RUNTIME_ENABLED
+    - PRODUCTION_VERIFIED
+    - OPERATIONALLY_ACCEPTED
+otel_cicd_attributes:
+  reference: https://opentelemetry.io/docs/specs/semconv/cicd/
+  common:
+    - service.name
+    - service.version
+    - vcs.repository.name
+    - vcs.ref.head.name
+    - vcs.ref.head.revision
+    - vcs.change.id
+    - vcs.change.state
+  pipeline:
+    - cicd.pipeline.name
+    - cicd.pipeline.run.id
+    - cicd.pipeline.run.state
+    - cicd.pipeline.task.name
+    - cicd.pipeline.task.run.id
+    - cicd.pipeline.task.run.state
+    - cicd.pipeline.task.type
+  deployment:
+    - cicd.deployment.environment.name
+    - cicd.deployment.name
+    - cicd.deployment.run.id
+    - cicd.deployment.status
+    - cicd.deployment.target
+    - cicd.deployment.url
+ui_change_audit:
+  applies_when: changed_files_include_ui_or_user_workflow
+  required_fields:
+    - persona
+    - primary_cta
+    - loading_state
+    - error_state
+    - empty_state
+    - accessibility
+    - mobile_behavior
+    - cognitive_load_notes

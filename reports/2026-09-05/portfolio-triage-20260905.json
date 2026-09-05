@@ -1,0 +1,37 @@
+{
+  "report_version": "1",
+  "generated_at": "2026-09-05T19:45:00+08:00",
+  "mode": "read_only_observation_and_proposal",
+  "identity": {
+    "sunrise": {
+      "status": "OBSERVED",
+      "serving_sha": "99afaa7f24dace8cc384df58c6b0346cc21034fa",
+      "inventory_sha": "99afaa7f24dace8cc384df58c6b0346cc21034fa",
+      "action": "inventory_refresh"
+    },
+    "alltrue": {
+      "status": "OBSERVED",
+      "serving_sha": "c770f0866fa9ce5c479578de93d1791cfd315686",
+      "inventory_sha": "c770f0866fa9ce5c479578de93d1791cfd315686",
+      "reason": "Current read-only probe matched GitHub main; earlier probe returned transient HTTP 403.",
+      "action": "inventory_refresh"
+    }
+  },
+  "remote_work": [
+    {"repo": "engineering-intelligence", "number": 1, "status": "validation_fixed_in_draft_pr_78"},
+    {"repo": "engineering-intelligence", "number": 71, "status": "superseded_daily_report_review_needed"},
+    {"repo": "AllTrue_System", "numbers": [2378, 2310, 2293, 2021, 1991], "status": "stale_review_candidates"},
+    {"repo": "sunrise-cafe", "numbers": [307, 315, 322, 323], "status": "review_required_no_auto_action"}
+  ],
+  "workspace": {
+    "alltrue": {"worktrees": 12, "dirty": 11},
+    "sunrise": {"worktrees": 18, "dirty": 8},
+    "portfolio_ops": {"worktrees": 29, "dirty": 9},
+    "unresolved_manifest_paths": 5,
+    "dirty_worktrees_preserved": true
+  },
+  "dry_run": {
+    "alltrue_branch_hygiene": "no_local_merged_branches; false_remote_candidate_HEAD_origin_main; no_apply",
+    "actions_stale": "not_configured_in_inspected_repos"
+  }
+}

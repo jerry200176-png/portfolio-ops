@@ -51,12 +51,14 @@ def main() -> int:
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, TypeError) as exc:
             failures.append(f"{project['id']} version: {exc}")
             serving = "error"
-        match = expected and (serving.startswith(expected[:8]) or expected.startswith(serving[:8]))
-        if expected and not match:
+        identity_unknown = serving in {"unknown", "error", "missing"}
+        match = False if identity_unknown else bool(expected and (serving.startswith(expected[:8]) or expected.startswith(serving[:8])))
+        identity_result = "UNKNOWN" if identity_unknown else ("yes" if match else "NO")
+        if expected and not identity_unknown and not match:
             failures.append(f"{project['id']} identity mismatch inventory={expected} serving={serving}")
         rows.append(
             f"| {project['id']} | {'ok' if health_ok else 'FAIL'} | `{serving}` | `{expected}` | "
-            f"{'yes' if match else 'NO'} |"
+            f"{identity_result} |"
         )
         if args.fail_on_unhealthy and not health_ok:
             failures.append(f"{project['id']} unhealthy")

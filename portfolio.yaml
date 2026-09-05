@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-09-04T18:05:00+08:00"
+updated_at: "2026-09-05T19:45:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -32,9 +32,11 @@ projects:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
     latest_activity: "2026-09-04"
-    last_verified_at: "2026-09-04T18:05:00+08:00"
-    source_commit: "e17d36ba838d36e6598af9f9b1d27a1f2134c204"
-    evidence_expires_at: "2026-09-05T18:05:00+08:00"
+    last_verified_at: "2026-09-05T19:45:00+08:00"
+    source_commit: "c770f0866fa9ce5c479578de93d1791cfd315686"
+    evidence_expires_at: "2026-09-06T19:45:00+08:00"
+    identity_status: matched
+    identity_note: "Serving commit matches GitHub main head from the read-only API probe; an earlier probe returned transient HTTP 403."
     open_p0: 0
     open_p1: 71
     current_priority: "GOV-PATH-CONVERGE-20260904 — Agent writes only via agent-start + tasks/alltrue; inventory refreshed against live production identity."
@@ -66,9 +68,11 @@ projects:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
     latest_activity: "2026-09-04"
-    last_verified_at: "2026-09-04T18:05:00+08:00"
-    source_commit: "6630b9eb003e2d5459c84c9452f2413cc93ba8ab"
-    evidence_expires_at: "2026-09-05T18:05:00+08:00"
+    last_verified_at: "2026-09-05T19:45:00+08:00"
+    source_commit: "99afaa7f24dace8cc384df58c6b0346cc21034fa"
+    evidence_expires_at: "2026-09-06T19:45:00+08:00"
+    identity_status: matched
+    identity_note: "Serving commit matches GitHub main head from the read-only API probe."
     open_p0: 0
     open_p1: 4
     current_priority: "GOV-SUNRISE-RULESET-20260904 — required checks now enforced on portfolio-governance-main; rate_limit still degraded_per_isolate."
@@ -118,7 +122,7 @@ governance_baseline:
   profile: company-control-plane-v1
   manifest: workspace.manifest.yaml
   component_contract: catalog/*.yaml
-  last_inventory_at: "2026-09-04T18:05:00+08:00"
+  last_inventory_at: "2026-09-05T19:45:00+08:00"
   inventory_rows: 9
   unresolved_inventory_rows: 0
   audit_script: scripts/portfolio-governance-audit.sh
