@@ -1,0 +1,13 @@
+id: REF-20260905-194844-D4LY
+pattern: production identity probe intermittently returned HTTP 403
+insight: Treat inaccessible serving identity as UNKNOWN and never infer a deployment
+  SHA; after a successful bounded retry, record the exact serving SHA and compare
+  it to the default-branch head before refreshing inventory.
+severity: medium
+scope: global
+actor: human
+session_id: SES-20260905194232-35FAC199
+created_at: '2026-09-05T19:48:44+08:00'
+status: active
+tags: []
+hit_count: 0

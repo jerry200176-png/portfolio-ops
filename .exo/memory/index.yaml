@@ -26,3 +26,25 @@ failure_modes:
       merge/deploy/acceptance SHA and keep broader issues open.
   severity: low
   frequency: recurring
+- id: FM-20260905-194844-0T2T
+  name: production identity probe intermittently returned HTTP 403
+  detection:
+    signal: production identity probe intermittently returned HTTP 403
+    source: reflection:REF-20260905-194844-D4LY
+  mitigation:
+    practice: Treat inaccessible serving identity as UNKNOWN and never infer a deployment
+      SHA; after a successful bounded retry, record the exact serving SHA and compare
+      it to the default-branch head before refreshing inventory.
+  severity: medium
+  frequency: recurring
+- id: FM-20260905-194844-UMZG
+  name: branch hygiene remote ref parsing
+  detection:
+    signal: branch hygiene remote ref parsing
+    source: reflection:REF-20260905-194844-T6X6
+  mitigation:
+    practice: The existing dry-run branch hygiene script can classify the symbolic
+      remote ref HEAD -> origin/main as a deletion candidate; keep apply disabled
+      and record it as a parser defect until fixed in a scoped change.
+  severity: medium
+  frequency: recurring
