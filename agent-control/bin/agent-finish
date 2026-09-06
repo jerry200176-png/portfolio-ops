@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+# Conservative lifecycle closeout for an agent-control task worktree.
+# Archives completed, merged task worktrees with regular `git worktree remove`.
+# Branches, remotes, session manifests, and repository history are preserved.
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -L "$SOURCE" ]]; do
+  _dir="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="${_dir}/${SOURCE}"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
+# shellcheck disable=SC1091
+source "${ROOT}/lib/common.sh"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  agent-finish <portfolio-ops|alltrue|sunrise> <task-id> [--dry-run] [--kill-active] [--force]
+  agent-finish <portfolio-ops|alltrue|sunrise> --prune [--dry-run] [--kill-active]
+
+Options:
+  --dry-run          Check eligibility without archiving
+  --kill-active      Terminate active dev/test processes (e.g. vite, node) using worktree
+  --force            Allow archiving even if uncommitted scratch files exist
+  --prune            Scan and archive all merged tasks for the project
+EOF
+}
+
+[[ $# -ge 2 ]] || { usage; exit 2; }
+PROJECT="$1"
+shift
+
+assert_project "$PROJECT"
+
+TASK_ID=""
+DRY_RUN=0
+KILL_ACTIVE=0
+FORCE=0
+PRUNE=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1 ;;
+    --kill-active) KILL_ACTIVE=1 ;;
+    --force) FORCE=1 ;;
+    --prune) PRUNE=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      if [[ -z "$TASK_ID" && "$1" != --* ]]; then
+        TASK_ID="$1"
+      else
+        fail "unknown arg: $1"
+      fi
+      ;;
+  esac
+  shift
+done
+
+BARE="${PROJECT_BARE[$PROJECT]}"
+GH_REPO="${PROJECT_GH[$PROJECT]}"
+TASK_ROOT="${PROJECT_TASK_ROOT[$PROJECT]}"
+
+archive_single_worktree() {
+  local tid="$1"
+  local worktree="${TASK_ROOT}/${tid}"
+  local branch="chore/task-${tid}"
+
+  [[ -d "$worktree" ]] || fail "worktree missing: $worktree"
+  assert_not_forbidden_path "$worktree"
+  assert_task_path "$PROJECT" "$worktree"
+
+  # Detect actual branch if different from chore/task-<tid>
+  if [[ -d "$worktree/.git" || -f "$worktree/.git" ]]; then
+    local actual_branch
+    actual_branch="$(git -C "$worktree" branch --show-current 2>/dev/null || true)"
+    if [[ -n "$actual_branch" ]]; then
+      branch="$actual_branch"
+    fi
+  fi
+
+  git -C "$BARE" worktree list --porcelain | awk '$1 == "worktree" { print $2 }' |
+    grep -Fxq "$worktree" || fail "worktree is not registered in $BARE: $worktree"
+
+  # Active process check
+  python3 - "$worktree" "$KILL_ACTIVE" <<'PY'
+import os, sys, signal, time
+
+target = os.path.realpath(sys.argv[1])
+kill_active = (sys.argv[2] == "1")
+
+pids_to_kill = []
+for entry in os.listdir('/proc'):
+    if not entry.isdigit():
+        continue
+    pid = int(entry)
+    try:
+        if pid == os.getpid():
+            continue
+        cwd = os.path.realpath(f'/proc/{pid}/cwd')
+    except OSError:
+        continue
+    if cwd == target or cwd.startswith(target + os.sep):
+        pids_to_kill.append(pid)
+
+if pids_to_kill:
+    if kill_active:
+        for pid in pids_to_kill:
+            try:
+                cmd = open(f'/proc/{pid}/cmdline','rb').read().decode('utf-8','replace').replace('\0',' ')
+                print(f"agent-finish: terminating process {pid} ({cmd[:60]}...)")
+                os.kill(pid, signal.SIGTERM)
+            except OSError:
+                pass
+        time.sleep(1)
+        for pid in pids_to_kill:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+    else:
+        p_desc = []
+        for pid in pids_to_kill:
+            try:
+                cmd = open(f'/proc/{pid}/cmdline','rb').read().decode('utf-8','replace').replace('\0',' ')
+                p_desc.append(f"PID {pid}: {cmd[:50]}")
+            except OSError:
+                p_desc.append(f"PID {pid}")
+        raise SystemExit(f'active process uses worktree (use --kill-active):\n  ' + '\n  '.join(p_desc))
+PY
+
+  # PR status check
+  PR_JSON="$(gh pr list --repo "$GH_REPO" --head "$branch" --state all \
+    --limit 10 --json number,state,mergedAt 2>/dev/null || echo "[]")"
+
+  # Also check if branch is ancestor of origin/main
+  BASE_REF='origin/main'
+  git -C "$BARE" fetch origin main --quiet 2>/dev/null || true
+  git -C "$worktree" rev-parse --verify "$BASE_REF" >/dev/null 2>&1 || BASE_REF='main'
+  
+  ANCESTOR=0
+  if git -C "$worktree" merge-base --is-ancestor HEAD "$BASE_REF" 2>/dev/null; then
+    ANCESTOR=1
+  fi
+
+  ELIGIBLE="$(python3 - "$PR_JSON" "$ANCESTOR" <<'PY'
+import json, sys
+prs = json.loads(sys.argv[1])
+ancestor = (sys.argv[2] == "1")
+
+if any(p.get("state") == "OPEN" for p in prs):
+    raise SystemExit("open PR exists; refusing to archive")
+
+has_merged = any(p.get("state") == "MERGED" or p.get("mergedAt") for p in prs)
+if has_merged or ancestor:
+    print("true")
+else:
+    raise SystemExit("branch is neither merged nor an ancestor of origin/main")
+PY
+)" || fail "worktree not eligible for archive"
+
+  # Uncommitted changes check (distinguish product code from disposable artifacts)
+  python3 - "$worktree" "$FORCE" <<'PY'
+import subprocess, sys
+
+worktree = sys.argv[1]
+force = (sys.argv[2] == "1")
+
+disposable_prefixes = (
+  ".agent-session/", ".exo/", ".cursor/", "out/", "docs/analysis/", "reports/",
+  "node_modules/", "vendor/", ".pytest_cache/", ".vite/", "debug", "coverage/",
+  "test-results/"
+)
+disposable_exact = {
+  ".exo/cache/sessions/human.active.json",
+  ".exo/locks/fencing.json",
+}
+
+out = subprocess.check_output(
+    ["git", "-C", worktree, "status", "--porcelain", "-uall"], text=True
+)
+
+product_dirty = []
+for line in out.splitlines():
+    if not line.strip():
+        continue
+    parts = line.split(maxsplit=1)
+    if len(parts) < 2:
+        continue
+    path = parts[1].strip()
+    clean = path
+    if clean.startswith("./"):
+        clean = clean[2:]
+    if any(clean.startswith(p) for p in disposable_prefixes) or clean in disposable_exact or clean.endswith((".log", ".pyc")):
+        continue
+    product_dirty.append(line)
+
+if product_dirty and not force:
+    raise SystemExit(
+        f"worktree has uncommitted product changes ({len(product_dirty)} files):\n  " +
+        "\n  ".join(product_dirty[:5]) + "\nUse --force to discard if already merged."
+    )
+PY
+
+  # Credential safety check: never destroy real credentials
+  python3 - "$worktree" "$FORCE" <<'PY'
+import subprocess, sys, os
+
+worktree = sys.argv[1]
+force = (sys.argv[2] == "1")
+out = subprocess.check_output(
+    ["git", "-C", worktree, "status", "--porcelain", "--ignored"], text=True
+)
+for line in out.splitlines():
+    if not line.strip():
+        continue
+    parts = line.split(maxsplit=1)
+    if len(parts) < 2:
+        continue
+    path = parts[1].strip()
+    name = os.path.basename(path)
+    if name.endswith((".pem", ".key", ".crt")):
+        raise SystemExit(f"refusing to archive: credential key/cert found ({path})")
+    if name.startswith(".env") and name not in {".env.example", ".env.sample", ".env.testing"}:
+        if not force:
+            raise SystemExit(f"refusing to archive: environment file found ({path}); use --force if this is an ephemeral test env")
+PY
+
+  if [[ "$DRY_RUN" == 1 ]]; then
+    ok "eligible for archive: $worktree (branch=$branch preserved)"
+    return 0
+  fi
+
+  # Clean disposable files if necessary before worktree remove
+  git -C "$worktree" checkout -- . 2>/dev/null || true
+  git -C "$BARE" worktree remove --force "$worktree"
+  [[ ! -e "$worktree" ]] || rm -rf "$worktree"
+  ok "archived worktree=$worktree (branch=$branch preserved)"
+}
+
+if [[ "$PRUNE" == 1 ]]; then
+  ok "scanning tasks in $TASK_ROOT for merged/ancestor worktrees..."
+  count=0
+  for d in "$TASK_ROOT"/*; do
+    [[ -d "$d" ]] || continue
+    tid="$(basename "$d")"
+    if ( archive_single_worktree "$tid" ); then
+      count=$((count + 1))
+    else
+      echo "agent-finish: skipping non-eligible task: $tid"
+    fi
+  done
+  ok "prune complete: $count worktrees processed."
+  exit 0
+fi
+
+[[ -n "$TASK_ID" ]] || fail "task-id required (or use --prune)"
+archive_single_worktree "$TASK_ID"

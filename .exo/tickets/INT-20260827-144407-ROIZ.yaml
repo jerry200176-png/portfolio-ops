@@ -1,0 +1,46 @@
+id: INT-20260827-144407-ROIZ
+title: Refresh workspace inventory for AllTrue optimization
+intent: Refresh workspace inventory for AllTrue optimization
+kind: intent
+brain_dump: "\u5EFA\u7ACB 2026-08-27 Portfolio Ops \u5DE5\u4F5C\u5340\u76E4\u9EDE\uFF0C\
+  \u8FA8\u8B58 AllTrue canonical/legacy/active worktrees\u3001\u91CD\u8907 checkout\u3001\
+  dirty WIP \u8207\u5DE5\u5177\u72C0\u614B\uFF0C\u8B93\u5F8C\u7E8C\u6574\u7406\u80FD\
+  \u4EE5\u8B49\u64DA\u5206\u6279\u9032\u884C\u3002\u53EA\u7522\u751F inventory report\uFF0C\
+  \u4E0D\u642C\u79FB\u3001\u4E0D\u522A\u9664\u3001\u4E0D\u8986\u5BEB\u4EFB\u4F55 checkout\u3002"
+boundary: "\u53EA\u5BEB reports/2026-08-27/portfolio-inventory.md \u8207 Exo \u6CBB\
+  \u7406 artifacts\uFF1B\u7981\u6B62\u4FEE\u6539\u7522\u54C1 repo\u3001portfolio manifest\u3001\
+  legacy checkout\u3001\u8CC7\u6599\u5EAB\u3001production\u3002"
+success_condition: "\u5831\u544A\u5217\u51FA\u6BCF\u500B\u53EF\u8FA8\u8B58 git root\
+  \ \u7684\u8DEF\u5F91\u3001remote\u3001branch\u3001HEAD\u3001dirty \u72C0\u614B\u3001\
+  \u89D2\u8272\u8207\u8655\u7F6E\u5EFA\u8B70\uFF1B\u6B67\u7FA9\u9805\u6A19\u8A18\u5F85\
+  \u4EBA\u5DE5\u78BA\u8A8D\uFF0C\u4E14 python3 -m pytest \u901A\u904E\u3002"
+risk: medium
+priority: 1
+labels:
+- inventory
+scope:
+  allow:
+  - reports/2026-08-27/portfolio-inventory.md
+  - .exo/config.yaml
+  - .exo/policy.sealed.json
+  - .exo/tickets/**
+  - .exo/memory/**
+  - .exo/cache/**
+  - .exo/locks/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 12
+  max_loc_changed: 800
+checks:
+- python3 -m pytest
+type: feature
+status: todo
+parent_id: null
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-27T14:44:07+08:00'
+children:
+- TKT-20260827-144414-VL1N
+resource_profile: default

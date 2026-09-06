@@ -40,7 +40,7 @@ case "$TARGET" in
   *) fail "path not allowlisted (use agent-start): $TARGET" ;;
 esac
 case "$TARGET" in
-  */workspace-backups/*|*/actions-runner*|*/mnt/c/*|*/workspace/repos/*|*/workspace/sunrise-cafe) fail "forbidden path class: $TARGET" ;;
+  */workspace-backups/*|*/actions-runner*|*/mnt/*|*/workspace/repos/*|*/workspace/sunrise-cafe) fail "forbidden path class: $TARGET" ;;
 esac
 if [[ "$TARGET" == "/home/jerry/workspace/sunrise-cafe" ]]; then
   fail "legacy clone is not an official write path"

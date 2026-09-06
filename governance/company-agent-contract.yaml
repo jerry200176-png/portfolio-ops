@@ -20,6 +20,7 @@ control_plane:
     - CLAUDE.md
     - AGENTS.md
     - governance/company-agent-contract.yaml
+    - governance/COMMANDER_WORKER_VERIFIER.md
     - docs/agent-operating-loop.md
     - portfolio.yaml
     - state/work-queue.yaml
@@ -28,6 +29,7 @@ agent_entrypoints:
   workspace_command: "cd ~/workspace && claude --add-dir ~/workspace"
   control_plane_command: "cd ~/workspace/portfolio-ops && claude --add-dir ~/workspace"
   product_gateway: /home/jerry/workspace/agent-control/bin/agent-start
+  lifecycle_tool: /home/jerry/workspace/agent-control/bin/agent-status
   supported_projects: [portfolio-ops, alltrue, sunrise]
   default_mode: status
   gateway_source: agent-control/

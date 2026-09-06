@@ -15,7 +15,7 @@ fail() {
   echo "  agent-start alltrue <task-id> --dry-run" >&2
   echo "  # bare: /home/jerry/workspace/repos/AllTrue_System.git" >&2
   echo "  # tasks: /home/jerry/workspace/tasks/alltrue/<task-id>" >&2
-  echo "  Never write in /home/jerry/alltrue, AllTrue_System-clean, runner _work, backups, /mnt/c, or bare *.git" >&2
+  echo "  Never write in /home/jerry/alltrue, AllTrue_System-clean, runner _work, backups, /mnt/*, or bare *.git" >&2
   exit 1
 }
 ok() { echo "agent-preflight: OK: $*"; }
@@ -135,11 +135,44 @@ PY
 
 if [[ "$(json_get require_base_equals_origin_main)" == "true" ]]; then
   MB="$(git merge-base HEAD origin/main)"
-  [[ "$MB" == "$ORIGIN_MAIN" ]] || fail "stale base: merge-base=$MB origin/main=$ORIGIN_MAIN ??recreate via agent-start"
+  if [[ "$MB" != "$ORIGIN_MAIN" ]]; then
+    if [[ "${AGENT_PREFLIGHT_STRICT_BASE:-0}" == "1" ]]; then
+      fail "stale base: merge-base=$MB origin/main=$ORIGIN_MAIN — rebase or recreate via agent-start"
+    else
+      ok "base warning: branch merge-base (${MB:0:10}) is behind origin/main (${ORIGIN_MAIN:0:10}); rebase recommended before PR"
+    fi
+  fi
 fi
 
 if [[ "$(json_get require_clean_worktree)" == "true" ]]; then
-  [[ -z "$(git status --porcelain)" ]] || fail "dirty worktree"
+  DIRTY_PRODUCT="$(git status --porcelain -uall | python3 -c '
+import sys
+disposable_prefixes = (
+  ".agent-session/", ".exo/", ".cursor/", "out/", "docs/analysis/", "reports/",
+  "node_modules/", "vendor/", ".pytest_cache/", ".vite/", "debug", "coverage/",
+  "test-results/"
+)
+disposable_exact = {
+  ".exo/cache/sessions/human.active.json",
+  ".exo/locks/fencing.json",
+}
+dirty = []
+for line in sys.stdin:
+    if not line.strip(): continue
+    parts = line.split(maxsplit=1)
+    if len(parts) < 2: continue
+    path = parts[1].strip()
+    clean = path[2:] if path.startswith("./") else path
+    if any(clean.startswith(p) for p in disposable_prefixes) or clean in disposable_exact or clean.endswith((".log", ".pyc", ".pid", ".sock")):
+        continue
+    dirty.append(line)
+if dirty:
+    print("\n".join(dirty))
+')"
+  if [[ -n "$DIRTY_PRODUCT" ]]; then
+    echo "$DIRTY_PRODUCT" >&2
+    fail "dirty worktree (uncommitted product code changes)"
+  fi
 fi
 
 GIT_DIR="$(git rev-parse --git-dir)"

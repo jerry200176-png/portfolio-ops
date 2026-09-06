@@ -34,7 +34,7 @@ FORBIDDEN_SUBSTRINGS=(
   "/home/jerry/alltrue"
   "/actions-runner-alltrue/"
   "/workspace-backups/"
-  "/mnt/c/"
+  "/mnt/"
   "/AllTrue_System-clean"
   "/workspace/sunrise-cafe"
 )

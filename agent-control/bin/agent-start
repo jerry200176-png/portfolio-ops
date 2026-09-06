@@ -50,11 +50,18 @@ assert_task_id "$TASK_ID"
 BARE="${PROJECT_BARE[$PROJECT]}"
 REMOTE="${PROJECT_REMOTE[$PROJECT]}"
 TASK_ROOT="${PROJECT_TASK_ROOT[$PROJECT]}"
+GH_REPO="${PROJECT_GH[$PROJECT]}"
 [[ -d "$BARE" ]] || fail "bare repo missing: $BARE"
 [[ "$(git -C "$BARE" rev-parse --is-bare-repository)" == "true" ]] || fail "not bare: $BARE"
 mkdir -p "$TASK_ROOT" "$SESSIONS_DIR" "$LOGS_DIR"
 
-ok "fetching origin main ??bare"
+# Pre-start collision & duplicate check
+QUARANTINE_PATH="/home/jerry/workspace/quarantine/${PROJECT}/${TASK_ID}"
+if [[ -d "$QUARANTINE_PATH" ]]; then
+  echo "agent-control: WARNING: Task $TASK_ID already exists in quarantine: $QUARANTINE_PATH" >&2
+fi
+
+ok "fetching origin main (bare store)"
 git -C "$BARE" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || true
 git -C "$BARE" fetch --prune origin
 git -C "$BARE" fetch origin main:main || true
@@ -66,6 +73,12 @@ WORKTREE="${TASK_ROOT}/${TASK_ID}"
 assert_not_forbidden_path "$WORKTREE"
 assert_task_path "$PROJECT" "$WORKTREE"
 git -C "$BARE" show-ref --verify --quiet "refs/heads/${BRANCH}" && fail "branch exists: $BRANCH"
+
+# Check GitHub for existing branch / PR to prevent re-work
+EXISTING_PR="$(gh pr list --repo "$GH_REPO" --head "$BRANCH" --state all --json number,title,state --jq 'if length > 0 then "#\(.[0].number) (\(.[0].state)) \(.[0].title)" else empty end' 2>/dev/null || true)"
+if [[ -n "$EXISTING_PR" ]]; then
+  echo "agent-control: WARNING: PR already exists for branch $BRANCH: $EXISTING_PR" >&2
+fi
 
 ok "worktree add $WORKTREE @ ${BASE_SHA:0:12}"
 git -C "$BARE" worktree add -b "$BRANCH" "$WORKTREE" "$BASE_SHA"
@@ -139,6 +152,20 @@ ok "session_id=${SESSION_ID}"
 ok "worktree=${WORKTREE}"
 ok "manifest=${MANIFEST_PATH}"
 ok "production_mutation=disabled"
+
+ACTIVE_COUNT="$(find "$TASK_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)"
+cat <<CARD
+================================================================================
+AGENT FLEET CONTEXT CARD
+Project:         $PROJECT
+Task ID:         $TASK_ID
+Branch:          $BRANCH
+Baseline:        origin/main @ ${BASE_SHA:0:10}
+Active Tasks:    $ACTIVE_COUNT tasks in $TASK_ROOT (inspect via 'agent-status $PROJECT --all')
+Workflow Role:   Commander (scope) -> Worker (code) -> Verifier (tests/PR)
+Founder Gates:   Merge, Deploy, Migration, Billing, Identity, Data Mutation
+================================================================================
+CARD
 
 if [[ "$DRY_RUN" == "1" || -z "$CLI" ]]; then
   [[ "$DRY_RUN" == "1" ]] && ok "dry-run: not launching CLI"

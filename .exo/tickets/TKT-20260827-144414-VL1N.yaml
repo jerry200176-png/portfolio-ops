@@ -1,0 +1,39 @@
+id: TKT-20260827-144414-VL1N
+title: Write current AllTrue workspace inventory
+intent: Write current AllTrue workspace inventory
+kind: task
+parent_id: INT-20260827-144407-ROIZ
+boundary: "\u53EA\u7522\u751F\u76E4\u9EDE\u5831\u544A\u8207\u6CBB\u7406 artifacts\uFF1B\
+  \u4E0D\u642C\u79FB\u3001\u522A\u9664\u3001\u8986\u5BEB\u4EFB\u4F55 checkout\uFF0C\
+  \u4E0D\u4FEE\u6539\u7522\u54C1\u3001manifest\u3001\u8CC7\u6599\u5EAB\u6216 production\u3002"
+success_condition: "\u5831\u544A\u5177\u5099\u53EF\u8FA8\u8B58 git root \u7684 path/remote/branch/HEAD/dirty/role\uFF0C\
+  \u6B67\u7FA9\u660E\u78BA\u6A19\u8A18\uFF1Bpython3 -m pytest \u901A\u904E\u3002"
+priority: 1
+labels:
+- inventory
+scope:
+  allow:
+  - reports/2026-08-27/portfolio-inventory.md
+  - .exo/config.yaml
+  - .exo/policy.sealed.json
+  - .exo/tickets/**
+  - .exo/memory/**
+  - .exo/cache/**
+  - .exo/locks/**
+  - .exo/logs/**
+  deny: []
+budgets:
+  max_files_changed: 12
+  max_loc_changed: 800
+checks:
+- python3 -m pytest
+type: feature
+status: paused
+spec_ref: null
+notes: []
+blockers: []
+created_at: '2026-08-27T14:44:14+08:00'
+brain_dump: ''
+risk: medium
+children: []
+resource_profile: default

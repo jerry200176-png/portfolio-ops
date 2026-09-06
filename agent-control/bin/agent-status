@@ -1,0 +1,412 @@
+#!/usr/bin/env python3
+"""
+agent-status: Inspect task lifecycle state and fleet worktrees.
+
+Lifecycle stages:
+  1. NOT_STARTED / CLEAN_BASE
+  2. IMPLEMENTED (uncommitted product code or commits ahead of origin/main)
+  3. TESTED (preflight passed, local verification complete)
+  4. PR_OPENED (GitHub PR exists; shows checks rollup and draft status)
+  5. MERGED (PR merged into main or branch ancestor of main)
+  6. DEPLOYED (GitHub Actions deploy workflow succeeded for merge commit)
+  7. PRODUCTION_VERIFIED (live production version endpoint matches commit)
+
+Usage:
+  agent-status [--repo owner/repo] [project] <task-id>
+  agent-status [--repo owner/repo] [project] --all
+  agent-status (inside a task worktree)
+"""
+
+import argparse
+import glob
+import json
+import os
+import re
+import subprocess
+import sys
+import urllib.request
+
+PROJECT_REPOS = {
+    "alltrue": "jerry200176-png/AllTrue_System",
+    "sunrise": "jerry200176-png/sunrise-cafe",
+    "portfolio-ops": "jerry200176-png/portfolio-ops",
+}
+
+PROJECT_BARES = {
+    "alltrue": "/home/jerry/workspace/repos/AllTrue_System.git",
+    "sunrise": "/home/jerry/workspace/repos/sunrise-cafe.git",
+    "portfolio-ops": "/home/jerry/workspace/repos/portfolio-ops.git",
+}
+
+PROJECT_TASK_ROOTS = {
+    "alltrue": "/home/jerry/workspace/tasks/alltrue",
+    "sunrise": "/home/jerry/workspace/tasks/sunrise",
+    "portfolio-ops": "/home/jerry/workspace/tasks/portfolio-ops",
+}
+
+PROJECT_PROD_URLS = {
+    "alltrue": "https://daan.lifenet.com.tw/version.json",
+}
+
+DISPOSABLE_PREFIXES = (
+    ".agent-session/", ".exo/", ".cursor/", "out/", "docs/analysis/", "reports/",
+    "node_modules/", "vendor/", ".pytest_cache/", ".vite/", "debug", "coverage/",
+    "test-results/"
+)
+DISPOSABLE_EXACT = {
+    ".exo/cache/sessions/human.active.json",
+    ".exo/locks/fencing.json",
+}
+
+def is_disposable_path(path: str) -> bool:
+    clean = path.strip()
+    if clean.startswith("./"):
+        clean = clean[2:]
+    parts = clean.rstrip("/").split("/")
+    if any(p in {"node_modules", "vendor", ".pytest_cache", ".vite", "debug", "coverage", "test-results", ".cursor"} for p in parts):
+        return True
+    if any(clean.startswith(p) for p in DISPOSABLE_PREFIXES):
+        return True
+    if clean in DISPOSABLE_EXACT:
+        return True
+    if clean.endswith((".log", ".pyc", ".pid", ".sock")):
+        return True
+    return False
+
+def run_cmd(args, cwd=None, check=True):
+    try:
+        res = subprocess.run(args, cwd=cwd, text=True, capture_output=True, check=check)
+        return res.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        return ""
+
+def get_git_status(worktree_path):
+    out = run_cmd(["git", "-C", worktree_path, "status", "--porcelain", "-uall"], check=False)
+    product_dirty = []
+    disposable_dirty = []
+    for line in out.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split(maxsplit=1)
+        if len(parts) < 2:
+            continue
+        path = parts[1].strip()
+        if is_disposable_path(path):
+            disposable_dirty.append(line)
+        else:
+            product_dirty.append(line)
+    return product_dirty, disposable_dirty
+
+def get_commits_ahead(worktree_path, base_ref="origin/main"):
+    out = run_cmd(["git", "-C", worktree_path, "rev-list", "--count", f"{base_ref}..HEAD"], check=False)
+    try:
+        return int(out)
+    except ValueError:
+        return 0
+
+def get_branch(worktree_path):
+    return run_cmd(["git", "-C", worktree_path, "branch", "--show-current"], check=False)
+
+def get_head_sha(worktree_path):
+    return run_cmd(["git", "-C", worktree_path, "rev-parse", "HEAD"], check=False)
+
+def fetch_prod_version(url):
+    if not url:
+        return None
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "agent-status"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            return json.load(resp)
+    except Exception:
+        return None
+
+def get_pr_info(repo, branch):
+    if not repo or not branch:
+        return None
+    raw = run_cmd([
+        "gh", "pr", "list", "--repo", repo, "--head", branch, "--state", "all",
+        "--limit", "1",
+        "--json", "number,title,state,isDraft,mergedAt,mergeCommit,statusCheckRollup,url"
+    ], check=False)
+    try:
+        prs = json.loads(raw)
+        if prs:
+            return prs[0]
+    except Exception:
+        pass
+    return None
+
+def get_deploy_status(repo, merge_sha):
+    if not repo or not merge_sha:
+        return None
+    raw = run_cmd([
+        "gh", "run", "list", "--repo", repo, "--workflow", "deploy.yml",
+        "--limit", "5", "--json", "databaseId,headSha,status,conclusion,url"
+    ], check=False)
+    try:
+        runs = json.loads(raw)
+        want_prefix = merge_sha[:8].lower()
+        for r in runs:
+            head = (r.get("headSha") or "").lower()
+            if head.startswith(want_prefix):
+                return r
+    except Exception:
+        pass
+    return None
+
+def evaluate_lifecycle(project, task_id, worktree_path, pr_info=None, prod_version=None):
+    repo = PROJECT_REPOS.get(project, "")
+    bare = PROJECT_BARES.get(project, "")
+    branch = get_branch(worktree_path)
+    head_sha = get_head_sha(worktree_path)
+    product_dirty, disposable_dirty = get_git_status(worktree_path)
+    commits_ahead = get_commits_ahead(worktree_path)
+
+    if pr_info is None and repo and branch:
+        pr_info = get_pr_info(repo, branch)
+
+    # Check if ancestor of main
+    is_ancestor = False
+    if bare and os.path.isdir(bare) and head_sha:
+        res = subprocess.run(["git", "-C", bare, "merge-base", "--is-ancestor", head_sha, "origin/main"], check=False)
+        is_ancestor = (res.returncode == 0)
+
+    # State computation
+    is_merged = False
+    merge_sha = ""
+    if pr_info and (pr_info.get("state") == "MERGED" or pr_info.get("mergedAt")):
+        is_merged = True
+        merge_sha = (pr_info.get("mergeCommit") or {}).get("oid") or head_sha
+    elif is_ancestor and commits_ahead > 0 and not product_dirty:
+        is_merged = True
+        merge_sha = head_sha
+
+    # Production verification
+    is_deployed = False
+    is_prod_verified = False
+    deploy_info = None
+
+    if is_merged and repo and merge_sha:
+        deploy_info = get_deploy_status(repo, merge_sha)
+        if deploy_info and deploy_info.get("conclusion") == "success":
+            is_deployed = True
+
+        if prod_version:
+            v_hash = str(prod_version.get("hash") or "").lower()
+            v_sha = str(prod_version.get("build_sha") or "").lower()
+            prefix = merge_sha[:8].lower()
+            if v_hash.startswith(prefix) or v_sha.startswith(prefix):
+                is_prod_verified = True
+                is_deployed = True
+
+    # Determine stage
+    if commits_ahead == 0 and not product_dirty and not is_merged:
+        stage = "NOT_STARTED"
+        next_step = "Clean worktree at base. Ready for implementation."
+    elif is_prod_verified:
+        stage = "PRODUCTION_VERIFIED"
+        next_step = "Task fully verified in production. Ready to archive with `agent-finish`."
+    elif is_deployed:
+        stage = "DEPLOYED"
+        next_step = "Deployed to server. Verify live endpoints / run `wait-github-deploy`."
+    elif is_merged:
+        stage = "MERGED"
+        next_step = "PR merged. Waiting for deploy workflow to complete."
+    elif pr_info and pr_info.get("state") == "OPEN":
+        stage = "PR_OPENED"
+        checks = pr_info.get("statusCheckRollup") or []
+        check_summary = f"{len(checks)} checks"
+        if pr_info.get("isDraft"):
+            stage += " (DRAFT)"
+            next_step = "Mark PR ready when tests pass; Founder review required for merge."
+        else:
+            next_step = "CI running/passed; Founder review required for merge."
+    elif commits_ahead > 0 or product_dirty:
+        # Check if preflight passed
+        manifest_file = os.path.join(worktree_path, ".agent-session", "manifest.json")
+        has_passed_preflight = False
+        if os.path.isfile(manifest_file):
+            try:
+                m = json.load(open(manifest_file))
+                has_passed_preflight = (m.get("preflight_result") == "pass")
+            except Exception:
+                pass
+
+        if has_passed_preflight and not product_dirty and commits_ahead > 0:
+            stage = "TESTED"
+            next_step = "Local tests/preflight pass. Ready to open PR (or Draft PR)."
+        else:
+            stage = "IMPLEMENTED (WIP)"
+            if product_dirty:
+                next_step = f"Uncommitted product code ({len(product_dirty)} files). Commit changes and run tests."
+            else:
+                next_step = "Commits made. Run local tests and agent-preflight."
+    else:
+        stage = "NOT_STARTED"
+        next_step = "Clean worktree at base. Ready for implementation."
+
+    return {
+        "project": project,
+        "task_id": task_id,
+        "worktree": worktree_path,
+        "branch": branch,
+        "head_sha": head_sha[:8] if head_sha else "",
+        "commits_ahead": commits_ahead,
+        "product_dirty_count": len(product_dirty),
+        "disposable_dirty_count": len(disposable_dirty),
+        "product_dirty_sample": product_dirty[:3],
+        "pr_info": pr_info,
+        "deploy_info": deploy_info,
+        "stage": stage,
+        "next_step": next_step,
+        "is_merged": is_merged,
+        "is_deployed": is_deployed,
+        "is_prod_verified": is_prod_verified,
+    }
+
+def print_detail(info):
+    print("=" * 64)
+    print(f"Task Lifecycle Status: {info['task_id']}")
+    print("=" * 64)
+    print(f"  Project:             {info['project']}")
+    print(f"  Worktree:            {info['worktree']}")
+    print(f"  Branch:              {info['branch']} @ {info['head_sha']}")
+    print(f"  Commits Ahead:       {info['commits_ahead']}")
+    print(f"  Product Dirty Files: {info['product_dirty_count']}")
+    if info['product_dirty_sample']:
+        for s in info['product_dirty_sample']:
+            print(f"    {s}")
+    print(f"  Disposable Files:    {info['disposable_dirty_count']}")
+    
+    pr = info['pr_info']
+    if pr:
+        status_txt = pr['state']
+        if pr.get('isDraft'):
+            status_txt += " (DRAFT)"
+        print(f"  GitHub PR:           #{pr['number']} - {status_txt}")
+        print(f"  PR Title:            {pr.get('title')}")
+        print(f"  PR URL:              {pr.get('url')}")
+    else:
+        print(f"  GitHub PR:           None")
+
+    print("-" * 64)
+    print(f"  [LIFECYCLE STAGE]:   {info['stage']}")
+    print(f"  [NEXT STEP]:         {info['next_step']}")
+    print("=" * 64)
+
+def print_all_table(project, items):
+    print(f"\nFleet Task Worktrees for Project [{project}] ({len(items)} total):")
+    print(f"{'TASK ID':<36} {'BRANCH':<34} {'PR':<10} {'STAGE':<22} {'ACTION'}")
+    print("-" * 125)
+    for it in items:
+        tid = it['task_id'][:35]
+        br = it['branch'][:33]
+        pr = "-"
+        if it['pr_info']:
+            num = f"#{it['pr_info']['number']}"
+            if it['pr_info'].get('mergedAt'):
+                pr = f"{num} (M)"
+            elif it['pr_info'].get('isDraft'):
+                pr = f"{num} (D)"
+            elif it['pr_info'].get('state') == 'CLOSED':
+                pr = f"{num} (C)"
+            else:
+                pr = f"{num} (O)"
+        stage = it['stage'][:21]
+        
+        # Summary action
+        if it['is_prod_verified'] or it['is_merged']:
+            action = "Ready to archive (`agent-finish`)"
+        elif "PR_OPENED" in it['stage']:
+            action = "CI / Founder review"
+        elif "TESTED" in it['stage']:
+            action = "Ready to open PR"
+        elif "WIP" in it['stage']:
+            if it['product_dirty_count'] > 0:
+                action = f"WIP: {it['product_dirty_count']} uncommitted files"
+            else:
+                action = "WIP: commits ready for testing"
+        else:
+            action = it['next_step'][:35]
+
+        print(f"{tid:<36} {br:<34} {pr:<10} {stage:<22} {action}")
+    print("-" * 125)
+    
+    merged_count = sum(1 for it in items if it['is_merged'])
+    wip_count = sum(1 for it in items if "WIP" in it['stage'])
+    open_pr_count = sum(1 for it in items if "PR_OPENED" in it['stage'])
+    print(f"Summary: {merged_count} merged/ready to archive, {open_pr_count} PR open, {wip_count} WIP.\n")
+
+def auto_detect():
+    cwd = os.getcwd()
+    for proj, root in PROJECT_TASK_ROOTS.items():
+        if cwd == root or cwd.startswith(root + "/"):
+            rel = os.path.relpath(cwd, root)
+            task_id = rel.split("/")[0]
+            return proj, task_id
+    return None, None
+
+def main():
+    parser = argparse.ArgumentParser(description="Inspect task lifecycle and fleet state.")
+    parser.add_argument("project", nargs="?", default=None, help="Project name: alltrue, sunrise, portfolio-ops")
+    parser.add_argument("task_id", nargs="?", default=None, help="Task ID or --all")
+    parser.add_argument("--all", action="store_true", help="List all active worktrees for project")
+    parser.add_argument("--repo", default=None, help="Override GitHub repo")
+    args = parser.parse_args()
+
+    project = args.project
+    task_id = args.task_id
+
+    if project in ("--all", "-a"):
+        project = None
+        args.all = True
+
+    if task_id in ("--all", "-a"):
+        task_id = None
+        args.all = True
+
+    if not project and not task_id:
+        proj_detected, task_detected = auto_detect()
+        if proj_detected:
+            project = proj_detected
+            task_id = task_detected
+        else:
+            # Default to alltrue --all
+            project = "alltrue"
+            args.all = True
+
+    if project not in PROJECT_TASK_ROOTS:
+        # Maybe user typed task_id as first argument?
+        if auto_detect()[0]:
+            project = auto_detect()[0]
+        else:
+            project = "alltrue"
+
+    if args.repo:
+        PROJECT_REPOS[project] = args.repo
+
+    task_root = PROJECT_TASK_ROOTS[project]
+    prod_url = PROJECT_PROD_URLS.get(project)
+    prod_ver = fetch_prod_version(prod_url)
+
+    if args.all or not task_id:
+        if not os.path.isdir(task_root):
+            print(f"Task root missing: {task_root}", file=sys.stderr)
+            sys.exit(1)
+        subdirs = sorted(d for d in os.listdir(task_root) if os.path.isdir(os.path.join(task_root, d)))
+        items = []
+        for d in subdirs:
+            p = os.path.join(task_root, d)
+            info = evaluate_lifecycle(project, d, p, prod_version=prod_ver)
+            items.append(info)
+        print_all_table(project, items)
+    else:
+        worktree_path = os.path.join(task_root, task_id)
+        if not os.path.isdir(worktree_path):
+            print(f"Task worktree not found: {worktree_path}", file=sys.stderr)
+            sys.exit(1)
+        info = evaluate_lifecycle(project, task_id, worktree_path, prod_version=prod_ver)
+        print_detail(info)
+
+if __name__ == "__main__":
+    main()

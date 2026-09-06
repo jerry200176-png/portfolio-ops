@@ -26,10 +26,13 @@ target product repository's own `AGENTS.md`/`CLAUDE.md`.
 5. Prefer mature, maintained open-source tools for generic checks. Keep custom
    governance only for company-specific risk, evidence, provenance, approval,
    and deployment boundaries.
-6. Never claim a change is complete without the relevant diff, test/CI result,
-   and (for release work) deployment and smoke evidence. Merges, deployments,
-   production data mutation, credential changes, and other irreversible
-   actions remain Founder-controlled.
+6. Follow `governance/COMMANDER_WORKER_VERIFIER.md` for the 7-stage lifecycle
+   (`not_started` -> `implemented` -> `tested` -> `pr_opened` -> `merged` ->
+   `deployed` -> `production_verified`). Never claim a change is complete
+   without the relevant diff, test/CI result, and (for release work) deployment
+   and smoke evidence. Merges, deployments, production data mutation,
+   credential changes, and other irreversible actions remain
+   Founder-controlled.
 
 ## Enforcement boundary
 
