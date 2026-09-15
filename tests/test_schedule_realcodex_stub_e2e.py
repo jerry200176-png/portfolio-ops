@@ -14,6 +14,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from agent_graph.durable_runtime import DurableGraphRuntime
 from agent_graph.github_mutate import FakeGitHubMutator
@@ -194,29 +195,33 @@ class ScheduleRealCodexStubE2ETests(unittest.TestCase):
 
         # Advance until closed_success (policy gate + effects + reconcile).
         actions = []
-        for _ in range(20):
-            tick = sched.tick(limit=5)
-            actions.extend(tick.advanced)
-            run_now = self.rt.get_run(run.run_id)
-            if run_now.head_sha and run_now.head_sha != self.base:
-                reader_state["headRefOid"] = run_now.head_sha
-                reader_state["statusCheckRollup"] = [
-                    {"name": "validate", "status": "COMPLETED", "conclusion": "SUCCESS"}
-                ]
-            if run_now.closed and run_now.status == "closed_success":
-                break
-            if any(
-                e.action == "github_pr_merge" and e.status == "succeeded"
-                for e in self.store.list_effects(run.run_id)
-            ):
-                reader_state["state"] = "MERGED"
-                reader_state["mergedAt"] = "2026-09-15T12:00:00Z"
-        else:
-            self.fail(
-                f"did not close: node={self.rt.get_run(run.run_id).current_node} "
-                f"status={self.rt.get_run(run.run_id).status} "
-                f"actions={[a.get('action') for a in actions]}"
-            )
+        with mock.patch(
+            "agent_graph.branch_push.try_ensure_branch_pushed",
+            return_value={"pushed": False, "already_up_to_date": True, "branch": self.branch},
+        ):
+            for _ in range(20):
+                tick = sched.tick(limit=5)
+                actions.extend(tick.advanced)
+                run_now = self.rt.get_run(run.run_id)
+                if run_now.head_sha and run_now.head_sha != self.base:
+                    reader_state["headRefOid"] = run_now.head_sha
+                    reader_state["statusCheckRollup"] = [
+                        {"name": "validate", "status": "COMPLETED", "conclusion": "SUCCESS"}
+                    ]
+                if run_now.closed and run_now.status == "closed_success":
+                    break
+                if any(
+                    e.action == "github_pr_merge" and e.status == "succeeded"
+                    for e in self.store.list_effects(run.run_id)
+                ):
+                    reader_state["state"] = "MERGED"
+                    reader_state["mergedAt"] = "2026-09-15T12:00:00Z"
+            else:
+                self.fail(
+                    f"did not close: node={self.rt.get_run(run.run_id).current_node} "
+                    f"status={self.rt.get_run(run.run_id).status} "
+                    f"actions={[a.get('action') for a in actions]}"
+                )
 
         final = self.rt.get_run(run.run_id)
         self.assertEqual(final.status, "closed_success")

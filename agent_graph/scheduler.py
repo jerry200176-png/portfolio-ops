@@ -383,6 +383,7 @@ class GraphScheduler:
                 continue
             if run.current_node in ("investigator", "builder", "reviewer"):
                 try:
+                    node_before = run.current_node
                     worker = self._worker_for_run(run)
                     stepped = self.harness.step(
                         run_id,
@@ -396,6 +397,7 @@ class GraphScheduler:
                         "accepted": stepped.apply.accepted,
                         "node": stepped.apply.run.current_node,
                         "worker_type": getattr(worker, "worker_type", "unknown"),
+                        "node_before": node_before,
                     }
                     launch = getattr(worker, "last_launch", None)
                     if launch is not None:
@@ -404,6 +406,23 @@ class GraphScheduler:
                         if getattr(launch, "failure_reason", None) == "codex_usage_limit":
                             entry["action"] = "dormant_codex_usage_limit"
                             entry["blocker"] = "codex_usage_limit"
+                    # Control plane publishes the branch after RealCodex builder
+                    # commits so PR create does not depend on Codex sandbox network.
+                    if (
+                        self.use_real_codex
+                        and node_before == "builder"
+                        and stepped.apply.accepted
+                        and entry.get("action") == "step"
+                    ):
+                        from .branch_push import BranchPushError, try_ensure_branch_pushed
+
+                        wt = stepped.apply.run.worktree or run.worktree
+                        try:
+                            entry["branch_push"] = try_ensure_branch_pushed(wt)
+                        except BranchPushError as exc:
+                            entry["action"] = "branch_push_failed"
+                            entry["blocker"] = "branch_push_failed"
+                            entry["error"] = str(exc)
                     advanced.append(entry)
                 except Exception as exc:  # noqa: BLE001 — tick must continue
                     advanced.append(
