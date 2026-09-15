@@ -5,3 +5,9 @@ __pycache__/
 .agent-session/
 # ExoProtocol: audit logs excluded (privacy.commit_logs=false)
 .exo/logs/
+# Graph Control Plane durable store (never commit)
+state/graph-control.sqlite
+state/graph-control.sqlite-*
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
