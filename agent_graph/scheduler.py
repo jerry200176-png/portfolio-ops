@@ -281,6 +281,15 @@ class GraphScheduler:
         obs = (run.graph_snapshot or {}).get("observations") or {}
         ci_ok = ci_authorizes_head(obs, run.head_sha or "")
 
+        if not merge_done and pr_num is not None and not ci_ok:
+            return {
+                "run_id": run_id,
+                "action": "wait_ci",
+                "pr_number": pr_num,
+                "actions": actions,
+                "ci_ok": False,
+            }
+
         if not merge_done and pr_num is not None and ci_ok and run.head_sha:
             out = self.runtime.execute_approved_effect(
                 run_id=run_id,
@@ -403,12 +412,26 @@ class GraphScheduler:
                 continue
             advanced.append({"run_id": run_id, "action": "noop", "node": run.current_node})
 
-        # All examined actions were dormancy skips → treat as idle for backoff.
-        only_dormant = bool(advanced) and all(
-            a.get("action", "").startswith("dormant_") for a in advanced
+        # Dormancy and external waits (CI / effect journal) count as idle for backoff —
+        # spinning every poll_interval burns CPU without progress.
+        wait_actions = frozenset(
+            {
+                "wait_ci",
+                "wait_effect",
+                "dormant_codex_usage_limit",
+                "dormant_no_worker",
+                "dormant_no_github",
+            }
+        )
+        only_waiting = bool(advanced) and all(
+            a.get("action") in wait_actions
+            or str(a.get("action", "")).startswith("dormant_")
+            for a in advanced
         )
         return ScheduleTickResult(
-            examined=len(ids), advanced=advanced, idle=(not advanced) or only_dormant
+            examined=len(ids),
+            advanced=advanced,
+            idle=(not advanced) or only_waiting,
         )
 
 

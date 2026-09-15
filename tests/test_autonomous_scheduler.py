@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import json
 import signal
 import subprocess
 import tempfile
@@ -128,6 +129,47 @@ class AutonomousSchedulerTests(unittest.TestCase):
             self.assertGreaterEqual(sleep_for, 1.0)
         finally:
             loop.release_ownership()
+
+    def test_wait_effect_for_ci_counts_as_idle(self) -> None:
+        """PR created but CI not green yet → wait_effect must backoff, not spin."""
+        run_id = self._to_human_gate(risk_tier="R1")
+        advance_human_gate_by_policy(self.rt, run_id)
+        mut = FakeGitHubMutator()
+        create = self.rt.execute_approved_effect(
+            run_id=run_id,
+            action="github_pr_create",
+            repo="jerry200176-png/portfolio-ops",
+            target="branch/ci-wait",
+            mutator=mut,
+            params={"title": "t", "body": "b", "head": "ci-wait", "base": "main"},
+            observed_head_sha=self.head,
+        )
+        self.assertTrue(create.get("accepted"), create)
+        pr_num = int(json.loads(create["effect"]["result_json"])["number"])
+        # Align fake PR head with run head so TOCTOU/CI checks see a consistent SHA.
+        reader_state = {
+            "number": pr_num,
+            "state": "OPEN",
+            "mergedAt": None,
+            "headRefOid": self.head,
+            "url": "u",
+            "statusCheckRollup": [
+                {"name": "ci", "state": "PENDING", "conclusion": None}
+            ],
+        }
+        reader = FakeGitHubReader(reader_state)
+        sched = GraphScheduler(
+            self.rt,
+            mutator=mut,
+            reconciler=GraphReconciler(self.rt, reader),
+            head_sha=self.head,
+        )
+        out = sched.tick(limit=5)
+        self.assertTrue(
+            any(x.get("action") == "wait_ci" for x in out.advanced),
+            out.advanced,
+        )
+        self.assertTrue(out.idle, out.advanced)
 
     def test_autonomous_loop_idle_backoff(self) -> None:
         sleeps: list[float] = []
