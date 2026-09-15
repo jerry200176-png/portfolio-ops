@@ -145,17 +145,20 @@ def main() -> int:
         time.sleep(min(sec, float(os.environ.get("GRAPH_DOGFOOD_SLEEP_CAP", "45"))))
 
     def _sleep_quota(sec: float) -> None:
-        """Sleep toward Codex resume while renewing scheduler ownership lease.
+        """Sleep until Codex resume (or ``sec``) while renewing scheduler ownership.
 
-        lease_ttl is finite; a single long sleep would drop ownership.
+        lease_ttl is finite; sleep in chunks and renew so a multi-day quota
+        window does not drop ownership or burn ``max_ticks``.
         """
         sleeps.append(sec)
-        remaining = min(sec, float(os.environ.get("GRAPH_DOGFOOD_QUOTA_SLEEP_CAP", "3600")))
         loop_obj = loop_holder.get("loop")
         ttl = float(getattr(loop_obj, "lease_ttl_sec", 300.0)) if loop_obj else 300.0
-        chunk = max(5.0, min(remaining, ttl * 0.4))
-        deadline = time.time() + remaining
+        cap = float(os.environ.get("GRAPH_DOGFOOD_QUOTA_SLEEP_CAP", "3600"))
+        chunk = max(5.0, min(cap, ttl * 0.4))
+        deadline = time.time() + max(0.0, sec)
         while time.time() < deadline:
+            if time.time() > wall_deadline:
+                break
             if loop_obj is not None and loop_obj.status.ownership_held:
                 loop_obj.ownership.renew()
             slice_sec = min(chunk, max(0.0, deadline - time.time()))
