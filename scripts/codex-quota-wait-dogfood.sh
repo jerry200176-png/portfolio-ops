@@ -39,6 +39,21 @@ fi
 
 tick "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"dogfood_start_wait_through_quota\",\"reset_epoch\":$RESET_EPOCH,\"root\":\"$ROOT\"}"
 log "starting wait-through schedule dogfood tip=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+# Record waiter PID for health / pre-resume tooling (do not clobber run_id/status).
+python3 - <<PY || true
+import json, time
+from pathlib import Path
+p = Path("${STATE_DIR}/live-dogfood-state.json")
+d = {}
+if p.is_file():
+    try:
+        d = json.loads(p.read_text())
+    except Exception:
+        d = {}
+d["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+d["waiter_pid"] = ${BASHPID:-$$}
+p.write_text(json.dumps(d, indent=2) + "\n")
+PY
 set +e
 # Force live budgets — do not inherit short test env from parent shells.
 # `codex` lives under npm-global; env -i parents often omit it.

@@ -73,16 +73,52 @@ sync_tip() {
   fi
 }
 
+refresh_live_pids() {
+  local waiter_pid dog_pid tip
+  waiter_pid="$(cat "$PIDFILE" 2>/dev/null || true)"
+  dog_pid="$(dogfood_python_pid)"
+  tip="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+  STATE_JSON="$STATE_DIR/live-dogfood-state.json" \
+  WAITER_PID="$waiter_pid" DOG_PID="$dog_pid" WD_PID="$$" TIP="$tip" \
+  python3 - <<'PY' || true
+import json, os, time
+from pathlib import Path
+p = Path(os.environ["STATE_JSON"])
+d = {}
+if p.is_file():
+    try:
+        d = json.loads(p.read_text())
+    except json.JSONDecodeError:
+        d = {}
+d["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+d["watchdog_pid"] = int(os.environ.get("WD_PID") or 0) or d.get("watchdog_pid")
+if os.environ.get("WAITER_PID"):
+    d["waiter_pid"] = int(os.environ["WAITER_PID"])
+if os.environ.get("DOG_PID"):
+    d["dogfood_pid"] = int(os.environ["DOG_PID"])
+d["dogfood_runtime_tip"] = os.environ.get("TIP") or d.get("dogfood_runtime_tip")
+d["dogfood_alive"] = bool(os.environ.get("DOG_PID"))
+p.parent.mkdir(parents=True, exist_ok=True)
+p.write_text(json.dumps(d, indent=2) + "\n")
+PY
+}
+
 start_dogfood() {
   sync_tip
+  # Install tip waiter/watchdog so restarts pick up RESUME_RUN_ID wiring.
+  if [[ -f "$ROOT/scripts/codex-quota-wait-dogfood.sh" ]]; then
+    install -m 0755 "$ROOT/scripts/codex-quota-wait-dogfood.sh" "$WAITER"
+  fi
   nohup env -i \
     HOME="${HOME:-/home/jerry}" \
     USER="${USER:-jerry}" \
     PATH="$DOGFOOD_PATH" \
     GRAPH_DOGFOOD_ROOT="$ROOT" \
     GRAPH_DOGFOOD_STATE_DIR="$STATE_DIR" \
+    ${GRAPH_DOGFOOD_RESUME_RUN_ID:+GRAPH_DOGFOOD_RESUME_RUN_ID="$GRAPH_DOGFOOD_RESUME_RUN_ID"} \
     "$WAITER" >>"$STATE_DIR/codex-quota-retry.log" 2>&1 &
   echo $! >"$PIDFILE"
+  refresh_live_pids
   log "restarted dogfood waiter pid=$(cat "$PIDFILE") tip=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
   echo "AGENT_LOOP_TICK_realcodex {\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"watchdog_restart\",\"pid\":$(cat "$PIDFILE")}"
 }
@@ -96,6 +132,7 @@ while true; do
     exit 0
   fi
   if dogfood_alive; then
+    refresh_live_pids
     if lease_stale; then
       log "scheduler_lease_stale; restarting dogfood"
       stop_dogfood

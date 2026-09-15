@@ -8,7 +8,7 @@ manage Codex terminals or manual schedule-tick.
 Requires GRAPH_REAL_CODEX=1.
 Optional GRAPH_DOGFOOD_RESUME_RUN_ID=<run_id> continues an existing Run
 (worktree/DB) instead of creating a new Goal — used after tip re-exec at
-Codex quota resume.
+Codex quota resume. GRAPH_DOGFOOD_VALIDATE_RESUME_ONLY=1 exits after load.
 Exit: 0 success, 1 failure, 2 unset, 3 usage-limit dormant.
 """
 
@@ -100,7 +100,10 @@ def main() -> int:
     resume_run_id = (os.environ.get("GRAPH_DOGFOOD_RESUME_RUN_ID") or "").strip()
     if resume_run_id:
         # Continue an existing Run after quota wait / tip re-exec (do not create a new Goal).
-        existing = rt.get_run(resume_run_id)
+        try:
+            existing = rt.get_run(resume_run_id)
+        except KeyError:
+            existing = None
         if existing is None:
             print(f"GRAPH_DOGFOOD_RESUME_RUN_ID not found: {resume_run_id}", file=sys.stderr)
             return 1
@@ -123,6 +126,22 @@ def main() -> int:
                 break
         trace_marker = marker_rel
         print(f"resuming run_id={run_id} worktree={worktree}", file=sys.stderr)
+        if os.environ.get("GRAPH_DOGFOOD_VALIDATE_RESUME_ONLY") == "1":
+            print(
+                json.dumps(
+                    {
+                        "ok": True,
+                        "resumed": True,
+                        "run_id": run_id,
+                        "worktree": str(worktree),
+                        "marker": trace_marker,
+                        "current_node": run.current_node,
+                        "status": run.status,
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0
     else:
         task_id = f"graph-sched-rc-dogfood-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         worktree = Path(
@@ -211,6 +230,8 @@ def main() -> int:
                 "heartbeat_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "run_id": run_id,
                 "pid": os.getpid(),
+                "dogfood_pid": os.getpid(),
+                "dogfood_alive": True,
                 "quota_deadline": deadline,
                 "quota_left_sec": max(0.0, deadline - time.time()),
                 "status": "quota_wait",
