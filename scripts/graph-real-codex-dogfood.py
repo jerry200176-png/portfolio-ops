@@ -2,6 +2,12 @@
 """RealCodex end-to-end dogfood: Goal → Run → RealCodex → PR → CI → merge → close.
 
 Requires GRAPH_REAL_CODEX=1. Saves machine-readable evidence under reports/.
+
+Exit codes:
+  0 — closed_success
+  1 — run failed (composition / CI / effect)
+  2 — GRAPH_REAL_CODEX not set
+  3 — Codex usage-limit / quota blocker (retry later)
 """
 
 from __future__ import annotations
@@ -13,6 +19,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -27,7 +34,7 @@ from agent_graph.policy_gate import advance_human_gate_by_policy
 from agent_graph.real_codex_adapter import RealCodexWorkerAdapter
 from agent_graph.reconciler import GraphReconciler
 from agent_graph.sqlite_store import SqliteControlPlaneStore
-from agent_graph.worktree_bind import bind_existing_worktree, create_worktree_via_agent_start
+from agent_graph.worktree_bind import create_worktree_via_agent_start
 
 
 def _utc_stamp() -> str:
@@ -53,6 +60,61 @@ def _save(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _usage_limit_from_launch(launch: Any) -> Optional[str]:
+    """Return blocker detail if Codex hit account usage limit."""
+    if launch is None:
+        return None
+    paths = [getattr(launch, "stderr_path", None), getattr(launch, "stdout_path", None)]
+    chunks: list[str] = []
+    for p in paths:
+        if not p:
+            continue
+        try:
+            chunks.append(Path(p).read_text(encoding="utf-8", errors="replace"))
+        except OSError:
+            continue
+    blob = "\n".join(chunks)
+    if "usage limit" not in blob.lower():
+        return None
+    for line in blob.splitlines():
+        if "usage limit" in line.lower():
+            return line.strip()
+    return "codex_usage_limit"
+
+
+def _fail(
+    evidence_dir: Path,
+    trace: dict,
+    *,
+    blocker: str,
+    exit_code: int,
+) -> int:
+    trace["blocker"] = blocker
+    trace["failed_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    _save(evidence_dir / "trace-failed.json", trace)
+    _save(
+        evidence_dir / "SUMMARY.json",
+        {
+            "closed_success": False,
+            "blocker": blocker,
+            "exit_code": exit_code,
+            "run_id": trace.get("run_id"),
+            "attempt_ids": trace.get("attempt_ids"),
+            "worker_launches": [
+                {
+                    "node": x.get("node"),
+                    "pid": x.get("pid"),
+                    "exit_code": x.get("exit_code"),
+                    "failure_reason": x.get("failure_reason"),
+                }
+                for x in (trace.get("worker_launches") or [])
+            ],
+        },
+    )
+    print(json.dumps({"blocker": blocker, "exit_code": exit_code, "run_id": trace.get("run_id")}))
+    return exit_code
+
+
 def main() -> int:
     if os.environ.get("GRAPH_REAL_CODEX") != "1":
         print("Set GRAPH_REAL_CODEX=1 to run RealCodex dogfood.", file=sys.stderr)
@@ -64,7 +126,9 @@ def main() -> int:
 
     db_path = default_canonical_db_path()
     task_id = f"graph-real-codex-dogfood-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
-    worktree = Path(create_worktree_via_agent_start(project="portfolio-ops", task_id=task_id, dry_run=True))
+    worktree = Path(
+        create_worktree_via_agent_start(project="portfolio-ops", task_id=task_id, dry_run=True)
+    )
     assert_canonical_db_outside_worktree(db_path, worktree)
 
     store = SqliteControlPlaneStore(str(db_path))
@@ -103,6 +167,7 @@ def main() -> int:
         "attempt_ids": [],
         "worker_launches": [],
         "steps": [],
+        "worker_path": "RealCodexWorkerAdapter for investigator+builder",
     }
 
     codex = RealCodexWorkerAdapter(
@@ -121,10 +186,14 @@ def main() -> int:
     trace["attempt_ids"].append(inv.attempt.attempt_id)
     if codex.last_launch:
         trace["worker_launches"].append({"node": "investigator", **codex.last_launch.to_dict()})
-    trace["steps"].append({"node": "investigator", "accepted": inv.apply.accepted, "run": inv.apply.run.to_dict()})
+    quota = _usage_limit_from_launch(codex.last_launch)
+    if quota:
+        return _fail(evidence_dir, trace, blocker=f"codex_usage_limit: {quota}", exit_code=3)
+    trace["steps"].append(
+        {"node": "investigator", "accepted": inv.apply.accepted, "run": inv.apply.run.to_dict()}
+    )
     if not inv.apply.accepted:
-        _save(evidence_dir / "trace-failed.json", trace)
-        return 1
+        return _fail(evidence_dir, trace, blocker="investigator_not_accepted", exit_code=1)
 
     builder_extra = {
         "extra_instructions": (
@@ -138,31 +207,31 @@ def main() -> int:
     trace["attempt_ids"].append(bld.attempt.attempt_id)
     if codex.last_launch:
         trace["worker_launches"].append({"node": "builder", **codex.last_launch.to_dict()})
-    trace["steps"].append({"node": "builder", "accepted": bld.apply.accepted, "run": bld.apply.run.to_dict()})
+    quota = _usage_limit_from_launch(codex.last_launch)
+    if quota:
+        return _fail(evidence_dir, trace, blocker=f"codex_usage_limit: {quota}", exit_code=3)
+    trace["steps"].append(
+        {"node": "builder", "accepted": bld.apply.accepted, "run": bld.apply.run.to_dict()}
+    )
     if not bld.apply.accepted:
-        _save(evidence_dir / "trace-failed.json", trace)
-        return 1
+        return _fail(evidence_dir, trace, blocker="builder_not_accepted", exit_code=1)
 
     run_after_build = rt.get_run(run_id)
     head_sha = run_after_build.head_sha or _git_head(worktree)
     branch = run_after_build.branch or _git_branch(worktree)
     rt.bind_worktree(run_id, worktree=str(worktree), branch=branch, base_sha=base_sha)
-    if run_after_build.head_sha != head_sha:
-        # Ensure projection head matches worktree after RealCodex build.
-        pass
 
+    # Reviewer is verification, not implementation — FakeWorker allowed here.
     reviewer = FakeWorkerAdapter(head_sha=head_sha)
     rev = harness.step(run_id, worker=reviewer, write_context=False)
     trace["steps"].append({"node": "reviewer", "accepted": rev.apply.accepted, "worker": "FakeWorker"})
     if not rev.apply.accepted:
-        _save(evidence_dir / "trace-failed.json", trace)
-        return 1
+        return _fail(evidence_dir, trace, blocker="reviewer_not_accepted", exit_code=1)
 
     gate = advance_human_gate_by_policy(rt, run_id)
     trace["policy_gate"] = gate
     if not gate.get("accepted"):
-        _save(evidence_dir / "trace-failed.json", trace)
-        return 1
+        return _fail(evidence_dir, trace, blocker="policy_gate_rejected", exit_code=1)
 
     repo = "jerry200176-png/portfolio-ops"
     pr_create = rt.execute_approved_effect(
@@ -181,17 +250,14 @@ def main() -> int:
     )
     trace["pr_create"] = pr_create
     if not pr_create.get("accepted"):
-        _save(evidence_dir / "trace-failed.json", trace)
-        return 1
+        return _fail(evidence_dir, trace, blocker="pr_create_failed", exit_code=1)
 
     pr_number = int(json.loads(pr_create["effect"]["result_json"])["number"])
     trace["pr_number"] = pr_number
 
     ci_deadline = time.time() + float(os.environ.get("GRAPH_DOGFOOD_CI_TIMEOUT", "1800"))
-    obs_results = []
     while time.time() < ci_deadline:
-        rec = reconciler.reconcile_run(run_id, pr_number=pr_number, repo=repo)
-        obs_results.append(rec.to_dict())
+        reconciler.reconcile_run(run_id, pr_number=pr_number, repo=repo)
         run_obs = rt.get_run(run_id)
         obs = (run_obs.graph_snapshot or {}).get("observations") or {}
         if ci_authorizes_head(obs, head_sha):
@@ -200,8 +266,7 @@ def main() -> int:
         time.sleep(30)
     else:
         trace["ci_ready"] = False
-        _save(evidence_dir / "trace-failed.json", trace)
-        return 1
+        return _fail(evidence_dir, trace, blocker="ci_timeout", exit_code=1)
 
     merge = rt.execute_approved_effect(
         run_id=run_id,
@@ -215,6 +280,8 @@ def main() -> int:
     )
     trace["merge"] = merge
     trace["effect_id"] = (merge.get("effect") or {}).get("effect_id")
+    if not merge.get("accepted"):
+        return _fail(evidence_dir, trace, blocker="merge_failed", exit_code=1)
 
     final_rec = reconciler.reconcile_run(run_id, pr_number=pr_number, repo=repo)
     trace["reconcile"] = final_rec.to_dict()
@@ -228,17 +295,24 @@ def main() -> int:
     trace["effects"] = [e.to_dict() for e in rt.store.list_effects(run_id)]
 
     _save(evidence_dir / "trace.json", trace)
-    _save(evidence_dir / "SUMMARY.json", {
-        "run_id": run_id,
-        "attempt_ids": trace["attempt_ids"],
-        "worker_launches": trace["worker_launches"],
-        "pr": pr_number,
-        "head_sha": head_sha,
-        "effect_id": trace.get("effect_id"),
-        "final_status": final.status,
-        "final_node": final.current_node,
-        "closed_success": final.status == "closed_success",
-    })
+    _save(
+        evidence_dir / "SUMMARY.json",
+        {
+            "run_id": run_id,
+            "attempt_ids": trace["attempt_ids"],
+            "worker_launches": [
+                {"node": x.get("node"), "pid": x.get("pid"), "exit_code": x.get("exit_code")}
+                for x in trace["worker_launches"]
+            ],
+            "pr": pr_number,
+            "head_sha": head_sha,
+            "effect_id": trace.get("effect_id"),
+            "final_status": final.status,
+            "final_node": final.current_node,
+            "closed_success": final.status == "closed_success",
+            "worker_path": "RealCodexWorkerAdapter",
+        },
+    )
 
     print(json.dumps(trace["steps"], indent=2))
     return 0 if final.status == "closed_success" else 1
