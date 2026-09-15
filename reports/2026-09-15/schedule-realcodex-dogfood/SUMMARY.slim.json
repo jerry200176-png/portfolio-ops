@@ -1,0 +1,11 @@
+{
+  "base_sha": "5e302dfd33178283cec133394a70f0779631eeac",
+  "blocker": "codex_usage_limit",
+  "branch": "chore/task-graph-sched-rc-dogfood-20260915091108",
+  "closed_success": false,
+  "exit_code": 3,
+  "goal_id": "goal_a4180589a52d4b8a82f60e0cebb1d318",
+  "mode": "schedule-run",
+  "run_id": "run_92d8d5f3436b47f898fbd9ffe19c8f19",
+  "worktree": "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108"
+}
