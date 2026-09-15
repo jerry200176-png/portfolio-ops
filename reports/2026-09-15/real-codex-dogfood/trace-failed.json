@@ -1,0 +1,127 @@
+{
+  "attempt_ids": [
+    "att_9417819250cb463ca44077545b0f4624"
+  ],
+  "base_sha": "35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3",
+  "branch": "chore/task-graph-real-codex-dogfood-20260915082823",
+  "goal_id": "goal_a0b09d7adffa47b9ab9e97eca6c44248",
+  "run_id": "run_a17fb80a0e28425fa16b2c7b8fd510f3",
+  "steps": [
+    {
+      "accepted": false,
+      "node": "investigator",
+      "run": {
+        "base_sha": "35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3",
+        "blocker": null,
+        "branch": "chore/task-graph-real-codex-dogfood-20260915082823",
+        "closed": false,
+        "created_at": "2026-09-15T08:28:28Z",
+        "current_node": "investigator",
+        "goal_id": "goal_a0b09d7adffa47b9ab9e97eca6c44248",
+        "graph_snapshot": {
+          "agent_run_count": 0,
+          "approved_head_sha": null,
+          "base_sha": "35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3",
+          "blocker": null,
+          "builder_actor_id": null,
+          "closed": false,
+          "current_node": "investigator",
+          "failure_signatures": [],
+          "head_sha": "35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3",
+          "human_approved": false,
+          "observations": {},
+          "repository": "jerry200176-png/portfolio-ops",
+          "retry_count": {},
+          "reviewer_actor_id": null,
+          "stopped": false,
+          "task_id": "run_a17fb80a0e28425fa16b2c7b8fd510f3",
+          "task_status": "investigating"
+        },
+        "graph_version": "v0",
+        "head_sha": "35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3",
+        "human_approved": false,
+        "project": "portfolio-ops",
+        "risk_tier": "R1",
+        "run_id": "run_a17fb80a0e28425fa16b2c7b8fd510f3",
+        "state_version": 1,
+        "status": "waiting_worker",
+        "stopped": false,
+        "tested_sha": null,
+        "updated_at": "2026-09-15T08:28:28Z",
+        "worktree": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823"
+      }
+    }
+  ],
+  "worker_launches": [
+    {
+      "command": [
+        "/home/jerry/.local/bin/codex-route",
+        "--complexity",
+        "low",
+        "--ambiguity",
+        "low",
+        "--blast-radius",
+        "low",
+        "--risk",
+        "low",
+        "--workload",
+        "coding",
+        "--",
+        "-C",
+        "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823",
+        "-s",
+        "workspace-write",
+        "--ephemeral",
+        "# Graph-managed worker task (bounded node)\n\nYou are a replaceable Codex worker. Canonical Run state lives in SQLite;\nyou must NOT edit the control-plane database or choose next_node.\n\n## Goal\nR1 maintenance: create docs/agent-graph/real-codex-e2e-marker.md with a short section documenting this RealCodex end-to-end dogfood (date, objective, no secrets). Commit the change on the current branch, push to origin, then write result.json.\n\n## Current node\n- node: `investigator`\n- role: `investigator`\n- run_id: `run_a17fb80a0e28425fa16b2c7b8fd510f3`\n- attempt_id: `att_9417819250cb463ca44077545b0f4624`\n- project: `portfolio-ops`\n- expected_state_version: `1`\n- base_sha: `35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3`\n- head_sha: `35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3`\n\n## Worktree (mandatory cwd)\n`/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823`\nAll reads/writes must stay inside this worktree.\n\n## Allowed scope\n- Read repository files inside the bound worktree only\n- Summarize findings needed for this node\n- Write a single structured result to .agent-session/result.json\n\n## Non-scope (hard bans)\n- Do not choose next_node or mutate graph/SQLite state\n- Do not open PRs, merge, deploy, or touch production\n- Do not modify other Runs or other workers' sessions\n- Do not write outside the bound worktree\n\n## Success condition\nDoc marker merged via control-plane effect journal\n\n## Allowed proposed_outcome.outcome_type values\n`INVESTIGATION_COMPLETED`, `NODE_FAILED`\n\n## Required result schema\nWrite exactly one JSON file at:\n`/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823/.agent-session/result.json`\n\nShape (Phase 1A WorkerResult):\n```json\n{\n  \"schema_version\": \"1.0\",\n  \"status\": \"success|failure|needs_human\",\n  \"summary\": \"non-empty string\",\n  \"idempotency_key\": \"<ATTEMPT_ID>:<OUTCOME_TYPE>\",\n  \"artifacts\": [\n    {\n      \"kind\": \"string\",\n      \"uri\": \"string\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"kind\": \"string\",\n      \"ref\": \"string\",\n      \"summary\": \"string\"\n    }\n  ],\n  \"proposed_outcome\": {\n    \"outcome_type\": [\n      \"BUILD_COMPLETED\",\n      \"HUMAN_APPROVED\",\n      \"HUMAN_REJECTED\",\n      \"INVESTIGATION_COMPLETED\",\n      \"NODE_FAILED\",\n      \"REVIEW_APPROVED\",\n      \"REVIEW_REJECTED\"\n    ],\n    \"actor_id\": \"string\",\n    \"actor_role\": \"string\",\n    \"head_sha\": \"40-char sha or null\",\n    \"base_sha\": \"40-char sha or null\",\n    \"conclusion\": \"string\",\n    \"evidence\": {\n      \"object\": true\n    },\n    \"repository\": \"owner/repo\"\n  },\n  \"forbidden_keys\": [\n    \"next_node\",\n    \"current_node\",\n    \"run_status\"\n  ]\n}\n```\n\nUse idempotency_key = `{attempt_id}:{outcome_type}` with this attempt_id.\nactor_id must identify THIS worker process uniquely (e.g. include attempt_id).\n\n## Completion\nAfter writing a valid result.json, stop. Do not start other nodes.\nDo not resume or depend on any prior Codex conversation/thread.\n\n## Extra instructions\nInvestigate where to add docs/agent-graph/real-codex-e2e-marker.md. Do not modify code yet. Write INVESTIGATION_COMPLETED to result.json.\n"
+      ],
+      "exit_code": 1,
+      "failure_reason": "nonzero_exit:1",
+      "node": "investigator",
+      "pid": 3295151,
+      "prompt_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823/.agent-session/node-prompt.md",
+      "result_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823/.agent-session/result.json",
+      "route_plan": {
+        "command": "codex exec --profile terra -C /home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823 -s workspace-write --ephemeral '# Graph-managed worker task (bounded node)\n\nYou are a replaceable Codex worker. Canonical Run state lives in SQLite;\nyou must NOT edit the control-plane database or choose next_node.\n\n## Goal\nR1 maintenance: create docs/agent-graph/real-codex-e2e-marker.md with a short section documenting this RealCodex end-to-end dogfood (date, objective, no secrets). Commit the change on the current branch, push to origin, then write result.json.\n\n## Current node\n- node: `investigator`\n- role: `investigator`\n- run_id: `run_a17fb80a0e28425fa16b2c7b8fd510f3`\n- attempt_id: `att_9417819250cb463ca44077545b0f4624`\n- project: `portfolio-ops`\n- expected_state_version: `1`\n- base_sha: `35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3`\n- head_sha: `35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3`\n\n## Worktree (mandatory cwd)\n`/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823`\nAll reads/writes must stay inside this worktree.\n\n## Allowed scope\n- Read repository files inside the bound worktree only\n- Summarize findings needed for this node\n- Write a single structured result to .agent-session/result.json\n\n## Non-scope (hard bans)\n- Do not choose next_node or mutate graph/SQLite state\n- Do not open PRs, merge, deploy, or touch production\n- Do not modify other Runs or other workers'\"'\"' sessions\n- Do not write outside the bound worktree\n\n## Success condition\nDoc marker merged via control-plane effect journal\n\n## Allowed proposed_outcome.outcome_type values\n`INVESTIGATION_COMPLETED`, `NODE_FAILED`\n\n## Required result schema\nWrite exactly one JSON file at:\n`/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823/.agent-session/result.json`\n\nShape (Phase 1A WorkerResult):\n```json\n{\n  \"schema_version\": \"1.0\",\n  \"status\": \"success|failure|needs_human\",\n  \"summary\": \"non-empty string\",\n  \"idempotency_key\": \"<ATTEMPT_ID>:<OUTCOME_TYPE>\",\n  \"artifacts\": [\n    {\n      \"kind\": \"string\",\n      \"uri\": \"string\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"kind\": \"string\",\n      \"ref\": \"string\",\n      \"summary\": \"string\"\n    }\n  ],\n  \"proposed_outcome\": {\n    \"outcome_type\": [\n      \"BUILD_COMPLETED\",\n      \"HUMAN_APPROVED\",\n      \"HUMAN_REJECTED\",\n      \"INVESTIGATION_COMPLETED\",\n      \"NODE_FAILED\",\n      \"REVIEW_APPROVED\",\n      \"REVIEW_REJECTED\"\n    ],\n    \"actor_id\": \"string\",\n    \"actor_role\": \"string\",\n    \"head_sha\": \"40-char sha or null\",\n    \"base_sha\": \"40-char sha or null\",\n    \"conclusion\": \"string\",\n    \"evidence\": {\n      \"object\": true\n    },\n    \"repository\": \"owner/repo\"\n  },\n  \"forbidden_keys\": [\n    \"next_node\",\n    \"current_node\",\n    \"run_status\"\n  ]\n}\n```\n\nUse idempotency_key = `{attempt_id}:{outcome_type}` with this attempt_id.\nactor_id must identify THIS worker process uniquely (e.g. include attempt_id).\n\n## Completion\nAfter writing a valid result.json, stop. Do not start other nodes.\nDo not resume or depend on any prior Codex conversation/thread.\n\n## Extra instructions\nInvestigate where to add docs/agent-graph/real-codex-e2e-marker.md. Do not modify code yet. Write INVESTIGATION_COMPLETED to result.json.\n'",
+        "exec_preview": [
+          "codex",
+          "exec",
+          "--profile",
+          "terra",
+          "-C",
+          "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823",
+          "-s",
+          "workspace-write",
+          "--ephemeral",
+          "# Graph-managed worker task (bounded node)\n\nYou are a replaceable Codex worker. Canonical Run state lives in SQLite;\nyou must NOT edit the control-plane database or choose next_node.\n\n## Goal\nR1 maintenance: create docs/agent-graph/real-codex-e2e-marker.md with a short section documenting this RealCodex end-to-end dogfood (date, objective, no secrets). Commit the change on the current branch, push to origin, then write result.json.\n\n## Current node\n- node: `investigator`\n- role: `investigator`\n- run_id: `run_a17fb80a0e28425fa16b2c7b8fd510f3`\n- attempt_id: `att_9417819250cb463ca44077545b0f4624`\n- project: `portfolio-ops`\n- expected_state_version: `1`\n- base_sha: `35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3`\n- head_sha: `35c77d2ed2e8fb3d9a9033daa78599ae30d6bdf3`\n\n## Worktree (mandatory cwd)\n`/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823`\nAll reads/writes must stay inside this worktree.\n\n## Allowed scope\n- Read repository files inside the bound worktree only\n- Summarize findings needed for this node\n- Write a single structured result to .agent-session/result.json\n\n## Non-scope (hard bans)\n- Do not choose next_node or mutate graph/SQLite state\n- Do not open PRs, merge, deploy, or touch production\n- Do not modify other Runs or other workers' sessions\n- Do not write outside the bound worktree\n\n## Success condition\nDoc marker merged via control-plane effect journal\n\n## Allowed proposed_outcome.outcome_type values\n`INVESTIGATION_COMPLETED`, `NODE_FAILED`\n\n## Required result schema\nWrite exactly one JSON file at:\n`/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823/.agent-session/result.json`\n\nShape (Phase 1A WorkerResult):\n```json\n{\n  \"schema_version\": \"1.0\",\n  \"status\": \"success|failure|needs_human\",\n  \"summary\": \"non-empty string\",\n  \"idempotency_key\": \"<ATTEMPT_ID>:<OUTCOME_TYPE>\",\n  \"artifacts\": [\n    {\n      \"kind\": \"string\",\n      \"uri\": \"string\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"kind\": \"string\",\n      \"ref\": \"string\",\n      \"summary\": \"string\"\n    }\n  ],\n  \"proposed_outcome\": {\n    \"outcome_type\": [\n      \"BUILD_COMPLETED\",\n      \"HUMAN_APPROVED\",\n      \"HUMAN_REJECTED\",\n      \"INVESTIGATION_COMPLETED\",\n      \"NODE_FAILED\",\n      \"REVIEW_APPROVED\",\n      \"REVIEW_REJECTED\"\n    ],\n    \"actor_id\": \"string\",\n    \"actor_role\": \"string\",\n    \"head_sha\": \"40-char sha or null\",\n    \"base_sha\": \"40-char sha or null\",\n    \"conclusion\": \"string\",\n    \"evidence\": {\n      \"object\": true\n    },\n    \"repository\": \"owner/repo\"\n  },\n  \"forbidden_keys\": [\n    \"next_node\",\n    \"current_node\",\n    \"run_status\"\n  ]\n}\n```\n\nUse idempotency_key = `{attempt_id}:{outcome_type}` with this attempt_id.\nactor_id must identify THIS worker process uniquely (e.g. include attempt_id).\n\n## Completion\nAfter writing a valid result.json, stop. Do not start other nodes.\nDo not resume or depend on any prior Codex conversation/thread.\n\n## Extra instructions\nInvestigate where to add docs/agent-graph/real-codex-e2e-marker.md. Do not modify code yet. Write INVESTIGATION_COMPLETED to result.json.\n"
+        ],
+        "hermes_signal": {
+          "verdict": "UNSET",
+          "verdict_is_advisory": true
+        },
+        "model": "gpt-5.6-terra",
+        "profile": "terra",
+        "reason": "default_general_task_route",
+        "reasoning_effort_override": null,
+        "requested_tier": "terra",
+        "resolution": "selected",
+        "selected_tier": "terra",
+        "signals": {
+          "ambiguity": "low",
+          "astra_eligible": false,
+          "blast_radius": "low",
+          "complexity": "low",
+          "hermes_verdict": "UNSET",
+          "protected_reasoning": false,
+          "risk": "low",
+          "sol_insufficient": false,
+          "workload": "coding"
+        }
+      },
+      "stderr_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823/.agent-session/codex-att_9417819250cb463ca44077545b0f4624.stderr.log",
+      "stdout_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823/.agent-session/codex-att_9417819250cb463ca44077545b0f4624.stdout.log",
+      "timed_out": false,
+      "worktree": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823"
+    }
+  ],
+  "worktree": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-dogfood-20260915082823"
+}
