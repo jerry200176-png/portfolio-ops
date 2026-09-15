@@ -98,6 +98,8 @@ def collect_dogfood_evidence(
                 pr_number = pr_number or data.get("number")
                 pr_url = pr_url or data.get("url")
                 merge_sha = merge_sha or data.get("mergeCommitOid") or data.get("sha")
+                if not merge_sha and isinstance(data.get("mergeCommit"), dict):
+                    merge_sha = data["mergeCommit"].get("oid")
         except (TypeError, ValueError, json.JSONDecodeError):
             pass
         if e.get("external_ref") and not pr_url:

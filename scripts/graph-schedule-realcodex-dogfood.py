@@ -135,6 +135,7 @@ def main() -> int:
         os.environ.get("GRAPH_DOGFOOD_WALL_SEC", str(100 * 3600))
     )
     sleeps: list[float] = []
+    loop_holder: dict[str, Any] = {}
 
     def _sleep(sec: float) -> None:
         sleeps.append(sec)
@@ -142,9 +143,23 @@ def main() -> int:
         time.sleep(min(sec, float(os.environ.get("GRAPH_DOGFOOD_SLEEP_CAP", "45"))))
 
     def _sleep_quota(sec: float) -> None:
-        """Longer sleeps while waiting for Codex quota (does not use the short CI cap)."""
+        """Sleep toward Codex resume while renewing scheduler ownership lease.
+
+        lease_ttl is finite; a single long sleep would drop ownership.
+        """
         sleeps.append(sec)
-        time.sleep(min(sec, float(os.environ.get("GRAPH_DOGFOOD_QUOTA_SLEEP_CAP", "3600"))))
+        remaining = min(sec, float(os.environ.get("GRAPH_DOGFOOD_QUOTA_SLEEP_CAP", "3600")))
+        loop_obj = loop_holder.get("loop")
+        ttl = float(getattr(loop_obj, "lease_ttl_sec", 300.0)) if loop_obj else 300.0
+        chunk = max(5.0, min(remaining, ttl * 0.4))
+        deadline = time.time() + remaining
+        while time.time() < deadline:
+            if loop_obj is not None and loop_obj.status.ownership_held:
+                loop_obj.ownership.renew()
+            slice_sec = min(chunk, max(0.0, deadline - time.time()))
+            if slice_sec <= 0:
+                break
+            time.sleep(slice_sec)
 
     loop = AutonomousSchedulerLoop(
         rt,
@@ -153,13 +168,14 @@ def main() -> int:
         project="portfolio-ops",
         poll_interval_sec=poll,
         max_poll_interval_sec=float(os.environ.get("GRAPH_DOGFOOD_MAX_POLL", "45")),
-        lease_ttl_sec=120.0,
+        lease_ttl_sec=float(os.environ.get("GRAPH_DOGFOOD_LEASE_TTL", "300")),
         tick_limit=3,
         use_real_codex=True,
         codex_timeout_sec=float(os.environ.get("GRAPH_REAL_CODEX_TIMEOUT", "1200")),
         canonical_db_path=str(db_path),
         sleep_fn=_sleep,
     )
+    loop_holder["loop"] = loop
     if not loop.acquire_ownership():
         trace["blocker"] = "scheduler_ownership_denied"
         _save(evidence_dir / "SUMMARY.json", trace)
@@ -187,8 +203,12 @@ def main() -> int:
                     for a in tick.advanced
                     if a.get("run_id") == run_id
                     and a.get("action")
-                    in ("branch_push_failed", "pr_create_failed", "effect_blocked")
-                ),
+                    in (
+                        "branch_push_failed",
+                        "pr_create_failed",
+                        "effect_blocked",
+                        "ci_failed",
+                    )                ),
                 None,
             )
             if hard_fail is not None:

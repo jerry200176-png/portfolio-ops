@@ -305,6 +305,16 @@ class GraphScheduler:
         ci_ok = ci_authorizes_head(obs, run.head_sha or "")
 
         if not merge_done and pr_num is not None and not ci_ok:
+            ci_state = (obs.get("ci_by_sha") or {}).get(run.head_sha or "")
+            if ci_state == "CI_FAILED":
+                return {
+                    "run_id": run_id,
+                    "action": "ci_failed",
+                    "blocker": "ci_failed",
+                    "pr_number": pr_num,
+                    "ci_state": ci_state,
+                    "actions": actions,
+                }
             return {
                 "run_id": run_id,
                 "action": "wait_ci",
@@ -512,6 +522,7 @@ class AutonomousSchedulerLoop:
         self.project = project
         self.poll_interval_sec = poll_interval_sec
         self.max_poll_interval_sec = max_poll_interval_sec
+        self.lease_ttl_sec = float(lease_ttl_sec)
         self.tick_limit = tick_limit
         self.sleep_fn = sleep_fn
         self.scheduler_id = scheduler_id or f"schedloop_{uuid.uuid4().hex[:12]}"
@@ -574,10 +585,12 @@ class AutonomousSchedulerLoop:
             rid = item.get("run_id")
             if not rid:
                 continue
-            if blocker in ("founder_approval_required",):
+            if blocker in ("founder_approval_required", "ci_failed"):
                 self._permanent_blockers.add(rid)
             # stale_approval is recoverable after head re-observe / re-approve — do not
             # permanently skip the Run in a long-lived schedule-run process.
+            if item.get("action") == "ci_failed":
+                self._permanent_blockers.add(rid)
             if item.get("action") == "dormant_codex_usage_limit" or blocker == "codex_usage_limit":
                 resume = None
                 launch = item.get("codex_launch") or {}
