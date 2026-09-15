@@ -34,7 +34,9 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
-        self.db = self.root / "graph.sqlite"
+        self.control = self.root / "control-plane"
+        self.control.mkdir()
+        self.db = self.control / "graph.sqlite"
         self.worktree = self.root / "wt"
         self.worktree.mkdir()
         (self.worktree / ".git").mkdir()
@@ -199,7 +201,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
     def test_worker_context_propagation(self) -> None:
         run = self._run()
         route = self._route_stub(mode="success")
-        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10)
+        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10, canonical_db_path=self.db)
         out = self.harness.step(run.run_id, worker=adapter, write_context=True)
         self.assertTrue(out.apply.accepted)
         ctx = json.loads((self.worktree / ".agent-session/worker-context.json").read_text())
@@ -215,7 +217,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
     def test_missing_result_is_deterministic_failure(self) -> None:
         run = self._run()
         route = self._route_stub(mode="missing")
-        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10)
+        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10, canonical_db_path=self.db)
         out = self.harness.step(run.run_id, worker=adapter)
         self.assertFalse(out.apply.accepted)
         self.assertEqual(out.attempt.status, "failed")
@@ -225,7 +227,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
     def test_nonzero_exit_without_result_fails(self) -> None:
         run = self._run()
         route = self._route_stub(mode="nonzero")
-        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10)
+        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10, canonical_db_path=self.db)
         out = self.harness.step(run.run_id, worker=adapter)
         self.assertFalse(out.apply.accepted)
         self.assertEqual(out.attempt.status, "failed")
@@ -234,7 +236,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
     def test_timeout_fails_closed(self) -> None:
         run = self._run()
         route = self._route_stub(mode="timeout")
-        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=0.5)
+        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=0.5, canonical_db_path=self.db)
         out = self.harness.step(run.run_id, worker=adapter)
         self.assertFalse(out.apply.accepted)
         self.assertTrue(adapter.last_launch.timed_out)
@@ -243,7 +245,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
     def test_malformed_result_fails_closed(self) -> None:
         run = self._run()
         route = self._route_stub(mode="malformed")
-        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10)
+        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10, canonical_db_path=self.db)
         out = self.harness.step(run.run_id, worker=adapter)
         self.assertFalse(out.apply.accepted)
         self.assertEqual(out.attempt.status, "failed")
@@ -253,7 +255,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
         run = self._run()
         before = self.rt.get_run(run.run_id).to_dict()
         route = self._route_stub(mode="nonzero")
-        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10)
+        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10, canonical_db_path=self.db)
         out = self.harness.step(run.run_id, worker=adapter)
         self.assertFalse(out.apply.accepted)
         after = self.rt.get_run(run.run_id)
@@ -302,7 +304,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
     def test_stub_a_to_b_replacement_without_shared_thread(self) -> None:
         run = self._run()
         route = self._route_stub(mode="success")
-        a = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10)
+        a = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10, canonical_db_path=self.db)
         out_a = self.harness.step(run.run_id, worker=a)
         self.assertTrue(out_a.apply.accepted)
         pid_a = a.last_launch.pid
@@ -323,7 +325,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
         builder = self._success_route(
             outcome="BUILD_COMPLETED", role="builder", head="b" * 40
         )
-        b = RealCodexWorkerAdapter(codex_route=str(builder), timeout_sec=10)
+        b = RealCodexWorkerAdapter(codex_route=str(builder), timeout_sec=10, canonical_db_path=self.db)
         out_b = harness2.step(run.run_id, worker=b)
         self.assertTrue(out_b.apply.accepted, msg=out_b.apply.reason)
         self.assertNotEqual(a.last_launch.pid, b.last_launch.pid)
@@ -338,7 +340,7 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
             base_sha=self.base_sha,
             worktree="/home/jerry",
         )
-        adapter = RealCodexWorkerAdapter(codex_route=str(self._route_stub(mode="missing")))
+        adapter = RealCodexWorkerAdapter(codex_route=str(self._route_stub(mode="missing")), canonical_db_path=self.db)
         with self.assertRaises(Exception):
             adapter.execute(
                 run=run,

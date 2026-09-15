@@ -1,7 +1,7 @@
-# Real Codex replaceable worker proof
+# Real Codex Phase 1B harden proof
 
 - ok: **True**
-- worktree: `/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-proof-20260915045104`
-- run_id: `run_2d7a9033a6d245568ff41cf6129aea90`
-- pid A / B: `3032144` / `3033667`
-- node after B: `reviewer`
+- db: `/home/jerry/workspace/state/portfolio-ops/graph-control-phase1b-proof.sqlite` (outside worktree)
+- worktree: `/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-proof-20260915051257`
+- A/B pids: `3067826` / `3069542`
+- death-before-result preserved investigator: **True**

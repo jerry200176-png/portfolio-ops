@@ -15,12 +15,14 @@ from .durable_runtime import DurableGraphRuntime
 from .harness import FakeWorkerAdapter, GraphHarness
 from .sqlite_store import SqliteControlPlaneStore
 from .worktree_bind import bind_existing_worktree
+from .canonical_paths import default_canonical_db_path, ensure_canonical_db_parent
 
-DEFAULT_DB = Path(__file__).resolve().parents[1] / "state" / "graph-control.sqlite"
+DEFAULT_DB = default_canonical_db_path()
 
 
 def _runtime(db: str) -> DurableGraphRuntime:
-    return DurableGraphRuntime(SqliteControlPlaneStore(db))
+    path = ensure_canonical_db_parent(Path(db))
+    return DurableGraphRuntime(SqliteControlPlaneStore(path))
 
 
 def cmd_run_create(args: argparse.Namespace) -> int:
@@ -72,6 +74,7 @@ def cmd_step(args: argparse.Namespace) -> int:
             worker = RealCodexWorkerAdapter(
                 timeout_sec=args.codex_timeout,
                 dry_run=args.codex_dry_run,
+                canonical_db_path=args.db,
             )
             model_profile = "codex-route"
         else:
