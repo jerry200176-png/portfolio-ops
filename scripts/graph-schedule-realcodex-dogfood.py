@@ -156,11 +156,38 @@ def main() -> int:
         cap = float(os.environ.get("GRAPH_DOGFOOD_QUOTA_SLEEP_CAP", "3600"))
         chunk = max(5.0, min(cap, ttl * 0.4))
         deadline = time.time() + max(0.0, sec)
+        state_path = Path(
+            os.environ.get(
+                "GRAPH_DOGFOOD_STATE_JSON",
+                "/home/jerry/workspace/state/portfolio-ops/live-dogfood-state.json",
+            )
+        )
+
+        def _heartbeat() -> None:
+            payload = {
+                "heartbeat_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "run_id": run_id,
+                "pid": os.getpid(),
+                "quota_deadline": deadline,
+                "quota_left_sec": max(0.0, deadline - time.time()),
+                "status": "quota_wait",
+            }
+            try:
+                existing: dict[str, Any] = {}
+                if state_path.is_file():
+                    existing = json.loads(state_path.read_text(encoding="utf-8"))
+                existing.update(payload)
+                state_path.parent.mkdir(parents=True, exist_ok=True)
+                state_path.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf-8")
+            except OSError:
+                pass
+
         while time.time() < deadline:
             if time.time() > wall_deadline:
                 break
             if loop_obj is not None and loop_obj.status.ownership_held:
                 loop_obj.ownership.renew()
+            _heartbeat()
             slice_sec = min(chunk, max(0.0, deadline - time.time()))
             if slice_sec <= 0:
                 break
