@@ -11,6 +11,10 @@ mkdir -p "$STATE_DIR" "$UNIT_DIR"
 
 install -m 0755 "$ROOT/scripts/codex-quota-wait-dogfood.sh" "$STATE_DIR/codex-quota-wait-dogfood.sh"
 install -m 0755 "$ROOT/scripts/codex-quota-watchdog.sh" "$STATE_DIR/codex-quota-watchdog.sh"
+if [[ -f "$ROOT/scripts/codex-quota-preresume-reexec.sh" ]]; then
+  install -m 0755 "$ROOT/scripts/codex-quota-preresume-reexec.sh" \
+    "$STATE_DIR/codex-quota-preresume-reexec.sh"
+fi
 
 # Optional systemd user units (enabled only if user bus is available).
 cp "$ROOT/scripts/systemd/graph-realcodex-dogfood-waiter.service" "$UNIT_DIR/"
