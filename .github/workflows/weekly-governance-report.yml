@@ -19,7 +19,8 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check --no-warn-script-location pyyaml==6.0.2
       - name: Generate freshness report
-        run: python scripts/portfolio-freshness.py --github-summary --json-out "$RUNNER_TEMP/portfolio-freshness.json"
+        # Scheduled/manual monitor remains fail-closed on stale inventory/evidence.
+        run: python scripts/portfolio-freshness.py --fail-on-stale --github-summary --json-out "$RUNNER_TEMP/portfolio-freshness.json"
       - name: Upload freshness evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
