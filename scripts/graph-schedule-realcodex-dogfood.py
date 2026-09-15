@@ -108,14 +108,15 @@ def main() -> int:
         "worker_path": "RealCodexWorkerAdapter via AutonomousSchedulerLoop",
     }
 
-    max_ticks = int(os.environ.get("GRAPH_DOGFOOD_MAX_TICKS", "40"))
-    poll = float(os.environ.get("GRAPH_DOGFOOD_POLL", "2.0"))
+    # Live dogfood must outlast GitHub CI (often 3–8+ min) plus RealCodex workers.
+    max_ticks = int(os.environ.get("GRAPH_DOGFOOD_MAX_TICKS", "240"))
+    poll = float(os.environ.get("GRAPH_DOGFOOD_POLL", "5.0"))
     sleeps: list[float] = []
 
     def _sleep(sec: float) -> None:
         sleeps.append(sec)
-        # Cap per-sleep during dogfood so CI/effect wait is bounded by max_ticks.
-        time.sleep(min(sec, float(os.environ.get("GRAPH_DOGFOOD_SLEEP_CAP", "30"))))
+        # Cap per-sleep; with wait_ci idle backoff this still allows ~30–60+ min wall time.
+        time.sleep(min(sec, float(os.environ.get("GRAPH_DOGFOOD_SLEEP_CAP", "45"))))
 
     loop = AutonomousSchedulerLoop(
         rt,
@@ -123,8 +124,8 @@ def main() -> int:
         mutator=mutator,
         project="portfolio-ops",
         poll_interval_sec=poll,
-        max_poll_interval_sec=min(30.0, poll * 8),
-        lease_ttl_sec=60.0,
+        max_poll_interval_sec=float(os.environ.get("GRAPH_DOGFOOD_MAX_POLL", "45")),
+        lease_ttl_sec=120.0,
         tick_limit=3,
         use_real_codex=True,
         codex_timeout_sec=float(os.environ.get("GRAPH_REAL_CODEX_TIMEOUT", "1200")),
