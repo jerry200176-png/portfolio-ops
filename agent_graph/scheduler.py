@@ -224,6 +224,24 @@ class GraphScheduler:
         )
 
         if not create_done and not pr_num and run.branch and run.head_sha:
+            # Re-publish branch tip before PR create (builder push may have failed).
+            if self.use_real_codex and run.worktree:
+                from .branch_push import BranchPushError, try_ensure_branch_pushed
+
+                try:
+                    push_meta = try_ensure_branch_pushed(run.worktree)
+                    actions.append("branch_push_before_pr")
+                except BranchPushError as exc:
+                    return {
+                        "run_id": run_id,
+                        "action": "branch_push_failed",
+                        "blocker": "branch_push_failed",
+                        "error": str(exc),
+                        "actions": actions,
+                    }
+            else:
+                push_meta = None
+
             title = f"graph run {run_id}: {run.branch}"
             body = (
                 f"Autonomous graph control-plane PR for run `{run_id}`.\n\n"
@@ -244,6 +262,11 @@ class GraphScheduler:
                 observed_head_sha=run.head_sha,
             )
             actions.append("pr_create")
+            if push_meta is not None:
+                actions.append(
+                    "branch_push:"
+                    + ("up_to_date" if push_meta.get("already_up_to_date") else "pushed")
+                )
             if out.get("accepted"):
                 try:
                     pr_num = int(json.loads(out["effect"]["result_json"])["number"])
@@ -551,8 +574,10 @@ class AutonomousSchedulerLoop:
             rid = item.get("run_id")
             if not rid:
                 continue
-            if blocker in ("founder_approval_required", "stale_approval"):
+            if blocker in ("founder_approval_required",):
                 self._permanent_blockers.add(rid)
+            # stale_approval is recoverable after head re-observe / re-approve — do not
+            # permanently skip the Run in a long-lived schedule-run process.
             if item.get("action") == "dormant_codex_usage_limit" or blocker == "codex_usage_limit":
                 resume = None
                 launch = item.get("codex_launch") or {}
