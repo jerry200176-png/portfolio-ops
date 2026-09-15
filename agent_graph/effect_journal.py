@@ -34,8 +34,9 @@ def effect_identity(
     head_sha: str,
 ) -> str:
     material = "|".join([run_id, action, repo, target, head_sha])
-    digest = hashlib.sha256(material.encode("utf-8")).hexdigest()[:32]
-    return f"eff_{digest}"
+    digest = hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]
+    # Avoid generic-api-key false positives from bare high-entropy tokens.
+    return f"effect/{action}/{digest}"
 
 
 class DurableEffectJournal:
