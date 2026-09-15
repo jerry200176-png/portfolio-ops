@@ -38,18 +38,19 @@ NODE_SCOPE: dict[str, dict[str, Any]] = {
         "allowed_outcome_types": ["BUILD_COMPLETED", "NODE_FAILED"],
         "allowed_scope": [
             "Make minimal code changes inside the bound worktree for this node",
-            "Record head_sha of the worktree after changes",
+            "git add + git commit on the current branch only (do NOT git push)",
+            "Record head_sha via `git rev-parse HEAD` after the commit",
             f"Write a single structured result to {RESULT_REL_PATH}",
         ],
         "non_scope": [
             "Do not choose next_node or mutate graph/SQLite state",
-            "Do not open PRs, merge, deploy, or touch production",
+            "Do not git push, open PRs, merge, deploy, or touch production",
             "Do not review or approve your own change as reviewer",
             "Do not write outside the bound worktree",
         ],
         "success_condition": (
             "Produce a valid WorkerResult JSON with status=success and "
-            "proposed_outcome.outcome_type=BUILD_COMPLETED including head_sha."
+            "proposed_outcome.outcome_type=BUILD_COMPLETED including the real head_sha."
         ),
     },
     "reviewer": {
@@ -105,6 +106,61 @@ RESULT_SCHEMA_HINT = {
     },
     "forbidden_keys": ["next_node", "current_node", "run_status"],
 }
+
+
+def _example_result(*, node: str, attempt_id: str, run: Run) -> dict[str, Any]:
+    """Concrete filled example — RealCodex often mirrors examples more reliably than hints."""
+    if node == "investigator":
+        return {
+            "schema_version": RESULT_SCHEMA_VERSION,
+            "status": "success",
+            "summary": "Investigation complete; ready for builder.",
+            "idempotency_key": f"{attempt_id}:INVESTIGATION_COMPLETED",
+            "artifacts": [],
+            "evidence": [
+                {
+                    "kind": "note",
+                    "ref": "investigation",
+                    "summary": "Confirmed target path and constraints.",
+                }
+            ],
+            "proposed_outcome": {
+                "outcome_type": "INVESTIGATION_COMPLETED",
+                "actor_id": f"codex-investigator-{attempt_id}",
+                "actor_role": "investigator",
+                "head_sha": run.head_sha or run.base_sha,
+                "base_sha": run.base_sha,
+                "conclusion": "ok",
+                "evidence": {"findings": "ready_for_build"},
+                "repository": "jerry200176-png/portfolio-ops",
+            },
+        }
+    if node == "builder":
+        return {
+            "schema_version": RESULT_SCHEMA_VERSION,
+            "status": "success",
+            "summary": "Committed local change; did not push or open PR.",
+            "idempotency_key": f"{attempt_id}:BUILD_COMPLETED",
+            "artifacts": [{"kind": "file", "uri": "docs/agent-graph/example-marker.md"}],
+            "evidence": [
+                {
+                    "kind": "git",
+                    "ref": "HEAD",
+                    "summary": "Local commit created on bound branch.",
+                }
+            ],
+            "proposed_outcome": {
+                "outcome_type": "BUILD_COMPLETED",
+                "actor_id": f"codex-builder-{attempt_id}",
+                "actor_role": "builder",
+                "head_sha": "REPLACE_WITH_git_rev_parse_HEAD",
+                "base_sha": run.base_sha,
+                "conclusion": "ok",
+                "evidence": {"pushed": False},
+                "repository": "jerry200176-png/portfolio-ops",
+            },
+        }
+    return dict(RESULT_SCHEMA_HINT)
 
 
 @dataclass(frozen=True)
@@ -175,13 +231,19 @@ def compile_node_prompt(
         "Write exactly one JSON file at:",
         f"`{worktree}/{RESULT_REL_PATH}`",
         "",
-        "Shape (Phase 1A WorkerResult):",
+        "Concrete example for THIS attempt (copy structure; fill real values):",
+        "```json",
+        _json_pretty(_example_result(node=node, attempt_id=attempt.attempt_id, run=run)),
+        "```",
+        "",
+        "General shape (Phase 1A WorkerResult):",
         "```json",
         _json_pretty(RESULT_SCHEMA_HINT),
         "```",
         "",
         "Use idempotency_key = `{attempt_id}:{outcome_type}` with this attempt_id.",
         "actor_id must identify THIS worker process uniquely (e.g. include attempt_id).",
+        "Do not include forbidden keys: next_node, current_node, run_status.",
         "",
         "## Completion",
         "After writing a valid result.json, stop. Do not start other nodes.",
