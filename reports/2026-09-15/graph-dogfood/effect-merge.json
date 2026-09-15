@@ -1,0 +1,213 @@
+{
+  "accepted": true,
+  "approval_consumed": true,
+  "duplicate": false,
+  "effect": {
+    "action": "github_pr_merge",
+    "approval_id": "appr_c0d0b4297c7d40d3bb9c015c98de2390",
+    "created_at": "2026-09-15T08:10:33Z",
+    "effect_id": "eff_027fff833a3235dcfee8ac56d2abf8dc",
+    "error": null,
+    "executing_at": "2026-09-15T08:10:33Z",
+    "external_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/79",
+    "finished_at": "2026-09-15T08:10:38Z",
+    "head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+    "idempotency_key": "eff_027fff833a3235dcfee8ac56d2abf8dc",
+    "prepared_at": "2026-09-15T08:10:33Z",
+    "repo": "jerry200176-png/portfolio-ops",
+    "result_json": "{\"headRefOid\": \"2ee2a02f24b0fd8df55e85b44aa207bc31f806e4\", \"mergeCommit\": {\"oid\": \"8b2710c9dee67d365fa7de05b3b87e35db32d87f\"}, \"merge_stdout\": \"\", \"mergedAt\": \"2026-09-15T08:10:36Z\", \"number\": 79, \"state\": \"MERGED\", \"url\": \"https://github.com/jerry200176-png/portfolio-ops/pull/79\"}",
+    "run_id": "run_179b4c2af857463daff0124974c815c0",
+    "status": "succeeded",
+    "target": "pr/79"
+  },
+  "run": {
+    "base_sha": "bc43092498a9a8b234fedd3c685c60ad49ef1fcb",
+    "blocker": null,
+    "branch": "chore/task-graph-dogfood-docs-20260915",
+    "closed": false,
+    "created_at": "2026-09-15T08:10:31Z",
+    "current_node": "approved_for_effect",
+    "goal_id": "goal_fad5988803d04254b53f916feb5b8e38",
+    "graph_snapshot": {
+      "agent_run_count": 3,
+      "approved_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+      "base_sha": "bc43092498a9a8b234fedd3c685c60ad49ef1fcb",
+      "blocker": null,
+      "builder_actor_id": "builder-1",
+      "closed": false,
+      "current_node": "approved_for_effect",
+      "failure_signatures": [],
+      "head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+      "human_approved": true,
+      "observations": {
+        "ci_by_sha": {
+          "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4": "CI_PASSED"
+        },
+        "facts": [
+          {
+            "event_id": "run_179b4c2af857463daff0124974c815c0:obs:c5db42d8b7658a73f294fd24",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/79",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "fact_type": "PR_EXISTS",
+            "logical_key": "obs:c5db42d8b7658a73f294fd24",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+            "raw": {
+              "state": "OPEN",
+              "title": "docs(graph): dogfood end-to-end control-plane marker"
+            },
+            "source": "github"
+          },
+          {
+            "event_id": "run_179b4c2af857463daff0124974c815c0:obs:8c73f7b34b3bdbba4ee0735d",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/79",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "fact_type": "PR_HEAD_OBSERVED",
+            "logical_key": "obs:8c73f7b34b3bdbba4ee0735d",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+            "raw": {
+              "headRefOid": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+            },
+            "source": "github"
+          },
+          {
+            "event_id": "run_179b4c2af857463daff0124974c815c0:obs:5eb568916b0ea079298ecbf1",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/79",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "fact_type": "PR_MERGEABLE",
+            "logical_key": "obs:5eb568916b0ea079298ecbf1",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+            "raw": {
+              "mergeable": "MERGEABLE"
+            },
+            "source": "github"
+          },
+          {
+            "event_id": "run_179b4c2af857463daff0124974c815c0:obs:64bacc42b595d89f886872b9",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/79",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "fact_type": "CI_PASSED",
+            "logical_key": "obs:64bacc42b595d89f886872b9",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+            "raw": {
+              "conclusion": "CI_PASSED",
+              "statusCheckRollup": [
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T08:08:23Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34945265881/job/104303042076",
+                  "name": "governance-check",
+                  "startedAt": "2026-09-15T08:07:45Z",
+                  "status": "COMPLETED",
+                  "workflowName": "ExoProtocol Governance"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T08:08:08Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34945265908/job/104303042059",
+                  "name": "validate",
+                  "startedAt": "2026-09-15T08:07:46Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Governance CI"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T08:10:25Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34945265886/job/104303042329",
+                  "name": "CodeQL",
+                  "startedAt": "2026-09-15T08:07:45Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Security baseline"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T08:08:04Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34945265886/job/104303042146",
+                  "name": "Secret scan",
+                  "startedAt": "2026-09-15T08:07:45Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Security baseline"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T08:07:43Z",
+                  "conclusion": "SKIPPED",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34945265886/job/104303043198",
+                  "name": "OpenSSF Scorecard",
+                  "startedAt": "2026-09-15T08:07:43Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Security baseline"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T08:07:46Z",
+                  "conclusion": "NEUTRAL",
+                  "detailsUrl": "https://cursor.com/docs/bugbot",
+                  "name": "Cursor Bugbot",
+                  "startedAt": "2026-09-15T08:07:45Z",
+                  "status": "COMPLETED",
+                  "workflowName": ""
+                }
+              ]
+            },
+            "source": "github"
+          }
+        ],
+        "head_move": {
+          "from": "bc43092498a9a8b234fedd3c685c60ad49ef1fcb",
+          "invalidated_ci": true
+        },
+        "latest_by_type": {
+          "CI_PASSED": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+          },
+          "PR_EXISTS": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+          },
+          "PR_HEAD_OBSERVED": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+          },
+          "PR_MERGEABLE": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/79",
+            "observed_at": "2026-09-15T08:10:31Z",
+            "observed_head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+          }
+        },
+        "pr_head_by_ref": {
+          "jerry200176-png/portfolio-ops#pr/79": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+        }
+      },
+      "repository": "jerry200176-png/portfolio-ops",
+      "retry_count": {},
+      "reviewer_actor_id": "reviewer-1",
+      "stopped": false,
+      "task_id": "run_179b4c2af857463daff0124974c815c0",
+      "task_status": "approved_for_effect"
+    },
+    "graph_version": "v0",
+    "head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+    "human_approved": true,
+    "project": "portfolio-ops",
+    "risk_tier": "R0",
+    "run_id": "run_179b4c2af857463daff0124974c815c0",
+    "state_version": 10,
+    "status": "approved_for_effect",
+    "stopped": false,
+    "tested_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+    "updated_at": "2026-09-15T08:10:33Z",
+    "worktree": null
+  }
+}

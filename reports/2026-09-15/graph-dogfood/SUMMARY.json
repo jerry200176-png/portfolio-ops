@@ -1,0 +1,58 @@
+{
+  "approval_accepted": true,
+  "closed": true,
+  "deploy_observation": "n/a \u2014 portfolio-ops control-plane docs merge has no product deploy path",
+  "effect_accepted": true,
+  "effect_status": "succeeded",
+  "final_node": "close",
+  "final_status": "closed_success",
+  "head_sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4",
+  "observations": [
+    {
+      "accepted": true,
+      "duplicate": false,
+      "fact": "PR_EXISTS",
+      "sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+    },
+    {
+      "accepted": true,
+      "duplicate": false,
+      "fact": "PR_HEAD_OBSERVED",
+      "sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+    },
+    {
+      "accepted": true,
+      "duplicate": false,
+      "fact": "PR_MERGEABLE",
+      "sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+    },
+    {
+      "accepted": true,
+      "duplicate": false,
+      "fact": "CI_PASSED",
+      "sha": "2ee2a02f24b0fd8df55e85b44aa207bc31f806e4"
+    }
+  ],
+  "pr": 79,
+  "production_deploy_enabled": false,
+  "reconcile_closed": true,
+  "run_id": "run_179b4c2af857463daff0124974c815c0",
+  "trace": [
+    {
+      "node": "builder",
+      "status": "running",
+      "step": 0
+    },
+    {
+      "node": "reviewer",
+      "status": "running",
+      "step": 1
+    },
+    {
+      "node": "human_gate",
+      "status": "waiting_for_approval",
+      "step": 2
+    }
+  ],
+  "worker_path": "FakeWorker for dogfood implementation steps; RealCodex path proven in Phase 1B suite/evidence"
+}
