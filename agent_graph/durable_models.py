@@ -15,7 +15,9 @@ RUN_STATUSES = (
     "pending",
     "running",
     "waiting_worker",
-    "human_approval_required",
+    "waiting_for_approval",
+    "human_approval_required",  # legacy alias
+    "approved_for_effect",
     "closed_success",
     "closed_blocked",
     "blocked",
@@ -174,11 +176,19 @@ class Lease:
 
 @dataclass(frozen=True)
 class Approval:
+    """Durable Founder Approval (control-plane trusted path only)."""
+
     approval_id: str
     run_id: str
+    action: str
     scope: str
     created_at: str
-    status: str = "pending"
+    status: str = "pending"  # pending|granted|rejected|expired|superseded
     actor: Optional[str] = None
     bound_head_sha: Optional[str] = None
+    expires_at: Optional[str] = None
     decided_at: Optional[str] = None
+    external_ref: Optional[str] = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

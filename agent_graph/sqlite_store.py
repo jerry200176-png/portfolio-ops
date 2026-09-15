@@ -15,13 +15,14 @@ from pathlib import Path
 from typing import Any, Iterator, Optional
 
 from .durable_models import (
+    Approval,
     Attempt,
     CanonicalEvent,
     Goal,
     Run,
 )
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 DEFAULT_BUSY_TIMEOUT_MS = 5000
 
 
@@ -151,12 +152,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_leases_resource_active
 CREATE TABLE IF NOT EXISTS approvals (
   approval_id TEXT PRIMARY KEY,
   run_id TEXT NOT NULL REFERENCES runs(run_id),
+  action TEXT NOT NULL DEFAULT 'approve_effect',
   scope TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
   actor TEXT,
   bound_head_sha TEXT,
   created_at TEXT NOT NULL,
-  decided_at TEXT
+  expires_at TEXT,
+  decided_at TEXT,
+  external_ref TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_run_seq ON events(run_id, run_event_seq);
@@ -264,6 +268,17 @@ class SqliteControlPlaneStore:
                     "CREATE UNIQUE INDEX IF NOT EXISTS idx_leases_resource_active "
                     "ON leases(resource_key) WHERE released_at IS NULL"
                 )
+
+                approval_cols = {
+                    r[1] for r in conn.execute("PRAGMA table_info(approvals)").fetchall()
+                }
+                for col, decl in (
+                    ("action", "TEXT NOT NULL DEFAULT 'approve_effect'"),
+                    ("expires_at", "TEXT"),
+                    ("external_ref", "TEXT"),
+                ):
+                    if col not in approval_cols:
+                        conn.execute(f"ALTER TABLE approvals ADD COLUMN {col} {decl}")
 
                 conn.execute(
                     "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
@@ -836,6 +851,85 @@ class SqliteControlPlaneStore:
                 f"have owner={attempt_id} token={fencing_token}, "
                 f"active owner={row['owner']} token={row['fencing_token']}"
             )
+
+    # --- Founder Approvals (Phase 1C) ---
+
+    def insert_approval(
+        self, approval: Approval, *, conn: Optional[sqlite3.Connection] = None
+    ) -> Approval:
+        c = conn or self._conn
+        c.execute(
+            """
+            INSERT INTO approvals(
+              approval_id, run_id, action, scope, status, actor,
+              bound_head_sha, created_at, expires_at, decided_at, external_ref
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                approval.approval_id,
+                approval.run_id,
+                approval.action,
+                approval.scope,
+                approval.status,
+                approval.actor,
+                approval.bound_head_sha,
+                approval.created_at,
+                approval.expires_at,
+                approval.decided_at,
+                approval.external_ref,
+            ),
+        )
+        return approval
+
+    def get_approval(self, approval_id: str) -> Optional[Approval]:
+        row = self._conn.execute(
+            "SELECT * FROM approvals WHERE approval_id=?", (approval_id,)
+        ).fetchone()
+        return _row_to_approval(row) if row else None
+
+    def list_approvals(self, run_id: str) -> list[Approval]:
+        rows = self._conn.execute(
+            "SELECT * FROM approvals WHERE run_id=? ORDER BY created_at ASC, approval_id ASC",
+            (run_id,),
+        ).fetchall()
+        return [_row_to_approval(r) for r in rows]
+
+    def update_approval(
+        self, approval: Approval, *, conn: Optional[sqlite3.Connection] = None
+    ) -> None:
+        c = conn or self._conn
+        c.execute(
+            """
+            UPDATE approvals SET
+              status=?, actor=?, decided_at=?, expires_at=?, external_ref=?
+            WHERE approval_id=?
+            """,
+            (
+                approval.status,
+                approval.actor,
+                approval.decided_at,
+                approval.expires_at,
+                approval.external_ref,
+                approval.approval_id,
+            ),
+        )
+
+
+def _row_to_approval(row: sqlite3.Row) -> Approval:
+    keys = set(row.keys())
+    return Approval(
+        approval_id=row["approval_id"],
+        run_id=row["run_id"],
+        action=row["action"] if "action" in keys and row["action"] is not None else "approve_effect",
+        scope=row["scope"],
+        created_at=row["created_at"],
+        status=row["status"],
+        actor=row["actor"],
+        bound_head_sha=row["bound_head_sha"],
+        expires_at=row["expires_at"] if "expires_at" in keys else None,
+        decided_at=row["decided_at"],
+        external_ref=row["external_ref"] if "external_ref" in keys else None,
+    )
 
 
 def _row_to_run(row: sqlite3.Row) -> Run:

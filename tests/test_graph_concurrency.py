@@ -295,8 +295,8 @@ class ConcurrencyReplayTests(unittest.TestCase):
         self.rt = DurableGraphRuntime(self.store)
         self.harness = GraphHarness(self.rt)
 
-    def test_schema_version_is_v5(self) -> None:
-        self.assertEqual(SCHEMA_VERSION, 5)
+    def test_schema_version_is_v6(self) -> None:
+        self.assertEqual(SCHEMA_VERSION, 6)
         self.assertEqual(self.store.pragma_journal_mode(), "wal")
         self.assertGreaterEqual(DEFAULT_BUSY_TIMEOUT_MS, 1)
 

@@ -1,0 +1,17 @@
+{
+  "closed": false,
+  "facts": [
+    "PR_EXISTS",
+    "PR_HEAD_OBSERVED",
+    "PR_MERGED_EXTERNALLY",
+    "CI_PASSED"
+  ],
+  "final_node": "approved_for_effect",
+  "final_status": "approved_for_effect",
+  "human_approved": true,
+  "live_pr": 76,
+  "merged": false,
+  "observation_count": 4,
+  "observed_head": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+  "phase1b_merge_sha": "99b3531f37d8378ea004606e42d8438db748c681"
+}

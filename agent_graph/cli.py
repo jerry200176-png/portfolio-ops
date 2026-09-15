@@ -1,7 +1,7 @@
-"""Minimal CLI for durable Graph Control Plane Phase 1A.
+"""Minimal CLI for durable Graph Control Plane (Phase 1A–1C).
 
 Commands:
-  run-create | status | step | events | resume | bind-worktree
+  run-create | status | step | events | resume | bind-worktree | observe | approve
 """
 
 from __future__ import annotations
@@ -11,11 +11,12 @@ import json
 import sys
 from pathlib import Path
 
+from .canonical_paths import default_canonical_db_path, ensure_canonical_db_parent
 from .durable_runtime import DurableGraphRuntime
+from .github_observe import FakeGitHubReader, GhCliReader, observe_pull_request
 from .harness import FakeWorkerAdapter, GraphHarness
 from .sqlite_store import SqliteControlPlaneStore
 from .worktree_bind import bind_existing_worktree
-from .canonical_paths import default_canonical_db_path, ensure_canonical_db_parent
 
 DEFAULT_DB = default_canonical_db_path()
 
@@ -137,8 +138,66 @@ def cmd_bind_worktree(args: argparse.Namespace) -> int:
         rt.close()
 
 
+def cmd_observe(args: argparse.Namespace) -> int:
+    """Manual read-only external observation: graph observe RUN_ID --pr N."""
+    rt = _runtime(args.db)
+    try:
+        run = rt.get_run(args.run_id)
+        repo = args.repo or f"jerry200176-png/{run.project}"
+        if args.fixture_json:
+            reader = FakeGitHubReader(json.loads(Path(args.fixture_json).read_text(encoding="utf-8")))
+        else:
+            reader = GhCliReader()
+        facts = observe_pull_request(repo=repo, pr_number=int(args.pr), reader=reader)
+        results = []
+        for fact in facts:
+            out = rt.ingest_observation(run_id=args.run_id, fact=fact, repository=repo)
+            results.append(
+                {
+                    "fact": fact.to_dict(),
+                    "accepted": out.accepted,
+                    "duplicate": out.duplicate,
+                    "reason": out.reason,
+                    "blocker": out.blocker,
+                    "event_id": out.event.event_id if out.event else None,
+                }
+            )
+        run2 = rt.get_run(args.run_id)
+        print(
+            json.dumps(
+                {"observations": results, "run": run2.to_dict()},
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 0 if all(r["accepted"] or r["duplicate"] for r in results) else 1
+    finally:
+        rt.close()
+
+
+def cmd_approve(args: argparse.Namespace) -> int:
+    """Trusted Founder Approval path: graph approve RUN_ID --action ... --head-sha ..."""
+    rt = _runtime(args.db)
+    try:
+        out = rt.grant_founder_approval(
+            run_id=args.run_id,
+            action=args.action,
+            head_sha=args.head_sha,
+            actor=args.actor,
+            scope=args.scope,
+            external_ref=args.external_ref,
+            expires_at=args.expires_at,
+        )
+        print(json.dumps(out, indent=2, sort_keys=True))
+        return 0 if out.get("accepted") else 1
+    finally:
+        rt.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="graph", description="Durable Graph Control Plane CLI (Phase 1A)")
+    p = argparse.ArgumentParser(
+        prog="graph", description="Durable Graph Control Plane CLI (Phase 1A–1C)"
+    )
     p.add_argument(
         "--db",
         default=str(DEFAULT_DB),
@@ -195,6 +254,27 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--branch", default=None)
     c.add_argument("--base-sha", default=None)
     c.set_defaults(func=cmd_bind_worktree)
+
+    c = sub.add_parser("observe", help="Read-only GitHub/CI observation (manual)")
+    c.add_argument("run_id")
+    c.add_argument("--pr", required=True, type=int, help="Pull request number")
+    c.add_argument("--repo", default=None, help="owner/name (default from Run project)")
+    c.add_argument(
+        "--fixture-json",
+        default=None,
+        help="Fake adapter payload path (unit/CI; skips live gh)",
+    )
+    c.set_defaults(func=cmd_observe)
+
+    c = sub.add_parser("approve", help="Founder Approval (control-plane trusted path)")
+    c.add_argument("run_id")
+    c.add_argument("--action", required=True, help="e.g. merge, approve_effect")
+    c.add_argument("--head-sha", required=True)
+    c.add_argument("--actor", default="founder")
+    c.add_argument("--scope", default=None)
+    c.add_argument("--external-ref", default=None)
+    c.add_argument("--expires-at", default=None)
+    c.set_defaults(func=cmd_approve)
 
     return p
 

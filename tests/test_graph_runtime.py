@@ -83,8 +83,8 @@ class GraphRuntimeTests(unittest.TestCase):
     def test_normal_transition_happy_path(self) -> None:
         out = run_happy_path()
         final = out["final_state"]
-        self.assertEqual(final["task_status"], "closed_success")
-        self.assertEqual(final["current_node"], "close")
+        self.assertEqual(final["task_status"], "approved_for_effect")
+        self.assertEqual(final["current_node"], "approved_for_effect")
         self.assertEqual(final["approved_head_sha"], HEAD_V2)
         self.assertTrue(final["human_approved"])
         self.assertFalse(final["stopped"])
@@ -149,7 +149,7 @@ class GraphRuntimeTests(unittest.TestCase):
         self.assertEqual(r.reason, "BUILD_COMPLETED requires non-empty head_sha")
 
     def test_human_approved_requires_existing_state_head_sha(self) -> None:
-        state = TaskState(task_id="t1", current_node="human_gate", task_status="human_approval_required")
+        state = TaskState(task_id="t1", current_node="human_gate", task_status="waiting_for_approval")
         event = ev("e5", "HUMAN_APPROVED", "human_gate", "founder", "human", head_sha="h1")
         check = validate_transition(state, event)
         self.assertFalse(check.accepted)
@@ -173,7 +173,7 @@ class GraphRuntimeTests(unittest.TestCase):
         self.assertTrue(r.accepted)
         self.assertTrue(r.state.human_approved)
         self.assertEqual(r.state.approved_head_sha, "h1")
-        self.assertEqual(r.state.task_status, "closed_success")
+        self.assertEqual(r.state.task_status, "approved_for_effect")
 
     def test_head_sha_change_invalidates_old_approval(self) -> None:
         events = [
@@ -187,7 +187,7 @@ class GraphRuntimeTests(unittest.TestCase):
 
         state = self.rt.state_for("t1")
         self.assertEqual(state.head_sha, "h1")
-        self.assertEqual(state.task_status, "human_approval_required")
+        self.assertEqual(state.task_status, "waiting_for_approval")
 
         state.human_approved = True
         state.approved_head_sha = "h1"
@@ -361,7 +361,7 @@ class GraphRuntimeTests(unittest.TestCase):
         self._build("e3", "builder-a", "h1")
         self._review_approved("e4", "reviewer-a", "h1")
         state = self.rt.state_for("t1")
-        self.assertEqual(state.task_status, "human_approval_required")
+        self.assertEqual(state.task_status, "waiting_for_approval")
         self.assertFalse(can_close_successfully(state))
         r = self.rt.apply(ev("e5", "HUMAN_REJECTED", "human_gate", "founder", "human", head_sha="h1"))
         self.assertTrue(r.accepted)
@@ -417,7 +417,7 @@ class GraphRuntimeTests(unittest.TestCase):
             code = dry_run.main()
         self.assertEqual(code, 0)
         output = buf.getvalue()
-        self.assertIn("closed_success", output)
+        self.assertIn("approved_for_effect", output)
         self.assertIn("GRAPH_STOPPED", output)
 
 
