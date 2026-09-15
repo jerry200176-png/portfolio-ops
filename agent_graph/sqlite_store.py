@@ -21,7 +21,13 @@ from .durable_models import (
     Run,
 )
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+DEFAULT_BUSY_TIMEOUT_MS = 5000
+
+
+class StaleStateError(RuntimeError):
+    """Compare-and-swap rejected: Run state_version moved under the writer."""
+
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -57,7 +63,8 @@ CREATE TABLE IF NOT EXISTS runs (
   closed INTEGER NOT NULL DEFAULT 0,
   stopped INTEGER NOT NULL DEFAULT 0,
   human_approved INTEGER NOT NULL DEFAULT 0,
-  graph_snapshot_json TEXT NOT NULL DEFAULT '{}'
+  graph_snapshot_json TEXT NOT NULL DEFAULT '{}',
+  state_version INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS events (
@@ -125,13 +132,20 @@ CREATE INDEX IF NOT EXISTS idx_artifacts_run ON artifacts(run_id);
 class SqliteControlPlaneStore:
     """Control-plane-owned SQLite database (never ~/.codex/*.sqlite)."""
 
-    def __init__(self, path: str | Path) -> None:
+    def __init__(
+        self,
+        path: str | Path,
+        *,
+        busy_timeout_ms: int = DEFAULT_BUSY_TIMEOUT_MS,
+    ) -> None:
         self.path = Path(path)
+        self.busy_timeout_ms = int(busy_timeout_ms)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(
             str(self.path),
             isolation_level=None,  # manual transactions
             check_same_thread=False,
+            timeout=max(self.busy_timeout_ms / 1000.0, 0.001),
         )
         self._conn.row_factory = sqlite3.Row
         self._configure()
@@ -144,6 +158,8 @@ class SqliteControlPlaneStore:
         mode = cur.execute("PRAGMA journal_mode").fetchone()[0]
         if str(mode).lower() != "wal":
             raise RuntimeError(f"failed to enable WAL mode; got {mode!r}")
+        # Bounded lock wait: SQLite retries until busy_timeout, then raises.
+        cur.execute(f"PRAGMA busy_timeout = {self.busy_timeout_ms}")
 
     def _migrate(self) -> None:
         # executescript auto-commits; keep it outside an explicit transaction.
@@ -154,6 +170,14 @@ class SqliteControlPlaneStore:
         current = int(row["version"]) if row else 0
         if current < SCHEMA_VERSION:
             with self.transaction() as conn:
+                cols = {
+                    r[1]
+                    for r in conn.execute("PRAGMA table_info(runs)").fetchall()
+                }
+                if "state_version" not in cols:
+                    conn.execute(
+                        "ALTER TABLE runs ADD COLUMN state_version INTEGER NOT NULL DEFAULT 0"
+                    )
                 conn.execute(
                     "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
                     (SCHEMA_VERSION,),
@@ -201,8 +225,8 @@ class SqliteControlPlaneStore:
             INSERT INTO runs(
               run_id, goal_id, project, graph_version, risk_tier, status, current_node,
               worktree, branch, base_sha, head_sha, tested_sha, created_at, updated_at,
-              blocker, closed, stopped, human_approved, graph_snapshot_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              blocker, closed, stopped, human_approved, graph_snapshot_json, state_version
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run.run_id,
@@ -224,18 +248,27 @@ class SqliteControlPlaneStore:
                 1 if run.stopped else 0,
                 1 if run.human_approved else 0,
                 json.dumps(run.graph_snapshot, sort_keys=True),
+                int(run.state_version),
             ),
         )
 
-    def update_run_projection(self, run: Run, *, conn: Optional[sqlite3.Connection] = None) -> None:
+    def update_run_projection(
+        self,
+        run: Run,
+        *,
+        expected_version: int,
+        conn: Optional[sqlite3.Connection] = None,
+    ) -> int:
+        """CAS update: succeeds only when persisted state_version == expected_version."""
         c = conn or self._conn
-        c.execute(
+        new_version = int(expected_version) + 1
+        cur = c.execute(
             """
             UPDATE runs SET
               status=?, current_node=?, worktree=?, branch=?, base_sha=?, head_sha=?,
               tested_sha=?, updated_at=?, blocker=?, closed=?, stopped=?, human_approved=?,
-              graph_snapshot_json=?
-            WHERE run_id=?
+              graph_snapshot_json=?, state_version=?
+            WHERE run_id=? AND state_version=?
             """,
             (
                 run.status,
@@ -251,12 +284,29 @@ class SqliteControlPlaneStore:
                 1 if run.stopped else 0,
                 1 if run.human_approved else 0,
                 json.dumps(run.graph_snapshot, sort_keys=True),
+                new_version,
                 run.run_id,
+                int(expected_version),
             ),
         )
+        if cur.rowcount != 1:
+            actual = None
+            row = c.execute(
+                "SELECT state_version FROM runs WHERE run_id=?", (run.run_id,)
+            ).fetchone()
+            if row is not None:
+                actual = int(row["state_version"])
+            raise StaleStateError(
+                f"stale state_version for {run.run_id}: expected={expected_version} actual={actual}"
+            )
+        run.state_version = new_version
+        return new_version
 
-    def get_run(self, run_id: str) -> Optional[Run]:
-        row = self._conn.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone()
+    def get_run(
+        self, run_id: str, *, conn: Optional[sqlite3.Connection] = None
+    ) -> Optional[Run]:
+        c = conn or self._conn
+        row = c.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone()
         if row is None:
             return None
         return _row_to_run(row)
@@ -289,13 +339,12 @@ class SqliteControlPlaneStore:
         return _row_to_event(row)
 
     def list_events(self, run_id: str) -> list[CanonicalEvent]:
+        # Append order is canonical; do not sort by created_at (clock skew / fixture stamps).
         rows = self._conn.execute(
-            "SELECT * FROM events WHERE run_id=? ORDER BY created_at ASC, rowid ASC",
+            "SELECT * FROM events WHERE run_id=? ORDER BY rowid ASC",
             (run_id,),
         ).fetchall()
         return [_row_to_event(r) for r in rows]
-
-    # NOTE: ORDER BY rowid is valid in SELECT; it is not used in CREATE INDEX.
 
     def append_event(
         self,
@@ -422,6 +471,7 @@ class SqliteControlPlaneStore:
 
 
 def _row_to_run(row: sqlite3.Row) -> Run:
+    keys = set(row.keys())
     return Run(
         run_id=row["run_id"],
         goal_id=row["goal_id"],
@@ -442,6 +492,7 @@ def _row_to_run(row: sqlite3.Row) -> Run:
         stopped=bool(row["stopped"]),
         human_approved=bool(row["human_approved"]),
         graph_snapshot=json.loads(row["graph_snapshot_json"] or "{}"),
+        state_version=int(row["state_version"]) if "state_version" in keys else 0,
     )
 
 

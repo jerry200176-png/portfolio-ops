@@ -364,9 +364,10 @@ class GraphHarness:
 
             if apply.accepted and mark_tested_sha:
                 run = apply.run
+                expected = run.state_version
                 run.tested_sha = mark_tested_sha
                 run.updated_at = now
-                store.update_run_projection(run, conn=conn)
+                store.update_run_projection(run, expected_version=expected, conn=conn)
                 apply.run = run
 
         return IngestResult(apply=apply, attempt=attempt, duplicate_ingest=apply.duplicate)

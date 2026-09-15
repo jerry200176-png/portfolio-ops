@@ -66,6 +66,8 @@ class Run:
     stopped: bool = False
     human_approved: bool = False
     graph_snapshot: dict[str, Any] = field(default_factory=dict)
+    # Monotonic compare-and-swap token for transition commits.
+    state_version: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

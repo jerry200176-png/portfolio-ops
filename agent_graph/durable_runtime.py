@@ -15,7 +15,7 @@ from .models import Event, TaskState
 from .reducer import can_close_successfully, reduce
 from .router import TransitionResult, validate_transition
 from .runtime import _is_persisted_stop_blocker
-from .sqlite_store import SqliteControlPlaneStore
+from .sqlite_store import SqliteControlPlaneStore, StaleStateError
 
 
 def _utcnow() -> str:
@@ -135,6 +135,69 @@ class DurableGraphRuntime:
     def task_state(self, run_id: str) -> TaskState:
         return reduce([self._canonical_to_graph(e) for e in self.store.list_events(run_id)])
 
+    def reconstruct_projection(self, run_id: str) -> dict[str, Any]:
+        """Rebuild graph-relevant Run fields from append-only events only."""
+        run = self.get_run(run_id)
+        state = self.task_state(run_id)
+        projected = self._project(
+            Run(
+                run_id=run.run_id,
+                goal_id=run.goal_id,
+                project=run.project,
+                graph_version=run.graph_version,
+                risk_tier=run.risk_tier,
+                status=run.status,
+                current_node=run.current_node,
+                worktree=run.worktree,
+                branch=run.branch,
+                base_sha=run.base_sha,
+                head_sha=run.head_sha,
+                tested_sha=run.tested_sha,
+                created_at=run.created_at,
+                updated_at=run.updated_at,
+                blocker=run.blocker,
+                closed=run.closed,
+                stopped=run.stopped,
+                human_approved=run.human_approved,
+                graph_snapshot=dict(run.graph_snapshot),
+                state_version=run.state_version,
+            ),
+            state,
+            updated_at=run.updated_at,
+        )
+        return {
+            "current_node": projected.current_node,
+            "status": projected.status,
+            "base_sha": projected.base_sha,
+            "head_sha": projected.head_sha,
+            "blocker": projected.blocker,
+            "closed": projected.closed,
+            "stopped": projected.stopped,
+            "human_approved": projected.human_approved,
+            "graph_snapshot": projected.graph_snapshot,
+        }
+
+    def verify_projection_matches_events(self, run_id: str) -> dict[str, Any]:
+        """Compare persisted Run projection vs event-replay reconstruction."""
+        run = self.get_run(run_id)
+        reconstructed = self.reconstruct_projection(run_id)
+        persisted = {
+            "current_node": run.current_node,
+            "status": run.status,
+            "base_sha": run.base_sha,
+            "head_sha": run.head_sha,
+            "blocker": run.blocker,
+            "closed": run.closed,
+            "stopped": run.stopped,
+            "human_approved": run.human_approved,
+            "graph_snapshot": run.graph_snapshot,
+        }
+        return {
+            "equal": persisted == reconstructed,
+            "persisted": persisted,
+            "reconstructed": reconstructed,
+        }
+
     def bind_worktree(
         self,
         run_id: str,
@@ -143,18 +206,21 @@ class DurableGraphRuntime:
         branch: str,
         base_sha: Optional[str] = None,
     ) -> Run:
-        run = self.get_run(run_id)
-        now = _utcnow()
-        run.worktree = worktree
-        run.branch = branch
-        if base_sha:
-            run.base_sha = base_sha
-            if not run.head_sha:
-                run.head_sha = base_sha
-        run.updated_at = now
         with self.store.transaction() as conn:
-            self.store.update_run_projection(run, conn=conn)
-        return self.get_run(run_id)
+            run = self.store.get_run(run_id, conn=conn)
+            if run is None:
+                raise KeyError(f"unknown run_id: {run_id}")
+            expected = run.state_version
+            now = _utcnow()
+            run.worktree = worktree
+            run.branch = branch
+            if base_sha:
+                run.base_sha = base_sha
+                if not run.head_sha:
+                    run.head_sha = base_sha
+            run.updated_at = now
+            self.store.update_run_projection(run, expected_version=expected, conn=conn)
+            return run
 
     def start_attempt(
         self,
@@ -165,28 +231,33 @@ class DurableGraphRuntime:
         worker_pid: Optional[int] = None,
         attempt_id: Optional[str] = None,
     ) -> Attempt:
-        run = self.get_run(run_id)
-        if run.closed or run.stopped:
-            raise RuntimeError(f"run {run_id} is terminal (status={run.status})")
-        if not run.current_node or run.current_node in ("close",):
-            raise RuntimeError(f"no runnable node for run {run_id} (current_node={run.current_node})")
-        now = _utcnow()
-        attempt = Attempt(
-            attempt_id=attempt_id or _new_id("att"),
-            run_id=run_id,
-            node=run.current_node,
-            worker_type=worker_type,
-            model_profile=model_profile,
-            worker_pid=worker_pid,
-            started_at=now,
-            status="started",
-        )
-        run.status = "waiting_worker"
-        run.updated_at = now
         with self.store.transaction() as conn:
+            run = self.store.get_run(run_id, conn=conn)
+            if run is None:
+                raise KeyError(f"unknown run_id: {run_id}")
+            if run.closed or run.stopped:
+                raise RuntimeError(f"run {run_id} is terminal (status={run.status})")
+            if not run.current_node or run.current_node in ("close",):
+                raise RuntimeError(
+                    f"no runnable node for run {run_id} (current_node={run.current_node})"
+                )
+            expected = run.state_version
+            now = _utcnow()
+            attempt = Attempt(
+                attempt_id=attempt_id or _new_id("att"),
+                run_id=run_id,
+                node=run.current_node,
+                worker_type=worker_type,
+                model_profile=model_profile,
+                worker_pid=worker_pid,
+                started_at=now,
+                status="started",
+            )
+            run.status = "waiting_worker"
+            run.updated_at = now
             self.store.insert_attempt(attempt, conn=conn)
-            self.store.update_run_projection(run, conn=conn)
-        return attempt
+            self.store.update_run_projection(run, expected_version=expected, conn=conn)
+            return attempt
 
     def apply_graph_event(
         self,
@@ -196,6 +267,7 @@ class DurableGraphRuntime:
         attempt_id: Optional[str] = None,
         evidence_refs: tuple[str, ...] = (),
         ingest_key: Optional[str] = None,
+        expected_state_version: Optional[int] = None,
     ) -> DurableApplyResult:
         if event.task_id != run_id:
             raise ValueError("event.task_id must equal run_id")
@@ -203,7 +275,13 @@ class DurableGraphRuntime:
             event, attempt_id=attempt_id, evidence_refs=evidence_refs
         )
         with self.store.transaction() as conn:
-            return self._apply_in_tx(conn, run_id=run_id, canonical=canonical, ingest_key=ingest_key)
+            return self._apply_in_tx(
+                conn,
+                run_id=run_id,
+                canonical=canonical,
+                ingest_key=ingest_key,
+                expected_state_version=expected_state_version,
+            )
 
     def _apply_in_tx(
         self,
@@ -212,12 +290,29 @@ class DurableGraphRuntime:
         run_id: str,
         canonical: CanonicalEvent,
         ingest_key: Optional[str],
+        expected_state_version: Optional[int] = None,
     ) -> DurableApplyResult:
+        # All reads below occur inside the caller's BEGIN IMMEDIATE transaction.
+        run = self.store.get_run(run_id, conn=conn)
+        if run is None:
+            raise KeyError(f"unknown run_id: {run_id}")
+
+        if expected_state_version is not None and run.state_version != expected_state_version:
+            return DurableApplyResult(
+                accepted=False,
+                duplicate=False,
+                run=run,
+                event=canonical,
+                reason=(
+                    f"stale state_version: expected {expected_state_version} "
+                    f"got {run.state_version}"
+                ),
+                blocker="stale_state_version",
+            )
+
         existing = self.store.get_event(canonical.event_id)
         if existing is not None:
             if existing.to_dict() != canonical.to_dict():
-                run = self.store.get_run(run_id)
-                assert run is not None
                 return DurableApplyResult(
                     accepted=False,
                     duplicate=True,
@@ -225,8 +320,6 @@ class DurableGraphRuntime:
                     event=existing,
                     reason="duplicate event_id with differing payload",
                 )
-            run = self.store.get_run(run_id)
-            assert run is not None
             return DurableApplyResult(
                 accepted=True,
                 duplicate=True,
@@ -238,8 +331,6 @@ class DurableGraphRuntime:
         if ingest_key:
             by_key = self.store.get_event_by_ingest_key(ingest_key)
             if by_key is not None:
-                run = self.store.get_run(run_id)
-                assert run is not None
                 if by_key.event_id == canonical.event_id:
                     return DurableApplyResult(
                         accepted=True,
@@ -261,8 +352,7 @@ class DurableGraphRuntime:
         state = reduce(prior)
         graph_event = self._canonical_to_graph(canonical)
         check: TransitionResult = validate_transition(state, graph_event)
-        run = self.store.get_run(run_id)
-        assert run is not None
+        expected_version = run.state_version
 
         if not check.accepted:
             if check.blocker and _is_persisted_stop_blocker(check.blocker):
@@ -273,7 +363,19 @@ class DurableGraphRuntime:
                 self.store.append_event(stop_canonical, ingest_key=None, conn=conn)
                 new_state = reduce(prior + [stop])
                 run = self._project(run, new_state, updated_at=canonical.created_at)
-                self.store.update_run_projection(run, conn=conn)
+                try:
+                    self.store.update_run_projection(
+                        run, expected_version=expected_version, conn=conn
+                    )
+                except StaleStateError as exc:
+                    return DurableApplyResult(
+                        accepted=False,
+                        duplicate=False,
+                        run=self.store.get_run(run_id, conn=conn) or run,
+                        event=canonical,
+                        reason=str(exc),
+                        blocker="stale_state_version",
+                    )
                 return DurableApplyResult(
                     accepted=False,
                     duplicate=False,
@@ -296,7 +398,17 @@ class DurableGraphRuntime:
         if new_state.task_status == "closed_success" and not can_close_successfully(new_state):
             raise RuntimeError("invariant violated: closed_success without valid human approval")
         run = self._project(run, new_state, updated_at=canonical.created_at)
-        self.store.update_run_projection(run, conn=conn)
+        try:
+            self.store.update_run_projection(run, expected_version=expected_version, conn=conn)
+        except StaleStateError as exc:
+            return DurableApplyResult(
+                accepted=False,
+                duplicate=False,
+                run=self.store.get_run(run_id, conn=conn) or run,
+                event=canonical,
+                reason=str(exc),
+                blocker="stale_state_version",
+            )
         return DurableApplyResult(
             accepted=True,
             duplicate=False,
@@ -382,9 +494,9 @@ class DurableGraphRuntime:
     @staticmethod
     def _canonical_to_graph(event: CanonicalEvent) -> Event:
         payload = dict(event.payload)
-        # Prefer payload fields; fall back to envelope.
-        payload.setdefault("event_id", event.event_id)
-        payload.setdefault("task_id", event.run_id)
-        payload.setdefault("event_type", event.type)
-        payload.setdefault("timestamp", event.created_at)
+        # Envelope fields are authoritative for replay (payload is supporting detail).
+        payload["event_id"] = event.event_id
+        payload["task_id"] = event.run_id
+        payload["event_type"] = event.type
+        payload["timestamp"] = event.created_at
         return Event.from_dict(payload)
