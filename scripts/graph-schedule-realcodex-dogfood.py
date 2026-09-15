@@ -37,20 +37,27 @@ from agent_graph.sqlite_store import SqliteControlPlaneStore
 from agent_graph.worktree_bind import create_worktree_via_agent_start
 
 
-OBJECTIVE = """R1 portfolio-ops maintenance (RealCodex end-to-end dogfood).
+def _objective_for_run(run_id: str, marker_rel: str) -> str:
+    return f"""R1 portfolio-ops maintenance (RealCodex end-to-end dogfood).
 
-Investigator node: confirm docs/agent-graph/ is the correct place for
-real-codex-e2e-marker.md. Do not modify files yet. Write INVESTIGATION_COMPLETED
-to .agent-session/result.json then stop.
+Run id: {run_id}
+Marker path: {marker_rel}
 
-Builder node: create docs/agent-graph/real-codex-e2e-marker.md with short sections
-Objective, Date (UTC), RealCodex path, Run id. Commit on the current branch,
-git push -u origin HEAD, then write BUILD_COMPLETED with the new HEAD sha to
-.result.json path. Do not open/merge PRs, deploy, or touch production — the
-control plane owns GitHub effects.
+Investigator node: confirm docs/agent-graph/ is the correct place for the marker.
+Do not modify files yet. Write INVESTIGATION_COMPLETED to .agent-session/result.json
+then stop.
+
+Builder node: create {marker_rel} with short sections Objective, Date (UTC),
+RealCodex path, Run id ({run_id}). Commit on the current branch only
+(git add + git commit). Do NOT git push, open/merge PRs, deploy, or touch
+production — the control plane owns branch publish and GitHub effects.
+Write BUILD_COMPLETED with the new HEAD sha to .agent-session/result.json.
 
 Reviewer/effects are control-plane owned after build.
 """
+
+
+OBJECTIVE = _objective_for_run("RUN_ID_PLACEHOLDER", "docs/agent-graph/real-codex-e2e-marker.md")
 
 
 def _save(path: Path, payload: dict) -> None:
@@ -85,8 +92,12 @@ def main() -> int:
 
     base_sha = _git(worktree, "rev-parse", "HEAD")
     branch = _git(worktree, "branch", "--show-current")
+    stamp_compact = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    marker_rel = f"docs/agent-graph/real-codex-e2e-marker-{stamp_compact}.md"
+    # Placeholder run id resolved after create; builder still sees unique marker path.
+    preliminary = _objective_for_run("pending", marker_rel)
     run = rt.create_run(
-        objective=OBJECTIVE,
+        objective=preliminary,
         project="portfolio-ops",
         risk_tier="R1",
         success_condition="Marker merged via Effect Journal; Run closed_success",
@@ -96,6 +107,14 @@ def main() -> int:
         repository="jerry200176-png/portfolio-ops",
     )
     run_id = run.run_id
+    # Persist the definitive objective (with run_id) for worker context / evidence.
+    final_objective = _objective_for_run(run_id, marker_rel)
+    store._conn.execute(
+        "UPDATE goals SET objective=? WHERE goal_id=?",
+        (final_objective, run.goal_id),
+    )
+    store._conn.commit()
+    trace_marker = marker_rel
 
     trace: dict[str, Any] = {
         "mode": "schedule-run",
@@ -104,6 +123,7 @@ def main() -> int:
         "worktree": str(worktree),
         "branch": branch,
         "base_sha": base_sha,
+        "marker": trace_marker,
         "ticks": [],
         "worker_path": "RealCodexWorkerAdapter via AutonomousSchedulerLoop",
     }
@@ -184,6 +204,7 @@ def main() -> int:
         "closed_success": final.status == "closed_success",
         "run_id": run_id,
         "goal_id": run.goal_id,
+        "marker": trace_marker,
         "final_status": final.status,
         "final_node": final.current_node,
         "head_sha": final.head_sha,
