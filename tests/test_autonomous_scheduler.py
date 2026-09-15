@@ -89,6 +89,26 @@ class AutonomousSchedulerTests(unittest.TestCase):
         approvals = self.store.list_approvals(run_id)
         self.assertTrue(any(a.status == "granted" for a in approvals))
 
+    def test_focus_run_ids_skips_other_runs(self) -> None:
+        a = self.rt.create_run(objective="a", project="portfolio-ops", base_sha=self.base)
+        b = self.rt.create_run(objective="b", project="portfolio-ops", base_sha=self.base)
+        loop = AutonomousSchedulerLoop(
+            self.rt,
+            poll_interval_sec=0.01,
+            max_poll_interval_sec=0.02,
+            sleep_fn=lambda _s: None,
+            tick_limit=5,
+        )
+        loop.focus_run_ids = {b.run_id}
+        self.assertTrue(loop.acquire_ownership())
+        try:
+            tick = loop.tick_once()
+            advanced_ids = {x.get("run_id") for x in tick.advanced}
+            self.assertIn(b.run_id, advanced_ids)
+            self.assertNotIn(a.run_id, advanced_ids)
+        finally:
+            loop.release_ownership()
+
     def test_second_scheduler_cannot_acquire_ownership(self) -> None:
         a = SchedulerOwnership(store=self.store, project="portfolio-ops", owner_id="sched_a")
         b = SchedulerOwnership(store=self.store, project="portfolio-ops", owner_id="sched_b")

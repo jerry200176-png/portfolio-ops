@@ -157,13 +157,20 @@ def main() -> int:
         _save(evidence_dir / "SUMMARY.json", trace)
         return 1
 
+    # Dogfood must not be aborted by unrelated runnable Runs in the same DB.
+    loop.focus_run_ids = {run_id}
+
     try:
         for i in range(max_ticks):
             tick = loop.tick_once()
             trace["ticks"].append(tick.to_dict())
             _save(evidence_dir / "trace-partial.json", trace)
 
-            if any(a.get("action") == "dormant_codex_usage_limit" for a in tick.advanced):
+            ours_limited = any(
+                a.get("action") == "dormant_codex_usage_limit" and a.get("run_id") == run_id
+                for a in tick.advanced
+            )
+            if ours_limited:
                 trace["blocker"] = "codex_usage_limit"
                 snap = loop.operational_snapshot()
                 trace["scheduler"] = snap

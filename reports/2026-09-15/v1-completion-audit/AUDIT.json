@@ -1,0 +1,37 @@
+{
+  "GRAPH_CONTROL_PLANE_V1_AUTONOMOUS": "NO",
+  "audited_at": "2026-09-15T09:57:02Z",
+  "blocker": "codex_usage_limit_pending_live_dogfood",
+  "criteria": {
+    "10_scope_portfolio_ops_allowlist": true,
+    "11_production_deploy_db_migration_disabled": true,
+    "1_realcodex_e2e_dogfood": false,
+    "2_founder_did_not_manage_codex_terminal": false,
+    "3_pr_ci_effect_from_control_plane": false,
+    "4_dogfood_closed_success": false,
+    "5_autonomous_scheduler_advances_without_manual_tick": false,
+    "5_scheduler_code_ready": true,
+    "6_scheduler_crash_restart_safe": true,
+    "7_worker_crash_replacement_safe": true,
+    "8_effect_reconciliation_safe": true,
+    "9_human_gate_fail_closed": true
+  },
+  "evidence_closed_success": false,
+  "evidence_path": null,
+  "has_real_codex_adapter": true,
+  "main_sha": "b954b9b8ecfbf8b02b3e04c3420eb5a34545154b",
+  "numbered_criteria": {
+    "10_scope_portfolio_ops_allowlist": true,
+    "11_production_deploy_db_migration_disabled": true,
+    "1_realcodex_e2e_dogfood": false,
+    "2_founder_did_not_manage_codex_terminal": false,
+    "3_pr_ci_effect_from_control_plane": false,
+    "4_dogfood_closed_success": false,
+    "5_autonomous_scheduler_advances_without_manual_tick": false,
+    "5_scheduler_code_ready": true,
+    "6_scheduler_crash_restart_safe": true,
+    "7_worker_crash_replacement_safe": true,
+    "8_effect_reconciliation_safe": true,
+    "9_human_gate_fail_closed": true
+  }
+}
