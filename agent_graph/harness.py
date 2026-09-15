@@ -18,6 +18,9 @@ from .durable_models import Attempt, Run
 from .durable_runtime import DurableApplyResult, DurableGraphRuntime
 from .models import Event
 from .worker_contract import (
+    BINDING_REL_PATH,
+    CONTEXT_REL_PATH,
+    RESULT_REL_PATH,
     ProposedOutcome,
     WorkerResult,
     WorkerResultError,
@@ -26,9 +29,19 @@ from .worker_contract import (
     write_worker_result,
 )
 
-RESULT_REL_PATH = ".agent-session/result.json"
-CONTEXT_REL_PATH = ".agent-session/worker-context.json"
-BINDING_REL_PATH = ".agent-session/graph-binding.json"
+# Re-export path constants for existing imports.
+__all__ = [
+    "BINDING_REL_PATH",
+    "CONTEXT_REL_PATH",
+    "RESULT_REL_PATH",
+    "FakeWorkerAdapter",
+    "FileWorkerAdapter",
+    "GraphHarness",
+    "IngestResult",
+    "WorkerAdapter",
+    "write_worker_context",
+    "worker_env",
+]
 
 
 def _utcnow() -> str:
@@ -397,6 +410,7 @@ class GraphHarness:
         model_profile: Optional[str] = None,
         worker_pid: Optional[int] = None,
         write_context: bool = True,
+        extra_context: Optional[dict[str, Any]] = None,
     ) -> IngestResult:
         run = self.runtime.get_run(run_id)
         worker = worker or FakeWorkerAdapter(
@@ -409,16 +423,21 @@ class GraphHarness:
             worker_pid=worker_pid if worker_pid is not None else os.getpid(),
         )
         worktree = run.worktree or os.getcwd()
-        context = {
+        goal = self.runtime.store.get_goal(run.goal_id)
+        context: dict[str, Any] = {
             "repository": f"jerry200176-png/{run.project}",
             "RUN_ID": run.run_id,
             "ATTEMPT_ID": attempt.attempt_id,
             "NODE": attempt.node,
             "PROJECT": run.project,
             "WORKTREE": worktree,
+            "GOAL_OBJECTIVE": goal.objective if goal else None,
+            "SUCCESS_CONDITION": goal.success_condition if goal else None,
+            "EXPECTED_STATE_VERSION": attempt.expected_state_version,
         }
+        if extra_context:
+            context.update(extra_context)
         if write_context and run.worktree:
-            goal = self.runtime.store.get_goal(run.goal_id)
             write_worker_context(
                 run.worktree,
                 run=run,
@@ -433,6 +452,13 @@ class GraphHarness:
                 result = worker.execute(run=run, attempt=attempt, context=context)
         else:
             result = worker.execute(run=run, attempt=attempt, context=context)
+
+        # Persist observational worker PID when a real adapter reports it.
+        launch = getattr(worker, "last_launch", None)
+        if launch is not None and getattr(launch, "pid", None):
+            attempt.worker_pid = int(launch.pid)
+            with self.runtime.store.transaction() as conn:
+                self.runtime.store.update_attempt(attempt, conn=conn)
 
         mark = None
         if result.proposed_outcome and result.proposed_outcome.outcome_type == "BUILD_COMPLETED":

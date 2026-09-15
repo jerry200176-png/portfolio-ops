@@ -12,6 +12,9 @@ from pathlib import Path
 from typing import Any, Optional
 
 RESULT_SCHEMA_VERSION = "1.0"
+RESULT_REL_PATH = ".agent-session/result.json"
+CONTEXT_REL_PATH = ".agent-session/worker-context.json"
+BINDING_REL_PATH = ".agent-session/graph-binding.json"
 
 ALLOWED_OUTCOME_TYPES = frozenset(
     {
