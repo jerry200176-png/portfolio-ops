@@ -48,8 +48,17 @@ if ! command -v codex >/dev/null 2>&1; then
   exit 1
 fi
 # Optional: continue an existing Run after tip re-exec at quota resume.
+# Only auto-load when live state is still in quota_wait (avoid trapping fresh starts).
 if [[ -z "${GRAPH_DOGFOOD_RESUME_RUN_ID:-}" && -f "${STATE_DIR}/live-dogfood-state.json" ]]; then
-  GRAPH_DOGFOOD_RESUME_RUN_ID="$(python3 -c "import json;print(json.load(open('${STATE_DIR}/live-dogfood-state.json')).get('run_id') or '')" 2>/dev/null || true)"
+  GRAPH_DOGFOOD_RESUME_RUN_ID="$(
+    STATE_JSON="${STATE_DIR}/live-dogfood-state.json" python3 - <<'PY'
+import json, os
+from pathlib import Path
+d = json.loads(Path(os.environ["STATE_JSON"]).read_text())
+if str(d.get("status") or "") == "quota_wait":
+    print(d.get("run_id") or "")
+PY
+  )"
   export GRAPH_DOGFOOD_RESUME_RUN_ID
 fi
 env \
