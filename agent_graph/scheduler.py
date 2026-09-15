@@ -449,6 +449,9 @@ class GraphScheduler:
                         if getattr(launch, "failure_reason", None) == "codex_usage_limit":
                             entry["action"] = "dormant_codex_usage_limit"
                             entry["blocker"] = "codex_usage_limit"
+                        elif getattr(launch, "failure_reason", None) == "codex_binary_missing":
+                            entry["action"] = "codex_binary_missing"
+                            entry["blocker"] = "codex_binary_missing"
                     # Control plane publishes the branch after RealCodex builder
                     # commits so PR create does not depend on Codex sandbox network.
                     if (
@@ -585,11 +588,13 @@ class AutonomousSchedulerLoop:
             rid = item.get("run_id")
             if not rid:
                 continue
-            if blocker in ("founder_approval_required", "ci_failed"):
+            if blocker in ("founder_approval_required", "ci_failed", "codex_binary_missing"):
                 self._permanent_blockers.add(rid)
             # stale_approval is recoverable after head re-observe / re-approve — do not
             # permanently skip the Run in a long-lived schedule-run process.
             if item.get("action") == "ci_failed":
+                self._permanent_blockers.add(rid)
+            if item.get("action") == "codex_binary_missing":
                 self._permanent_blockers.add(rid)
             if item.get("action") == "dormant_codex_usage_limit" or blocker == "codex_usage_limit":
                 resume = None

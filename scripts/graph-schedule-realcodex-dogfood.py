@@ -148,6 +148,8 @@ def main() -> int:
     )
     sleeps: list[float] = []
     loop_holder: dict[str, Any] = {}
+    consecutive_no_progress = 0
+    no_progress_limit = int(os.environ.get("GRAPH_DOGFOOD_NO_PROGRESS_LIMIT", "8"))
 
     def _sleep(sec: float) -> None:
         sleeps.append(sec)
@@ -250,7 +252,9 @@ def main() -> int:
                         "pr_create_failed",
                         "effect_blocked",
                         "ci_failed",
-                    )                ),
+                        "codex_binary_missing",
+                    )
+                ),
                 None,
             )
             if hard_fail is not None:
@@ -259,6 +263,33 @@ def main() -> int:
                 _save(evidence_dir / "SUMMARY.json", {**trace, "closed_success": False, "exit_code": 1})
                 _save(evidence_dir / "trace-failed.json", trace)
                 return 1
+
+            ours = [a for a in tick.advanced if a.get("run_id") == run_id]
+            progressed = any(
+                a.get("accepted")
+                or a.get("action")
+                in (
+                    "dormant_codex_usage_limit",
+                    "wait_ci",
+                    "wait_effect",
+                    "reconcile_closed",
+                    "policy_advance",
+                )
+                for a in ours
+            )
+            if ours and not progressed:
+                consecutive_no_progress += 1
+                if consecutive_no_progress >= no_progress_limit:
+                    trace["blocker"] = "no_progress_exhausted"
+                    trace["consecutive_no_progress"] = consecutive_no_progress
+                    _save(
+                        evidence_dir / "SUMMARY.json",
+                        {**trace, "closed_success": False, "exit_code": 1},
+                    )
+                    _save(evidence_dir / "trace-failed.json", trace)
+                    return 1
+            elif progressed:
+                consecutive_no_progress = 0
 
             ours_limited = any(
                 a.get("action") == "dormant_codex_usage_limit" and a.get("run_id") == run_id
