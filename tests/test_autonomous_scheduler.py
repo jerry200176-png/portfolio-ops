@@ -438,13 +438,33 @@ class AutonomousSchedulerTests(unittest.TestCase):
                 any(x.get("action") == "dormant_codex_usage_limit" for x in t1.advanced),
                 t1.to_dict(),
             )
-            self.assertIn(run.run_id, loop._permanent_blockers)
+            self.assertIn(run.run_id, loop._codex_dormant_until)
+            self.assertNotIn(run.run_id, loop._permanent_blockers)
             t2 = loop.tick_once()
-            # Skipped permanently blocked run → idle
+            # Skipped while dormant → idle
             self.assertTrue(t2.idle)
             self.assertEqual(t2.examined, 0)
+            # After resume epoch, run is eligible again.
+            loop._codex_dormant_until[run.run_id] = time.time() - 1
+            t3 = loop.tick_once()
+            self.assertTrue(
+                any(x.get("run_id") == run.run_id for x in t3.advanced),
+                t3.to_dict(),
+            )
         finally:
             loop.release_ownership()
+
+    def test_parse_codex_usage_resume_epoch(self) -> None:
+        from agent_graph.real_codex_adapter import parse_codex_usage_resume_epoch
+
+        detail = (
+            "ERROR: You've hit your usage limit. Visit https://chatgpt.com/codex/"
+            "settings/usage to purchase more credits or try again at Sep 19th, 2026 4:26 PM."
+        )
+        epoch = parse_codex_usage_resume_epoch(detail)
+        self.assertIsNotNone(epoch)
+        # 2026-09-19 16:26 Asia/Taipei == 08:26 UTC
+        self.assertAlmostEqual(epoch or 0, 1789806360.0, delta=120)
 
 
 if __name__ == "__main__":
