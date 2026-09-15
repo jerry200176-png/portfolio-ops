@@ -337,9 +337,16 @@ class GraphScheduler:
             "actions": actions,
         }
 
-    def tick(self, *, limit: int = 5, pr_number: Optional[int] = None) -> ScheduleTickResult:
+    def tick(
+        self,
+        *,
+        limit: int = 5,
+        pr_number: Optional[int] = None,
+        skip_run_ids: Optional[set[str]] = None,
+    ) -> ScheduleTickResult:
         advanced: list[dict[str, Any]] = []
-        ids = self.list_runnable(limit=limit)
+        skip = skip_run_ids or set()
+        ids = [rid for rid in self.list_runnable(limit=limit * 2) if rid not in skip][:limit]
         if not ids:
             return ScheduleTickResult(examined=0, advanced=[], idle=True)
 
@@ -385,6 +392,9 @@ class GraphScheduler:
                     if launch is not None:
                         entry["worker_pid"] = launch.pid
                         entry["codex_launch"] = launch.to_dict()
+                        if getattr(launch, "failure_reason", None) == "codex_usage_limit":
+                            entry["action"] = "dormant_codex_usage_limit"
+                            entry["blocker"] = "codex_usage_limit"
                     advanced.append(entry)
                 except Exception as exc:  # noqa: BLE001 — tick must continue
                     advanced.append(
@@ -393,7 +403,13 @@ class GraphScheduler:
                 continue
             advanced.append({"run_id": run_id, "action": "noop", "node": run.current_node})
 
-        return ScheduleTickResult(examined=len(ids), advanced=advanced, idle=False)
+        # All examined actions were dormancy skips → treat as idle for backoff.
+        only_dormant = bool(advanced) and all(
+            a.get("action", "").startswith("dormant_") for a in advanced
+        )
+        return ScheduleTickResult(
+            examined=len(ids), advanced=advanced, idle=(not advanced) or only_dormant
+        )
 
 
 class AutonomousSchedulerLoop:
@@ -468,8 +484,14 @@ class AutonomousSchedulerLoop:
 
     def _record_blockers(self, tick: ScheduleTickResult) -> None:
         for item in tick.advanced:
-            blocker = (item.get("result") or {}).get("blocker")
-            if blocker in ("founder_approval_required", "stale_approval"):
+            blocker = item.get("blocker") or (item.get("result") or {}).get("blocker")
+            if blocker in (
+                "founder_approval_required",
+                "stale_approval",
+                "codex_usage_limit",
+            ):
+                self._permanent_blockers.add(item["run_id"])
+            if item.get("action") == "dormant_codex_usage_limit":
                 self._permanent_blockers.add(item["run_id"])
 
     def _next_sleep(self, tick: ScheduleTickResult) -> float:
@@ -484,7 +506,9 @@ class AutonomousSchedulerLoop:
     def tick_once(self) -> ScheduleTickResult:
         if self.status.ownership_held:
             self.ownership.renew()
-        tick = self.scheduler.tick(limit=self.tick_limit)
+        tick = self.scheduler.tick(
+            limit=self.tick_limit, skip_run_ids=self._permanent_blockers
+        )
         self.status.last_tick_at = _utcnow()
         self.status.ticks += 1
         self._record_blockers(tick)

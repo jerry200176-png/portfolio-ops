@@ -305,6 +305,85 @@ class AutonomousSchedulerTests(unittest.TestCase):
         self.assertFalse(loop.status.ownership_held)
         self.assertEqual(self.rt.get_run(run.run_id).current_node, "human_gate")
 
+    def test_codex_usage_limit_marks_run_dormant(self) -> None:
+        """Usage-limit must not busy-loop: first hit dormants, later ticks skip."""
+        wt = Path(self.tmp.name) / "wt-ul"
+        wt.mkdir()
+        (wt / ".git").mkdir()
+        run = self.rt.create_run(
+            objective="usage-limit",
+            project="portfolio-ops",
+            base_sha=self.base,
+            worktree=str(wt),
+        )
+        route = Path(self.tmp.name) / "bin" / "codex-route-ul"
+        route.parent.mkdir(parents=True, exist_ok=True)
+        route.write_text(
+            textwrap.dedent(
+                """\
+                #!/usr/bin/env bash
+                set -euo pipefail
+                for a in "$@"; do
+                  if [[ "$a" == "--dry-run" ]]; then
+                    echo '{"profile":"terra","model":"stub","reasoning_effort_override":null,"reason":"t","resolution":"selected","requested_tier":"terra","selected_tier":"terra"}'
+                    exit 0
+                  fi
+                done
+                echo 'ERROR: You have hit your usage limit.' >&2
+                exit 1
+                """
+            ),
+            encoding="utf-8",
+        )
+        route.chmod(route.stat().st_mode | 0o111)
+
+        from agent_graph.real_codex_adapter import RealCodexWorkerAdapter
+
+        class _Sched(GraphScheduler):
+            def _worker_for_run(self, run):  # type: ignore[no-untyped-def]
+                return RealCodexWorkerAdapter(
+                    codex_route=str(route),
+                    timeout_sec=10,
+                    ephemeral=True,
+                    canonical_db_path=self.canonical_db_path or str(self.runtime.store.path),
+                )
+
+        # SqliteControlPlaneStore may not expose .path — use db from test.
+        sched = _Sched(self.rt, use_real_codex=True, canonical_db_path=str(self.db))
+        # Monkeypatch worker factory
+        def _worker(_run):
+            return RealCodexWorkerAdapter(
+                codex_route=str(route),
+                timeout_sec=10,
+                ephemeral=True,
+                canonical_db_path=str(self.db),
+            )
+
+        sched._worker_for_run = _worker  # type: ignore[method-assign]
+        loop = AutonomousSchedulerLoop(
+            self.rt,
+            poll_interval_sec=0.01,
+            max_poll_interval_sec=0.05,
+            sleep_fn=lambda _s: None,
+            use_real_codex=True,
+            canonical_db_path=str(self.db),
+        )
+        loop.scheduler = sched
+        self.assertTrue(loop.acquire_ownership())
+        try:
+            t1 = loop.tick_once()
+            self.assertTrue(
+                any(x.get("action") == "dormant_codex_usage_limit" for x in t1.advanced),
+                t1.to_dict(),
+            )
+            self.assertIn(run.run_id, loop._permanent_blockers)
+            t2 = loop.tick_once()
+            # Skipped permanently blocked run → idle
+            self.assertTrue(t2.idle)
+            self.assertEqual(t2.examined, 0)
+        finally:
+            loop.release_ownership()
+
 
 if __name__ == "__main__":
     unittest.main()
