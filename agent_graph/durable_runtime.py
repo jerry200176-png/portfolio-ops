@@ -243,9 +243,13 @@ class DurableGraphRuntime:
                 raise KeyError(f"unknown run_id: {run_id}")
             if run.closed or run.stopped:
                 raise RuntimeError(f"run {run_id} is terminal (status={run.status})")
-            if not run.current_node or run.current_node in ("close",):
+            if not run.current_node or run.current_node in ("close", "approved_for_effect"):
                 raise RuntimeError(
                     f"no runnable node for run {run_id} (current_node={run.current_node})"
+                )
+            if run.current_node == "human_gate" or run.status == "waiting_for_approval":
+                raise RuntimeError(
+                    f"run {run_id} is waiting_for_approval; use graph approve (not worker step)"
                 )
             # Bind the graph snapshot version the worker is authorized to advance.
             expected_state_version = int(run.state_version)
@@ -433,8 +437,10 @@ class DurableGraphRuntime:
             status = "pending"
         elif status in ("investigating", "building", "reviewing"):
             status = "running"
-        elif status == "human_approval_required":
-            status = "human_approval_required"
+        elif status in ("waiting_for_approval", "human_approval_required"):
+            status = "waiting_for_approval"
+        elif status == "approved_for_effect":
+            status = "approved_for_effect"
         elif status == "closed_success":
             status = "closed_success"
         elif status == "closed_blocked":
@@ -453,6 +459,181 @@ class DurableGraphRuntime:
         run.graph_snapshot = state.snapshot()
         run.updated_at = updated_at
         return run
+
+    def ingest_observation(
+        self,
+        *,
+        run_id: str,
+        fact: "ObservableFact",
+        repository: Optional[str] = None,
+    ) -> DurableApplyResult:
+        """Observation → verifier → Event → reducer (idempotent)."""
+        from .observation import FACT_TYPES, fact_event_id, serialize_fact_evidence
+
+        if fact.fact_type not in FACT_TYPES:
+            return DurableApplyResult(
+                accepted=False,
+                duplicate=False,
+                run=self.get_run(run_id),
+                reason=f"unknown fact_type: {fact.fact_type}",
+                blocker="invalid_observation",
+            )
+        if not fact.observed_head_sha:
+            return DurableApplyResult(
+                accepted=False,
+                duplicate=False,
+                run=self.get_run(run_id),
+                reason="observation requires observed_head_sha",
+                blocker="invalid_observation",
+            )
+        run = self.get_run(run_id)
+        if run.closed:
+            return DurableApplyResult(
+                accepted=False,
+                duplicate=False,
+                run=run,
+                reason="run already closed",
+            )
+        if not run.current_node:
+            return DurableApplyResult(
+                accepted=False,
+                duplicate=False,
+                run=run,
+                reason="run has no current_node",
+            )
+        event = Event(
+            event_id=fact_event_id(run_id, fact),
+            task_id=run_id,
+            timestamp=fact.observed_at or _utcnow(),
+            event_type="EXTERNAL_OBSERVATION",
+            node=run.current_node,
+            actor_id="observer",
+            actor_role="system",
+            repository=repository
+            or (run.graph_snapshot or {}).get("repository")
+            or f"jerry200176-png/{run.project}",
+            base_sha=run.base_sha,
+            head_sha=fact.observed_head_sha,
+            conclusion=fact.fact_type,
+            evidence=serialize_fact_evidence(fact),
+        )
+        return self.apply_graph_event(
+            run_id=run_id, event=event, expected_state_version=run.state_version
+        )
+
+    def grant_founder_approval(
+        self,
+        *,
+        run_id: str,
+        action: str,
+        head_sha: str,
+        actor: str = "founder",
+        scope: Optional[str] = None,
+        external_ref: Optional[str] = None,
+        expires_at: Optional[str] = None,
+        approval_id: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Trusted control-plane path: durable Approval + HUMAN_APPROVED.
+
+        Workers cannot call this. Head SHA must match current Run head.
+        """
+        from .durable_models import Approval
+        from .reducer import approval_still_valid
+
+        run = self.get_run(run_id)
+        if run.current_node != "human_gate":
+            return {
+                "accepted": False,
+                "reason": f"approval requires current_node=human_gate, got {run.current_node}",
+                "run": run.to_dict(),
+            }
+        if not head_sha or head_sha != run.head_sha:
+            return {
+                "accepted": False,
+                "reason": (
+                    f"approval head_sha {head_sha!r} does not match run head_sha {run.head_sha!r}"
+                ),
+                "blocker": "approval_head_mismatch",
+                "run": run.to_dict(),
+            }
+        now = _utcnow()
+        scope = scope or f"{action}@{head_sha}"
+        approval = Approval(
+            approval_id=approval_id or _new_id("appr"),
+            run_id=run_id,
+            action=action,
+            scope=scope,
+            created_at=now,
+            status="granted",
+            actor=actor,
+            bound_head_sha=head_sha,
+            expires_at=expires_at,
+            decided_at=now,
+            external_ref=external_ref,
+        )
+        event = Event(
+            event_id=f"{run_id}:HUMAN_APPROVED:{approval.approval_id}",
+            task_id=run_id,
+            timestamp=now,
+            event_type="HUMAN_APPROVED",
+            node="human_gate",
+            actor_id=actor,
+            actor_role="human",
+            repository=(run.graph_snapshot or {}).get("repository")
+            or f"jerry200176-png/{run.project}",
+            base_sha=run.base_sha,
+            head_sha=head_sha,
+            conclusion=action,
+            evidence={
+                "approval_id": approval.approval_id,
+                "action": action,
+                "scope": scope,
+                "bound_head_sha": head_sha,
+                "external_ref": external_ref,
+                "source": "control_plane_cli",
+            },
+        )
+        with self.store.transaction() as conn:
+            self.store.insert_approval(approval, conn=conn)
+            # Apply inside same process; apply_event opens its own tx — so apply after commit.
+        apply = self.apply_graph_event(
+            run_id=run_id, event=event, expected_state_version=run.state_version
+        )
+        if not apply.accepted and not apply.duplicate:
+            # Mark approval superseded if graph rejected.
+            approval_bad = Approval(
+                approval_id=approval.approval_id,
+                run_id=approval.run_id,
+                action=approval.action,
+                scope=approval.scope,
+                created_at=approval.created_at,
+                status="superseded",
+                actor=approval.actor,
+                bound_head_sha=approval.bound_head_sha,
+                expires_at=approval.expires_at,
+                decided_at=now,
+                external_ref=approval.external_ref,
+            )
+            self.store.update_approval(approval_bad)
+        run2 = self.get_run(run_id)
+        return {
+            "accepted": apply.accepted or apply.duplicate,
+            "duplicate": apply.duplicate,
+            "reason": apply.reason,
+            "blocker": apply.blocker,
+            "approval": approval.to_dict(),
+            "approval_valid": approval_still_valid(
+                TaskState(
+                    human_approved=run2.human_approved,
+                    approved_head_sha=(run2.graph_snapshot or {}).get("approved_head_sha"),
+                    head_sha=run2.head_sha,
+                )
+            )
+            if apply.accepted or apply.duplicate
+            else False,
+            "run": run2.to_dict(),
+            "apply": apply.to_dict(),
+        }
 
     def _build_stop_event(self, triggering_event: Event, state: TaskState, check: TransitionResult) -> Event:
         retry_count = state.retry_count.get(triggering_event.node, 0)

@@ -23,7 +23,8 @@ ROUTING_TABLE: dict[str, str] = {
     "BUILD_COMPLETED": "reviewer",
     "REVIEW_REJECTED": "builder",
     "REVIEW_APPROVED": "human_gate",
-    "HUMAN_APPROVED": "close",
+    # Phase 1C terminal: Founder approval authorizes effect, does not merge/deploy.
+    "HUMAN_APPROVED": "approved_for_effect",
     "HUMAN_REJECTED": "close",
     # NODE_FAILED stays on the same node (retry) unless exhausted — handled specially
     "GRAPH_STOPPED": "close",
@@ -38,8 +39,20 @@ ALLOWED_FROM: dict[str, frozenset[Optional[str]]] = {
     "REVIEW_APPROVED": frozenset({"reviewer"}),
     "HUMAN_APPROVED": frozenset({"human_gate"}),
     "HUMAN_REJECTED": frozenset({"human_gate"}),
+    # Observations may be ingested while the Run is open (incl. waiting / approved).
+    "EXTERNAL_OBSERVATION": frozenset(
+        {
+            "investigator",
+            "builder",
+            "reviewer",
+            "human_gate",
+            "approved_for_effect",
+        }
+    ),
     "NODE_FAILED": frozenset({"investigator", "builder", "reviewer"}),
-    "GRAPH_STOPPED": frozenset({"investigator", "builder", "reviewer", "human_gate"}),
+    "GRAPH_STOPPED": frozenset(
+        {"investigator", "builder", "reviewer", "human_gate", "approved_for_effect"}
+    ),
 }
 
 # Expected emitting node for each event (must match event.node)
@@ -51,6 +64,7 @@ EXPECTED_NODE: dict[str, str] = {
     "REVIEW_APPROVED": "reviewer",
     "HUMAN_APPROVED": "human_gate",
     "HUMAN_REJECTED": "human_gate",
+    # EXTERNAL_OBSERVATION: event.node must equal current_node (validated separately)
 }
 
 
@@ -158,10 +172,29 @@ def validate_transition(state: TaskState, event: Event) -> TransitionResult:
     if event.event_type == "HUMAN_REJECTED" and event.actor_role != "human":
         return TransitionResult(False, reason="HUMAN_REJECTED requires actor_role=human")
 
-    # Successful close path requires human approval of the current head
-    if event.event_type == "HUMAN_APPROVED":
-        # Will close successfully after reduce — gated here by role/sha checks above
-        pass
+    # External observation: record facts only; never choose arbitrary next node.
+    if event.event_type == "EXTERNAL_OBSERVATION":
+        if event.actor_role != "system":
+            return TransitionResult(
+                False, reason="EXTERNAL_OBSERVATION requires actor_role=system"
+            )
+        if event.node != state.current_node:
+            return TransitionResult(
+                False,
+                reason=(
+                    f"EXTERNAL_OBSERVATION node must match current_node="
+                    f"{state.current_node!r}, got {event.node!r}"
+                ),
+            )
+        if not event.evidence or not event.evidence.get("fact_type"):
+            return TransitionResult(
+                False, reason="EXTERNAL_OBSERVATION requires evidence.fact_type"
+            )
+        if not event.head_sha:
+            return TransitionResult(
+                False, reason="EXTERNAL_OBSERVATION requires observed head_sha"
+            )
+        return TransitionResult(True, next_node=state.current_node)
 
     # --- Agent run budget ---
     if event.event_type in AGENT_RUN_EVENTS:

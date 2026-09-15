@@ -62,7 +62,7 @@ def run_happy_path() -> dict[str, Any]:
       6. new reviewer approves
       7. human gate
       8. human approves specified head SHA
-      9. close success
+      9. approved_for_effect (Phase 1C terminal)
     """
     rt = GraphRuntime()
     steps = [
@@ -234,8 +234,8 @@ def main() -> int:
     final = out["happy_path"]["final_state"]
     stopped = out["stop_path"]["final_state"]
     ok = (
-        final["task_status"] == "closed_success"
-        and final["current_node"] == "close"
+        final["task_status"] == "approved_for_effect"
+        and final["current_node"] == "approved_for_effect"
         and final["human_approved"] is True
         and final["approved_head_sha"] == HEAD_V2
         and final["builder_actor_id"] == "agent-builder-1"

@@ -254,18 +254,29 @@ class DurableControlPlaneTests(unittest.TestCase):
         self.rt = DurableGraphRuntime(self.store)
         self.harness = GraphHarness(self.rt)
 
-    def test_full_fixture_path_to_human_gate_and_close(self) -> None:
+    def test_full_fixture_path_to_human_gate_and_approve(self) -> None:
         run = self.rt.create_run(objective="full", project="portfolio-ops", base_sha="a" * 40)
         head = "b" * 40
         worker = FakeWorkerAdapter(head_sha=head)
-        for expected in ("builder", "reviewer", "human_gate", "close"):
+        for expected in ("builder", "reviewer", "human_gate"):
             out = self.harness.step(run.run_id, worker=worker, write_context=False)
             self.assertTrue(out.apply.accepted, out.apply.reason)
             self.assertEqual(out.apply.run.current_node, expected)
+        waiting = self.rt.get_run(run.run_id)
+        self.assertEqual(waiting.status, "waiting_for_approval")
+        self.assertEqual(waiting.current_node, "human_gate")
+        approved = self.rt.grant_founder_approval(
+            run_id=run.run_id,
+            action="approve_effect",
+            head_sha=head,
+            actor="founder",
+        )
+        self.assertTrue(approved["accepted"], approved)
         final = self.rt.get_run(run.run_id)
-        self.assertEqual(final.status, "closed_success")
+        self.assertEqual(final.status, "approved_for_effect")
+        self.assertEqual(final.current_node, "approved_for_effect")
         self.assertTrue(final.human_approved)
-        self.assertTrue(final.closed)
+        self.assertFalse(final.closed)
 
     def test_worker_context_and_result_file_handoff(self) -> None:
         wt = Path(self.tmp.name) / "wt"

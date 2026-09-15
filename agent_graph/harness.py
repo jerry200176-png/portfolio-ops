@@ -194,13 +194,12 @@ class FakeWorkerAdapter:
                 conclusion="ok",
             )
         if node == "human_gate":
-            return outcome(
-                "HUMAN_APPROVED",
-                "human",
-                "founder-stub",
-                head=run.head_sha or self.head_sha,
-                conclusion="approved",
+            raise WorkerResultError(
+                "human_gate requires control-plane Founder Approval "
+                "(graph approve); workers cannot approve"
             )
+        if node == "approved_for_effect":
+            raise WorkerResultError("approved_for_effect is terminal for Phase 1C; no worker step")
         if node == "intake":
             # Intake is system-owned; fake worker should not normally run here.
             raise WorkerResultError("intake is system-owned; refuse fake worker execute")
@@ -406,16 +405,22 @@ class GraphHarness:
             )
 
         po = result.proposed_outcome
+        # Workers must never forge Founder Approval transitions.
+        if po.outcome_type in ("HUMAN_APPROVED", "HUMAN_REJECTED"):
+            raise WorkerResultError(
+                f"worker must not propose {po.outcome_type}; "
+                "use control-plane graph approve path"
+            )
         # Fail closed: proposed event node must match attempt node (except NODE_FAILED).
         expected_node = {
             "INVESTIGATION_COMPLETED": "investigator",
             "BUILD_COMPLETED": "builder",
             "REVIEW_REJECTED": "reviewer",
             "REVIEW_APPROVED": "reviewer",
-            "HUMAN_APPROVED": "human_gate",
-            "HUMAN_REJECTED": "human_gate",
             "NODE_FAILED": attempt.node,
-        }[po.outcome_type]
+        }.get(po.outcome_type)
+        if expected_node is None:
+            raise WorkerResultError(f"unsupported worker outcome_type: {po.outcome_type}")
         if expected_node != attempt.node and po.outcome_type != "NODE_FAILED":
             raise WorkerResultError(
                 f"proposed outcome {po.outcome_type} does not match attempt node {attempt.node}"

@@ -5,13 +5,14 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
 
-# Graph nodes (v0)
+# Graph nodes (v0 + Phase 1C terminal)
 NODES = (
     "intake",
     "investigator",
     "builder",
     "reviewer",
     "human_gate",
+    "approved_for_effect",
     "close",
 )
 
@@ -24,6 +25,7 @@ EVENT_TYPES = (
     "REVIEW_APPROVED",
     "HUMAN_APPROVED",
     "HUMAN_REJECTED",
+    "EXTERNAL_OBSERVATION",
     "NODE_FAILED",
     "GRAPH_STOPPED",
 )
@@ -58,7 +60,9 @@ TASK_STATUSES = (
     "investigating",
     "building",
     "reviewing",
-    "human_approval_required",
+    "waiting_for_approval",
+    "human_approval_required",  # legacy alias of waiting_for_approval
+    "approved_for_effect",
     "closed_success",
     "closed_blocked",
     "blocked",
@@ -123,6 +127,8 @@ class TaskState:
     human_approved: bool = False
     closed: bool = False
     stopped: bool = False
+    # Phase 1C: SHA-bound external observations (rebuildable from event log).
+    observations: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -146,4 +152,5 @@ class TaskState:
             "human_approved": self.human_approved,
             "closed": self.closed,
             "stopped": self.stopped,
+            "observations": dict(self.observations or {}),
         }
