@@ -1,0 +1,107 @@
+{
+  "attempt": {
+    "from_tick": {
+      "accepted": false,
+      "action": "dormant_codex_usage_limit",
+      "blocker": "codex_usage_limit",
+      "codex_launch": {
+        "command": [
+          "/home/jerry/.local/bin/codex-route",
+          "--complexity",
+          "low",
+          "--ambiguity",
+          "low",
+          "--blast-radius",
+          "low",
+          "--risk",
+          "low",
+          "--workload",
+          "coding",
+          "--",
+          "-C",
+          "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108",
+          "-s",
+          "workspace-write",
+          "--ephemeral",
+          "# Graph-managed worker task (bounded node)\n\nYou are a replaceable Codex worker. Canonical Run state lives in SQLite;\nyou must NOT edit the control-plane database or choose next_node.\n\n## Goal\nR1 portfolio-ops maintenance (RealCodex end-to-end dogfood).\n\nInvestigator node: confirm docs/agent-graph/ is the correct place for\nreal-codex-e2e-marker.md. Do not modify files yet. Write INVESTIGATION_COMPLETED\nto .agent-session/result.json then stop.\n\nBuilder node: create docs/agent-graph/real-codex-e2e-marker.md with short sections\nObjective, Date (UTC), RealCodex path, Run id. Commit on the current branch,\ngit push -u origin HEAD, then write BUILD_COMPLETED with the new HEAD sha to\n.result.json path. Do not open/merge PRs, deploy, or touch production \u2014 the\ncontrol plane owns GitHub effects.\n\nReviewer/effects are control-plane owned after build.\n\n## Current node\n- node: `investigator`\n- role: `investigator`\n- run_id: `run_92d8d5f3436b47f898fbd9ffe19c8f19`\n- attempt_id: `att_f7b6bcd43b9c41a99088e209e45bfd8f`\n- project: `portfolio-ops`\n- expected_state_version: `1`\n- base_sha: `5e302dfd33178283cec133394a70f0779631eeac`\n- head_sha: `5e302dfd33178283cec133394a70f0779631eeac`\n\n## Worktree (mandatory cwd)\n`/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108`\nAll reads/writes must stay inside this worktree.\n\n## Allowed scope\n- Read repository files inside the bound worktree only\n- Summarize findings needed for this node\n- Write a single structured result to .agent-session/result.json\n\n## Non-scope (hard bans)\n- Do not choose next_node or mutate graph/SQLite state\n- Do not open PRs, merge, deploy, or touch production\n- Do not modify other Runs or other workers' sessions\n- Do not write outside the bound worktree\n\n## Success condition\nMarker merged via Effect Journal; Run closed_success\n\n## Allowed proposed_outcome.outcome_type values\n`INVESTIGATION_COMPLETED`, `NODE_FAILED`\n\n## Required result schema\nWrite exactly one JSON file at:\n`/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108/.agent-session/result.json`\n\nShape (Phase 1A WorkerResult):\n```json\n{\n  \"schema_version\": \"1.0\",\n  \"status\": \"success|failure|needs_human\",\n  \"summary\": \"non-empty string\",\n  \"idempotency_key\": \"<ATTEMPT_ID>:<OUTCOME_TYPE>\",\n  \"artifacts\": [\n    {\n      \"kind\": \"string\",\n      \"uri\": \"string\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"kind\": \"string\",\n      \"ref\": \"string\",\n      \"summary\": \"string\"\n    }\n  ],\n  \"proposed_outcome\": {\n    \"outcome_type\": [\n      \"BUILD_COMPLETED\",\n      \"HUMAN_APPROVED\",\n      \"HUMAN_REJECTED\",\n      \"INVESTIGATION_COMPLETED\",\n      \"NODE_FAILED\",\n      \"REVIEW_APPROVED\",\n      \"REVIEW_REJECTED\"\n    ],\n    \"actor_id\": \"string\",\n    \"actor_role\": \"string\",\n    \"head_sha\": \"40-char sha or null\",\n    \"base_sha\": \"40-char sha or null\",\n    \"conclusion\": \"string\",\n    \"evidence\": {\n      \"object\": true\n    },\n    \"repository\": \"owner/repo\"\n  },\n  \"forbidden_keys\": [\n    \"next_node\",\n    \"current_node\",\n    \"run_status\"\n  ]\n}\n```\n\nUse idempotency_key = `{attempt_id}:{outcome_type}` with this attempt_id.\nactor_id must identify THIS worker process uniquely (e.g. include attempt_id).\n\n## Completion\nAfter writing a valid result.json, stop. Do not start other nodes.\nDo not resume or depend on any prior Codex conversation/thread.\n"
+        ],
+        "exit_code": 1,
+        "failure_reason": "codex_usage_limit",
+        "pid": 3352982,
+        "prompt_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108/.agent-session/node-prompt.md",
+        "result_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108/.agent-session/result.json",
+        "route_plan": {
+          "command": "codex exec --profile terra -C /home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108 -s workspace-write --ephemeral '# Graph-managed worker task (bounded node)\n\nYou are a replaceable Codex worker. Canonical Run state lives in SQLite;\nyou must NOT edit the control-plane database or choose next_node.\n\n## Goal\nR1 portfolio-ops maintenance (RealCodex end-to-end dogfood).\n\nInvestigator node: confirm docs/agent-graph/ is the correct place for\nreal-codex-e2e-marker.md. Do not modify files yet. Write INVESTIGATION_COMPLETED\nto .agent-session/result.json then stop.\n\nBuilder node: create docs/agent-graph/real-codex-e2e-marker.md with short sections\nObjective, Date (UTC), RealCodex path, Run id. Commit on the current branch,\ngit push -u origin HEAD, then write BUILD_COMPLETED with the new HEAD sha to\n.result.json path. Do not open/merge PRs, deploy, or touch production \u2014 the\ncontrol plane owns GitHub effects.\n\nReviewer/effects are control-plane owned after build.\n\n## Current node\n- node: `investigator`\n- role: `investigator`\n- run_id: `run_92d8d5f3436b47f898fbd9ffe19c8f19`\n- attempt_id: `att_f7b6bcd43b9c41a99088e209e45bfd8f`\n- project: `portfolio-ops`\n- expected_state_version: `1`\n- base_sha: `5e302dfd33178283cec133394a70f0779631eeac`\n- head_sha: `5e302dfd33178283cec133394a70f0779631eeac`\n\n## Worktree (mandatory cwd)\n`/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108`\nAll reads/writes must stay inside this worktree.\n\n## Allowed scope\n- Read repository files inside the bound worktree only\n- Summarize findings needed for this node\n- Write a single structured result to .agent-session/result.json\n\n## Non-scope (hard bans)\n- Do not choose next_node or mutate graph/SQLite state\n- Do not open PRs, merge, deploy, or touch production\n- Do not modify other Runs or other workers'\"'\"' sessions\n- Do not write outside the bound worktree\n\n## Success condition\nMarker merged via Effect Journal; Run closed_success\n\n## Allowed proposed_outcome.outcome_type values\n`INVESTIGATION_COMPLETED`, `NODE_FAILED`\n\n## Required result schema\nWrite exactly one JSON file at:\n`/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108/.agent-session/result.json`\n\nShape (Phase 1A WorkerResult):\n```json\n{\n  \"schema_version\": \"1.0\",\n  \"status\": \"success|failure|needs_human\",\n  \"summary\": \"non-empty string\",\n  \"idempotency_key\": \"<ATTEMPT_ID>:<OUTCOME_TYPE>\",\n  \"artifacts\": [\n    {\n      \"kind\": \"string\",\n      \"uri\": \"string\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"kind\": \"string\",\n      \"ref\": \"string\",\n      \"summary\": \"string\"\n    }\n  ],\n  \"proposed_outcome\": {\n    \"outcome_type\": [\n      \"BUILD_COMPLETED\",\n      \"HUMAN_APPROVED\",\n      \"HUMAN_REJECTED\",\n      \"INVESTIGATION_COMPLETED\",\n      \"NODE_FAILED\",\n      \"REVIEW_APPROVED\",\n      \"REVIEW_REJECTED\"\n    ],\n    \"actor_id\": \"string\",\n    \"actor_role\": \"string\",\n    \"head_sha\": \"40-char sha or null\",\n    \"base_sha\": \"40-char sha or null\",\n    \"conclusion\": \"string\",\n    \"evidence\": {\n      \"object\": true\n    },\n    \"repository\": \"owner/repo\"\n  },\n  \"forbidden_keys\": [\n    \"next_node\",\n    \"current_node\",\n    \"run_status\"\n  ]\n}\n```\n\nUse idempotency_key = `{attempt_id}:{outcome_type}` with this attempt_id.\nactor_id must identify THIS worker process uniquely (e.g. include attempt_id).\n\n## Completion\nAfter writing a valid result.json, stop. Do not start other nodes.\nDo not resume or depend on any prior Codex conversation/thread.\n'",
+          "exec_preview": [
+            "codex",
+            "exec",
+            "--profile",
+            "terra",
+            "-C",
+            "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108",
+            "-s",
+            "workspace-write",
+            "--ephemeral",
+            "# Graph-managed worker task (bounded node)\n\nYou are a replaceable Codex worker. Canonical Run state lives in SQLite;\nyou must NOT edit the control-plane database or choose next_node.\n\n## Goal\nR1 portfolio-ops maintenance (RealCodex end-to-end dogfood).\n\nInvestigator node: confirm docs/agent-graph/ is the correct place for\nreal-codex-e2e-marker.md. Do not modify files yet. Write INVESTIGATION_COMPLETED\nto .agent-session/result.json then stop.\n\nBuilder node: create docs/agent-graph/real-codex-e2e-marker.md with short sections\nObjective, Date (UTC), RealCodex path, Run id. Commit on the current branch,\ngit push -u origin HEAD, then write BUILD_COMPLETED with the new HEAD sha to\n.result.json path. Do not open/merge PRs, deploy, or touch production \u2014 the\ncontrol plane owns GitHub effects.\n\nReviewer/effects are control-plane owned after build.\n\n## Current node\n- node: `investigator`\n- role: `investigator`\n- run_id: `run_92d8d5f3436b47f898fbd9ffe19c8f19`\n- attempt_id: `att_f7b6bcd43b9c41a99088e209e45bfd8f`\n- project: `portfolio-ops`\n- expected_state_version: `1`\n- base_sha: `5e302dfd33178283cec133394a70f0779631eeac`\n- head_sha: `5e302dfd33178283cec133394a70f0779631eeac`\n\n## Worktree (mandatory cwd)\n`/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108`\nAll reads/writes must stay inside this worktree.\n\n## Allowed scope\n- Read repository files inside the bound worktree only\n- Summarize findings needed for this node\n- Write a single structured result to .agent-session/result.json\n\n## Non-scope (hard bans)\n- Do not choose next_node or mutate graph/SQLite state\n- Do not open PRs, merge, deploy, or touch production\n- Do not modify other Runs or other workers' sessions\n- Do not write outside the bound worktree\n\n## Success condition\nMarker merged via Effect Journal; Run closed_success\n\n## Allowed proposed_outcome.outcome_type values\n`INVESTIGATION_COMPLETED`, `NODE_FAILED`\n\n## Required result schema\nWrite exactly one JSON file at:\n`/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108/.agent-session/result.json`\n\nShape (Phase 1A WorkerResult):\n```json\n{\n  \"schema_version\": \"1.0\",\n  \"status\": \"success|failure|needs_human\",\n  \"summary\": \"non-empty string\",\n  \"idempotency_key\": \"<ATTEMPT_ID>:<OUTCOME_TYPE>\",\n  \"artifacts\": [\n    {\n      \"kind\": \"string\",\n      \"uri\": \"string\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"kind\": \"string\",\n      \"ref\": \"string\",\n      \"summary\": \"string\"\n    }\n  ],\n  \"proposed_outcome\": {\n    \"outcome_type\": [\n      \"BUILD_COMPLETED\",\n      \"HUMAN_APPROVED\",\n      \"HUMAN_REJECTED\",\n      \"INVESTIGATION_COMPLETED\",\n      \"NODE_FAILED\",\n      \"REVIEW_APPROVED\",\n      \"REVIEW_REJECTED\"\n    ],\n    \"actor_id\": \"string\",\n    \"actor_role\": \"string\",\n    \"head_sha\": \"40-char sha or null\",\n    \"base_sha\": \"40-char sha or null\",\n    \"conclusion\": \"string\",\n    \"evidence\": {\n      \"object\": true\n    },\n    \"repository\": \"owner/repo\"\n  },\n  \"forbidden_keys\": [\n    \"next_node\",\n    \"current_node\",\n    \"run_status\"\n  ]\n}\n```\n\nUse idempotency_key = `{attempt_id}:{outcome_type}` with this attempt_id.\nactor_id must identify THIS worker process uniquely (e.g. include attempt_id).\n\n## Completion\nAfter writing a valid result.json, stop. Do not start other nodes.\nDo not resume or depend on any prior Codex conversation/thread.\n"
+          ],
+          "hermes_signal": {
+            "verdict": "UNSET",
+            "verdict_is_advisory": true
+          },
+          "model": "gpt-5.6-terra",
+          "profile": "terra",
+          "reason": "default_general_task_route",
+          "reasoning_effort_override": null,
+          "requested_tier": "terra",
+          "resolution": "selected",
+          "selected_tier": "terra",
+          "signals": {
+            "ambiguity": "low",
+            "astra_eligible": false,
+            "blast_radius": "low",
+            "complexity": "low",
+            "hermes_verdict": "UNSET",
+            "protected_reasoning": false,
+            "risk": "low",
+            "sol_insufficient": false,
+            "workload": "coding"
+          }
+        },
+        "stderr_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108/.agent-session/codex-att_f7b6bcd43b9c41a99088e209e45bfd8f.stderr.log",
+        "stdout_path": "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108/.agent-session/codex-att_f7b6bcd43b9c41a99088e209e45bfd8f.stdout.log",
+        "timed_out": false,
+        "worktree": "/home/jerry/workspace/tasks/portfolio-ops/graph-sched-rc-dogfood-20260915091108"
+      },
+      "node": "investigator",
+      "run_id": "run_92d8d5f3436b47f898fbd9ffe19c8f19",
+      "worker_pid": 3352982,
+      "worker_type": "codex"
+    }
+  },
+  "base_sha": "5e302dfd33178283cec133394a70f0779631eeac",
+  "blocker": "codex_usage_limit",
+  "branch": "chore/task-graph-sched-rc-dogfood-20260915091108",
+  "closed_success": false,
+  "composition_ok_through": "RealCodex investigator launch + usage_limit dormant",
+  "goal_id": "goal_a4180589a52d4b8a82f60e0cebb1d318",
+  "mode": "schedule-run",
+  "proof": {
+    "action": "dormant_codex_usage_limit",
+    "attempt_id": "att_f7b6bcd43b9c41a99088e209e45bfd8f",
+    "ephemeral": true,
+    "fencing_token": 1,
+    "scheduler_ownership_released": true,
+    "worker_pid": 3352982,
+    "worker_type": "codex"
+  },
+  "quota_reset_local": "2026-09-19T16:26:00+08:00",
+  "run_id": "run_92d8d5f3436b47f898fbd9ffe19c8f19",
+  "tick_action": {
+    "accepted": false,
+    "action": "dormant_codex_usage_limit",
+    "ephemeral": true,
+    "exit_code": 1,
+    "failure_reason": "codex_usage_limit",
+    "worker_pid": 3352982
+  }
+}
