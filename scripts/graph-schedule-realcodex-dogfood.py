@@ -128,15 +128,23 @@ def main() -> int:
         "worker_path": "RealCodexWorkerAdapter via AutonomousSchedulerLoop",
     }
 
-    # Live dogfood must outlast GitHub CI (often 3–8+ min) plus RealCodex workers.
+    # Live dogfood must outlast GitHub CI and optionally Codex quota reset.
     max_ticks = int(os.environ.get("GRAPH_DOGFOOD_MAX_TICKS", "240"))
     poll = float(os.environ.get("GRAPH_DOGFOOD_POLL", "5.0"))
+    wall_deadline = time.time() + float(
+        os.environ.get("GRAPH_DOGFOOD_WALL_SEC", str(100 * 3600))
+    )
     sleeps: list[float] = []
 
     def _sleep(sec: float) -> None:
         sleeps.append(sec)
         # Cap per-sleep; with wait_ci idle backoff this still allows ~30–60+ min wall time.
         time.sleep(min(sec, float(os.environ.get("GRAPH_DOGFOOD_SLEEP_CAP", "45"))))
+
+    def _sleep_quota(sec: float) -> None:
+        """Longer sleeps while waiting for Codex quota (does not use the short CI cap)."""
+        sleeps.append(sec)
+        time.sleep(min(sec, float(os.environ.get("GRAPH_DOGFOOD_QUOTA_SLEEP_CAP", "3600"))))
 
     loop = AutonomousSchedulerLoop(
         rt,
@@ -162,21 +170,67 @@ def main() -> int:
 
     try:
         for i in range(max_ticks):
+            if time.time() > wall_deadline:
+                final = rt.get_run(run_id)
+                trace["blocker"] = "wall_deadline_exhausted"
+                trace["final"] = final.to_dict()
+                _save(evidence_dir / "SUMMARY.json", {**trace, "closed_success": False, "exit_code": 1})
+                return 1
+
             tick = loop.tick_once()
             trace["ticks"].append(tick.to_dict())
             _save(evidence_dir / "trace-partial.json", trace)
+
+            hard_fail = next(
+                (
+                    a
+                    for a in tick.advanced
+                    if a.get("run_id") == run_id
+                    and a.get("action")
+                    in ("branch_push_failed", "pr_create_failed", "effect_blocked")
+                ),
+                None,
+            )
+            if hard_fail is not None:
+                trace["blocker"] = hard_fail.get("blocker") or hard_fail.get("action")
+                trace["hard_fail"] = hard_fail
+                _save(evidence_dir / "SUMMARY.json", {**trace, "closed_success": False, "exit_code": 1})
+                _save(evidence_dir / "trace-failed.json", trace)
+                return 1
 
             ours_limited = any(
                 a.get("action") == "dormant_codex_usage_limit" and a.get("run_id") == run_id
                 for a in tick.advanced
             )
             if ours_limited:
-                trace["blocker"] = "codex_usage_limit"
-                snap = loop.operational_snapshot()
-                trace["scheduler"] = snap
-                _save(evidence_dir / "SUMMARY.json", {**trace, "closed_success": False, "exit_code": 3})
-                _save(evidence_dir / "trace-failed.json", trace)
-                return 3
+                # Wait through quota window (scheduler already recorded resume epoch).
+                resume = loop._codex_dormant_until.get(run_id)
+                if resume is None:
+                    env_epoch = os.environ.get("GRAPH_CODEX_QUOTA_RESUME_EPOCH")
+                    resume = float(env_epoch) if env_epoch else None
+                trace["quota_wait"] = {
+                    "at": datetime.now(timezone.utc).isoformat(),
+                    "resume_epoch": resume,
+                    "tick": i,
+                }
+                _save(evidence_dir / "trace-partial.json", trace)
+                if resume is None:
+                    trace["blocker"] = "codex_usage_limit"
+                    _save(
+                        evidence_dir / "SUMMARY.json",
+                        {**trace, "closed_success": False, "exit_code": 3},
+                    )
+                    _save(evidence_dir / "trace-failed.json", trace)
+                    return 3
+                wait_for = max(5.0, resume - time.time())
+                _sleep_quota(wait_for)
+                continue
+
+            # Still inside recorded quota dormancy (skipped ticks) — keep waiting.
+            if run_id in loop._codex_dormant_until:
+                resume = loop._codex_dormant_until[run_id]
+                _sleep_quota(max(5.0, resume - time.time()))
+                continue
 
             final = rt.get_run(run_id)
             if final.status == "closed_success" and final.closed:
