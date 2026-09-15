@@ -47,6 +47,21 @@ def _read_usage_limit_detail(*log_paths: Path) -> Optional[str]:
     return "codex_usage_limit"
 
 
+def _read_codex_binary_missing(*log_paths: Path) -> bool:
+    """True when codex-route could not exec ``codex`` (PATH / install break)."""
+    chunks: list[str] = []
+    for path in log_paths:
+        try:
+            chunks.append(Path(path).read_text(encoding="utf-8", errors="replace"))
+        except OSError:
+            continue
+    blob = "\n".join(chunks).lower()
+    if "no such file or directory" not in blob:
+        return False
+    # FileNotFoundError: ... 'codex'  OR  errno 2 ... codex
+    return "'codex'" in blob or '"codex"' in blob or blob.rstrip().endswith("codex")
+
+
 def parse_codex_usage_resume_epoch(detail: str) -> Optional[float]:
     """Best-effort parse of Codex 'try again at …' into UTC epoch seconds.
 
@@ -392,6 +407,15 @@ class RealCodexWorkerAdapter:
                 f"codex_usage_limit: {usage_detail}",
                 key_suffix="USAGE_LIMIT",
                 blocker="codex_usage_limit",
+            )
+        if _read_codex_binary_missing(stdout_path, stderr_path):
+            meta.failure_reason = "codex_binary_missing"
+            self._write_launch_meta(worktree, meta)
+            return self._failure_result(
+                attempt,
+                "codex binary not found on PATH (codex-route FileNotFoundError)",
+                key_suffix="CODEX_MISSING",
+                blocker="codex_binary_missing",
             )
         if exit_code != 0:
             meta.failure_reason = f"nonzero_exit:{exit_code}"

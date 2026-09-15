@@ -466,6 +466,34 @@ class AutonomousSchedulerTests(unittest.TestCase):
         # 2026-09-19 16:26 Asia/Taipei == 08:26 UTC
         self.assertAlmostEqual(epoch or 0, 1789806360.0, delta=120)
 
+    def test_codex_binary_missing_is_permanent_blocker(self) -> None:
+        from agent_graph.real_codex_adapter import _read_codex_binary_missing
+
+        log = Path(self.tmp.name) / "stderr.log"
+        log.write_text(
+            "FileNotFoundError: [Errno 2] No such file or directory: 'codex'\n",
+            encoding="utf-8",
+        )
+        self.assertTrue(_read_codex_binary_missing(log))
+        loop = AutonomousSchedulerLoop(
+            self.rt, poll_interval_sec=0.01, max_poll_interval_sec=0.02, sleep_fn=lambda _s: None
+        )
+        from agent_graph.scheduler import ScheduleTickResult
+
+        tick = ScheduleTickResult(
+            examined=1,
+            advanced=[
+                {
+                    "run_id": "run_missing",
+                    "action": "codex_binary_missing",
+                    "blocker": "codex_binary_missing",
+                }
+            ],
+            idle=False,
+        )
+        loop._record_blockers(tick)
+        self.assertIn("run_missing", loop._permanent_blockers)
+
 
 if __name__ == "__main__":
     unittest.main()
