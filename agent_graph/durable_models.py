@@ -192,3 +192,28 @@ class Approval:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class Effect:
+    """Durable Effect Journal record (Phase 1D+)."""
+
+    effect_id: str
+    run_id: str
+    action: str
+    repo: str
+    target: str
+    head_sha: str
+    created_at: str
+    status: str = "declared"
+    approval_id: Optional[str] = None
+    idempotency_key: Optional[str] = None
+    prepared_at: Optional[str] = None
+    executing_at: Optional[str] = None
+    finished_at: Optional[str] = None
+    external_ref: Optional[str] = None
+    result_json: Optional[str] = None
+    error: Optional[str] = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

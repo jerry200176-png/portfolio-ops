@@ -17,12 +17,13 @@ from typing import Any, Iterator, Optional
 from .durable_models import (
     Approval,
     Attempt,
+    Effect,
     CanonicalEvent,
     Goal,
     Run,
 )
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 DEFAULT_BUSY_TIMEOUT_MS = 5000
 
 
@@ -162,6 +163,28 @@ CREATE TABLE IF NOT EXISTS approvals (
   decided_at TEXT,
   external_ref TEXT
 );
+
+CREATE TABLE IF NOT EXISTS effects (
+  effect_id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL REFERENCES runs(run_id),
+  action TEXT NOT NULL,
+  repo TEXT NOT NULL,
+  target TEXT NOT NULL,
+  head_sha TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'declared',
+  approval_id TEXT,
+  idempotency_key TEXT,
+  created_at TEXT NOT NULL,
+  prepared_at TEXT,
+  executing_at TEXT,
+  finished_at TEXT,
+  external_ref TEXT,
+  result_json TEXT,
+  error TEXT
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_effects_idempotency
+  ON effects(idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_events_run_seq ON events(run_id, run_event_seq);
 CREATE INDEX IF NOT EXISTS idx_attempts_run ON attempts(run_id, started_at);
@@ -913,6 +936,95 @@ class SqliteControlPlaneStore:
                 approval.approval_id,
             ),
         )
+
+
+
+    def insert_effect(self, effect: Effect, *, conn: Optional[sqlite3.Connection] = None) -> Effect:
+        c = conn or self._conn
+        c.execute(
+            """
+            INSERT INTO effects(
+              effect_id, run_id, action, repo, target, head_sha, status, approval_id,
+              idempotency_key, created_at, prepared_at, executing_at, finished_at,
+              external_ref, result_json, error
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                effect.effect_id, effect.run_id, effect.action, effect.repo, effect.target,
+                effect.head_sha, effect.status, effect.approval_id, effect.idempotency_key,
+                effect.created_at, effect.prepared_at, effect.executing_at, effect.finished_at,
+                effect.external_ref, effect.result_json, effect.error,
+            ),
+        )
+        return effect
+
+    def get_effect(self, effect_id: str) -> Optional[Effect]:
+        row = self._conn.execute(
+            "SELECT * FROM effects WHERE effect_id=?", (effect_id,)
+        ).fetchone()
+        return _row_to_effect(row) if row else None
+
+    def list_effects(self, run_id: str) -> list[Effect]:
+        rows = self._conn.execute(
+            "SELECT * FROM effects WHERE run_id=? ORDER BY created_at ASC, effect_id ASC",
+            (run_id,),
+        ).fetchall()
+        return [_row_to_effect(r) for r in rows]
+
+    def update_effect(self, effect: Effect, *, conn: Optional[sqlite3.Connection] = None) -> None:
+        c = conn or self._conn
+        c.execute(
+            """
+            UPDATE effects SET
+              status=?, approval_id=?, prepared_at=?, executing_at=?, finished_at=?,
+              external_ref=?, result_json=?, error=?
+            WHERE effect_id=?
+            """,
+            (
+                effect.status, effect.approval_id, effect.prepared_at, effect.executing_at,
+                effect.finished_at, effect.external_ref, effect.result_json, effect.error,
+                effect.effect_id,
+            ),
+        )
+
+    def consume_approval(
+        self,
+        approval_id: str,
+        *,
+        effect_id: str,
+        now: str,
+        conn: Optional[sqlite3.Connection] = None,
+    ) -> bool:
+        c = conn or self._conn
+        cur = c.execute(
+            """
+            UPDATE approvals SET status='consumed', decided_at=COALESCE(decided_at, ?)
+            WHERE approval_id=? AND status='granted'
+            """,
+            (now, approval_id),
+        )
+        return cur.rowcount > 0
+
+
+def _row_to_effect(row: sqlite3.Row) -> Effect:
+    return Effect(
+        effect_id=row["effect_id"],
+        run_id=row["run_id"],
+        action=row["action"],
+        repo=row["repo"],
+        target=row["target"],
+        head_sha=row["head_sha"],
+        created_at=row["created_at"],
+        status=row["status"],
+        approval_id=row["approval_id"],
+        idempotency_key=row["idempotency_key"],
+        prepared_at=row["prepared_at"],
+        executing_at=row["executing_at"],
+        finished_at=row["finished_at"],
+        external_ref=row["external_ref"],
+        result_json=row["result_json"],
+        error=row["error"],
+    )
 
 
 def _row_to_approval(row: sqlite3.Row) -> Approval:

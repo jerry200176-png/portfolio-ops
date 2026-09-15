@@ -132,8 +132,8 @@ class Phase1BLeaseRecoveryTests(unittest.TestCase):
             ),
         )
 
-    def test_schema_v6(self) -> None:
-        self.assertEqual(SCHEMA_VERSION, 6)
+    def test_schema_v7(self) -> None:
+        self.assertEqual(SCHEMA_VERSION, 7)
 
     def test_controller_crash_live_child_blocks_takeover(self) -> None:
         """A lease + live orphan child + expired TTL ⇒ B acquire denied; B not spawned."""

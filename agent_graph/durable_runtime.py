@@ -635,6 +635,139 @@ class DurableGraphRuntime:
             "apply": apply.to_dict(),
         }
 
+
+    def execute_approved_effect(
+        self,
+        *,
+        run_id: str,
+        action: str,
+        repo: str,
+        target: str,
+        mutator: Any,
+        params: Optional[dict[str, Any]] = None,
+        require_ci: bool = False,
+        observed_head_sha: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Execute allowlisted effect after approval, with TOCTOU re-check.
+
+        Production deploy actions are rejected by allowlist before mutation.
+        """
+        from .effect_journal import DurableEffectJournal, effect_identity
+        from .observation import ci_authorizes_head
+        from .reducer import approval_still_valid, reduce
+
+        params = params or {}
+        run = self.get_run(run_id)
+        if run.current_node != "approved_for_effect":
+            return {
+                "accepted": False,
+                "reason": f"effects require node=approved_for_effect, got {run.current_node}",
+                "run": run.to_dict(),
+            }
+        eid = effect_identity(
+            run_id=run_id,
+            action=action,
+            repo=repo,
+            target=target,
+            head_sha=run.head_sha or "",
+        )
+        existing = self.store.get_effect(eid)
+        if existing is not None and existing.status == "succeeded":
+            return {
+                "accepted": True,
+                "duplicate": True,
+                "effect": existing.to_dict(),
+                "run": run.to_dict(),
+            }
+        events = [self._canonical_to_graph(e) for e in self.list_events(run_id)]
+        state = reduce(events)
+        if not approval_still_valid(state):
+            return {
+                "accepted": False,
+                "reason": "approval invalid or head_sha drifted",
+                "blocker": "stale_approval",
+                "run": run.to_dict(),
+            }
+        if observed_head_sha and observed_head_sha != run.head_sha:
+            return {
+                "accepted": False,
+                "reason": "TOCTOU: observed_head_sha != run.head_sha",
+                "blocker": "toctou_head_mismatch",
+                "run": run.to_dict(),
+            }
+        if require_ci:
+            obs = (run.graph_snapshot or {}).get("observations") or {}
+            if not ci_authorizes_head(obs, run.head_sha or ""):
+                return {
+                    "accepted": False,
+                    "reason": "CI not green for current head_sha",
+                    "blocker": "ci_not_green",
+                    "run": run.to_dict(),
+                }
+        approvals = [a for a in self.store.list_approvals(run_id) if a.status == "granted"]
+        if not approvals:
+            return {
+                "accepted": False,
+                "reason": "no granted approval to consume",
+                "blocker": "approval_missing",
+                "run": run.to_dict(),
+            }
+        approval = approvals[-1]
+        if approval.bound_head_sha and approval.bound_head_sha != run.head_sha:
+            return {
+                "accepted": False,
+                "reason": "approval bound_head_sha mismatch",
+                "blocker": "stale_approval",
+                "run": run.to_dict(),
+            }
+        journal = DurableEffectJournal(self.store, mutator)
+        effect = journal.declare(
+            run_id=run_id,
+            action=action,
+            repo=repo,
+            target=target,
+            head_sha=run.head_sha or "",
+            approval_id=approval.approval_id,
+        )
+        if effect.status == "succeeded":
+            return {
+                "accepted": True,
+                "duplicate": True,
+                "effect": effect.to_dict(),
+                "run": run.to_dict(),
+            }
+        journal.prepare(
+            effect.effect_id,
+            precheck={
+                "run_head_sha": run.head_sha,
+                "observed_head_sha": observed_head_sha,
+                "approval_id": approval.approval_id,
+                "require_ci": require_ci,
+            },
+        )
+        try:
+            effect = journal.execute(effect.effect_id, params=params)
+        except Exception as exc:  # noqa: BLE001
+            effect = self.store.get_effect(effect.effect_id)
+            return {
+                "accepted": False,
+                "reason": str(exc),
+                "blocker": getattr(effect, "status", None) if effect else "effect_failed",
+                "effect": effect.to_dict() if effect else None,
+                "run": self.get_run(run_id).to_dict(),
+            }
+        consumed = self.store.consume_approval(
+            approval.approval_id, effect_id=effect.effect_id, now=_utcnow()
+        )
+        return {
+            "accepted": True,
+            "duplicate": False,
+            "approval_consumed": consumed,
+            "effect": effect.to_dict(),
+            "run": self.get_run(run_id).to_dict(),
+        }
+
+
     def _build_stop_event(self, triggering_event: Event, state: TaskState, check: TransitionResult) -> Event:
         retry_count = state.retry_count.get(triggering_event.node, 0)
         failure_signature = None
