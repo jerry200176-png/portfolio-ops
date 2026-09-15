@@ -716,48 +716,68 @@ class SqliteControlPlaneStore:
 
         if active is not None:
             expired = bool(active["expires_at"] and active["expires_at"] <= now)
-            if not expired:
+            identity_status = (
+                active["identity_status"] if "identity_status" in active.keys() else None
+            ) or "pending"
+            stored = ProcessIdentity.from_mapping(self._lease_row_identity(active))
+            liveness = (
+                classify_owner_liveness(stored) if identity_status == "bound" else None
+            )
+
+            # Crash mid-TTL: bound identity confirmed dead → reclaim without waiting
+            # for expires_at (scheduler kill / OOM / host reboot with sticky lease row).
+            can_reclaim_dead = (
+                allow_reclaim_dead
+                and identity_status == "bound"
+                and liveness == "dead"
+            )
+
+            if not expired and not can_reclaim_dead:
+                if liveness == "alive":
+                    raise PreviousWorkerStillAliveError(
+                        f"resource {resource_key}: previous worker still alive "
+                        f"(owner={active['owner']} pid={active['worker_pid']})"
+                    )
                 raise LeaseBusyError(
                     f"resource {resource_key} held by {active['owner']} "
                     f"(token={active['fencing_token']})"
                 )
-            # Expired → reconciliation required (not automatic takeover).
-            identity_status = (
-                active["identity_status"] if "identity_status" in active.keys() else None
-            ) or "pending"
-            if identity_status == "pending" or not allow_reclaim_dead:
-                raise PreviousWorkerUnverifiableError(
-                    f"resource {resource_key}: expired lease owner={active['owner']} "
-                    f"identity_status={identity_status}; reconciliation required"
-                )
-            stored = ProcessIdentity.from_mapping(self._lease_row_identity(active))
-            liveness = classify_owner_liveness(stored)
-            if liveness == "alive":
-                raise PreviousWorkerStillAliveError(
-                    f"resource {resource_key}: previous worker still alive "
-                    f"(owner={active['owner']} pid={active['worker_pid']})"
-                )
-            if liveness != "dead":
-                raise PreviousWorkerUnverifiableError(
-                    f"resource {resource_key}: previous worker identity unverifiable "
-                    f"(owner={active['owner']} liveness={liveness})"
-                )
-            # Confirmed dead: reclaim — release old lease, mark attempt recovered.
-            c.execute(
-                "UPDATE leases SET released_at=? WHERE lease_id=? AND released_at IS NULL",
-                (now, active["lease_id"]),
-            )
-            old_attempt = c.execute(
-                "SELECT * FROM attempts WHERE attempt_id=?", (active["owner"],)
-            ).fetchone()
-            if old_attempt is not None and old_attempt["status"] in ("started", "failed"):
+
+            if expired or can_reclaim_dead:
+                if not can_reclaim_dead:
+                    # Expired → reconciliation required (not automatic takeover) unless dead.
+                    if identity_status == "pending" or not allow_reclaim_dead:
+                        raise PreviousWorkerUnverifiableError(
+                            f"resource {resource_key}: expired lease owner={active['owner']} "
+                            f"identity_status={identity_status}; reconciliation required"
+                        )
+                    liveness = classify_owner_liveness(stored)
+                    if liveness == "alive":
+                        raise PreviousWorkerStillAliveError(
+                            f"resource {resource_key}: previous worker still alive "
+                            f"(owner={active['owner']} pid={active['worker_pid']})"
+                        )
+                    if liveness != "dead":
+                        raise PreviousWorkerUnverifiableError(
+                            f"resource {resource_key}: previous worker identity unverifiable "
+                            f"(owner={active['owner']} liveness={liveness})"
+                        )
+                # Confirmed dead: reclaim — release old lease, mark attempt recovered.
                 c.execute(
-                    """
-                    UPDATE attempts SET status=?, ended_at=COALESCE(ended_at, ?)
-                    WHERE attempt_id=?
-                    """,
-                    ("orphaned", now, active["owner"]),
+                    "UPDATE leases SET released_at=? WHERE lease_id=? AND released_at IS NULL",
+                    (now, active["lease_id"]),
                 )
+                old_attempt = c.execute(
+                    "SELECT * FROM attempts WHERE attempt_id=?", (active["owner"],)
+                ).fetchone()
+                if old_attempt is not None and old_attempt["status"] in ("started", "failed"):
+                    c.execute(
+                        """
+                        UPDATE attempts SET status=?, ended_at=COALESCE(ended_at, ?)
+                        WHERE attempt_id=?
+                        """,
+                        ("orphaned", now, active["owner"]),
+                    )
 
         prior = c.execute(
             "SELECT COALESCE(MAX(fencing_token), 0) AS mx FROM leases WHERE resource_key=?",
