@@ -214,12 +214,95 @@ def main() -> int:
             rt.close()
             tmp.cleanup()
 
+    def mid_ttl_dead_scheduler_reclaim() -> dict:
+        """Unexpired scheduler lease whose bound PID is dead must be reclaimable."""
+        tmp, store, rt, harness = _fresh()
+        try:
+            from agent_graph.process_identity import read_process_identity
+            from agent_graph.scheduler_ownership import scheduler_resource_key
+
+            orphan = subprocess.Popen(
+                ["bash", "-c", "sleep 60"],
+                start_new_session=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            deadline = time.time() + 5
+            ident = None
+            while time.time() < deadline:
+                ident = read_process_identity(orphan.pid)
+                if ident is not None:
+                    break
+                time.sleep(0.05)
+            assert ident is not None
+            resource = scheduler_resource_key("portfolio-ops")
+            now = "2026-09-15T12:00:00Z"
+            # Mid-TTL: expires far in the future relative to acquire time.
+            exp = "2026-09-15T12:30:00Z"
+            token = store.acquire_execution_lease(
+                resource_key=resource,
+                attempt_id="sched_dead",
+                run_id="scheduler",
+                node="loop",
+                now=now,
+                expires_at=exp,
+                lease_id="lease_dead_mid",
+            )
+            store.bind_execution_identity(
+                resource_key=resource,
+                attempt_id="sched_dead",
+                fencing_token=int(token),
+                identity=ident,
+            )
+            os.killpg(orphan.pid, signal.SIGKILL)
+            orphan.wait(timeout=5)
+            # Still before expires_at — reclaim because identity is dead.
+            later = "2026-09-15T12:05:00Z"
+            token2 = store.acquire_execution_lease(
+                resource_key=resource,
+                attempt_id="sched_reclaim",
+                run_id="scheduler",
+                node="loop",
+                now=later,
+                expires_at="2026-09-15T12:35:00Z",
+                lease_id="lease_reclaim_mid",
+            )
+            return {
+                "old_token": int(token),
+                "new_token": int(token2),
+                "reclaimed": int(token2) > int(token),
+            }
+        finally:
+            rt.close()
+            tmp.cleanup()
+
+    def sigterm_releases_ownership() -> dict:
+        """request_stop + release path empties active scheduler lease (TERM contract)."""
+        tmp, store, rt, harness = _fresh()
+        try:
+            loop = AutonomousSchedulerLoop(
+                rt, poll_interval_sec=0.01, max_poll_interval_sec=0.02, sleep_fn=lambda _s: None
+            )
+            assert loop.acquire_ownership()
+            assert store.get_active_lease(loop.ownership.resource_key) is not None
+            loop.request_stop()
+            loop.release_ownership()
+            return {
+                "shutting_down": loop.status.shutting_down,
+                "active_after": store.get_active_lease(loop.ownership.resource_key),
+            }
+        finally:
+            rt.close()
+            tmp.cleanup()
+
     evidence.append(_run_case("kill_scheduler_between_ticks", kill_between_ticks))
     evidence.append(_run_case("after_effect_before_local_confirm", after_effect_before_reconcile))
     evidence.append(
         _run_case("worker_timeout_scheduler_continues", worker_timeout_scheduler_continues)
     )
     evidence.append(_run_case("observation_temp_failure", observation_temp_failure))
+    evidence.append(_run_case("mid_ttl_dead_scheduler_reclaim", mid_ttl_dead_scheduler_reclaim))
+    evidence.append(_run_case("sigterm_releases_ownership", sigterm_releases_ownership))
 
     out_dir = ROOT / "reports" / "2026-09-15" / "scheduler-fault-injection"
     out_dir.mkdir(parents=True, exist_ok=True)

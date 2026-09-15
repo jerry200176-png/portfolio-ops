@@ -84,7 +84,15 @@ def audit() -> dict[str, Any]:
         and (ROOT / "scripts/graph-schedule-realcodex-dogfood.py").is_file(),
         "6_scheduler_crash_restart_safe": has_ownership
         and bool(fault_results)
-        and any(x.get("case") == "kill_scheduler_between_ticks" and x.get("ok") for x in fault_results),
+        and any(x.get("case") == "kill_scheduler_between_ticks" and x.get("ok") for x in fault_results)
+        and any(
+            x.get("case") == "mid_ttl_dead_scheduler_reclaim" and x.get("ok")
+            for x in (fault_results or [])
+        )
+        and any(
+            x.get("case") == "sigterm_releases_ownership" and x.get("ok")
+            for x in (fault_results or [])
+        ),
         "7_worker_crash_replacement_safe": bool(fault_results)
         and any(
             x.get("case") == "worker_timeout_scheduler_continues" and x.get("ok")
