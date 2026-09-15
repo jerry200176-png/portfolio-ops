@@ -298,14 +298,42 @@ def cmd_schedule_status(args: argparse.Namespace) -> int:
     rt = _runtime(args.db)
     try:
         from .scheduler_ownership import SchedulerOwnership
+        from .risk_policy import requires_founder_approval
 
         ownership = SchedulerOwnership(store=rt.store, project=args.project)
         sched = GraphScheduler(rt)
         runnable = sched.list_runnable(limit=50)
+        active: list[dict] = []
+        blocked: list[dict] = []
+        for rid in runnable:
+            run = rt.get_run(rid)
+            row = {
+                "run_id": rid,
+                "status": run.status,
+                "current_node": run.current_node,
+                "blocker": run.blocker,
+                "risk_tier": run.risk_tier,
+                "updated_at": run.updated_at,
+            }
+            if run.status == "waiting_for_approval" and requires_founder_approval(
+                run.risk_tier
+            ):
+                blocked.append(row)
+            elif run.blocker:
+                blocked.append(row)
+            else:
+                active.append(row)
+        # Lease / identity from ownership status (includes owner_id, expires).
+        own = ownership.status()
         payload = {
-            "ownership": ownership.status(),
+            "scheduler_identity": own.get("owner_id") or own.get("holder"),
+            "ownership": own,
+            "runnable_count": len(runnable),
+            "active_runs": active,
+            "blocked_runs": blocked,
             "runnable_run_ids": runnable,
-            "runs": [rt.get_run(rid).to_dict() for rid in runnable[:20]],
+            "control_db": args.db,
+            "project": args.project,
         }
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0
