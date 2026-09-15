@@ -378,8 +378,18 @@ class GraphScheduler:
                 )
                 continue
             if run.current_node == "approved_for_effect":
-                item = self._advance_approved_for_effect(run_id, pr_number=pr_number)
-                advanced.append(item)
+                try:
+                    item = self._advance_approved_for_effect(run_id, pr_number=pr_number)
+                    advanced.append(item)
+                except Exception as exc:  # noqa: BLE001 — transient observe failures
+                    advanced.append(
+                        {
+                            "run_id": run_id,
+                            "action": "observe_error",
+                            "error": str(exc),
+                            "transient": True,
+                        }
+                    )
                 continue
             if run.current_node in ("investigator", "builder", "reviewer"):
                 try:
@@ -437,6 +447,7 @@ class GraphScheduler:
             {
                 "wait_ci",
                 "wait_effect",
+                "observe_error",
                 "dormant_codex_usage_limit",
                 "dormant_no_worker",
                 "dormant_no_github",

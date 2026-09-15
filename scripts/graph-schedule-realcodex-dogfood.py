@@ -200,6 +200,15 @@ def main() -> int:
         attempts = [dict(r) for r in rows]
 
     effects = [e.to_dict() for e in store.list_effects(run_id)]
+    from agent_graph.dogfood_evidence import collect_dogfood_evidence
+
+    evidence = collect_dogfood_evidence(
+        runtime=rt,
+        store=store,
+        run_id=run_id,
+        scheduler_id=loop.scheduler_id,
+        mode="schedule-run",
+    )
     summary = {
         "closed_success": final.status == "closed_success",
         "run_id": run_id,
@@ -216,11 +225,13 @@ def main() -> int:
         "sleeps": sleeps,
         "worker_path": "RealCodexWorkerAdapter",
         "mode": "schedule-run",
+        "evidence": evidence,
     }
     trace["summary"] = summary
     trace["events"] = [e.to_dict() for e in rt.list_events(run_id)]
     _save(evidence_dir / "trace.json", trace)
     _save(evidence_dir / "SUMMARY.json", summary)
+    _save(evidence_dir / "EVIDENCE.json", evidence)
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0 if final.status == "closed_success" else 1
 

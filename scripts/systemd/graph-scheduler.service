@@ -5,10 +5,12 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/workspace/tasks/portfolio-ops/graph-v1-autonomous-20260915
+# Stable runtime checkout maintained by scripts/install-graph-scheduler-user-unit.sh
+WorkingDirectory=%h/workspace/state/portfolio-ops/scheduler-runtime
 Environment=GRAPH_CONTROL_DB=%h/workspace/state/portfolio-ops/graph-control.sqlite
 Environment=GRAPH_REAL_CODEX=1
-ExecStart=%h/workspace/tasks/portfolio-ops/graph-v1-autonomous-20260915/scripts/graph schedule-run --real-codex
+Environment=PYTHONPATH=%h/workspace/state/portfolio-ops/scheduler-runtime
+ExecStart=/usr/bin/python3 -m agent_graph.cli schedule-run --real-codex --project portfolio-ops
 Restart=on-failure
 RestartSec=10
 KillSignal=SIGTERM

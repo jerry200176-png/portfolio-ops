@@ -3,7 +3,7 @@
     "case": "kill_scheduler_between_ticks",
     "ok": true,
     "result": {
-      "run_id": "run_472f5c70e830472894e250eb222f97df",
+      "run_id": "run_3205520be3724e288283e5f1bbeb6632",
       "node": "reviewer"
     }
   },
@@ -13,6 +13,33 @@
     "result": {
       "effect_status": "succeeded",
       "action": "reconcile_closed"
+    }
+  },
+  {
+    "case": "worker_timeout_scheduler_continues",
+    "ok": true,
+    "result": {
+      "first_actions": [
+        "step"
+      ],
+      "second_actions": [
+        "step"
+      ],
+      "node": "human_gate",
+      "tick1_idle": false
+    }
+  },
+  {
+    "case": "observation_temp_failure",
+    "ok": true,
+    "result": {
+      "first": [
+        "observe_error"
+      ],
+      "second": [
+        "wait_ci"
+      ],
+      "calls": 3
     }
   }
 ]
