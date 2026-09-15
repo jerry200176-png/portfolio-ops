@@ -12,6 +12,7 @@ Exit: 0 success, 1 failure, 2 unset, 3 usage-limit dormant.
 from __future__ import annotations
 
 import json
+import shutil
 import os
 import subprocess
 import sys
@@ -73,6 +74,15 @@ def main() -> int:
     if os.environ.get("GRAPH_REAL_CODEX") != "1":
         print("Set GRAPH_REAL_CODEX=1", file=sys.stderr)
         return 2
+
+    # codex-route invokes `codex` from PATH; env -i launchers often omit npm-global.
+    if shutil.which("codex") is None:
+        print(
+            "codex not found on PATH (expected under ~/.npm-global/bin). "
+            "Refusing to busy-loop RealCodex launches.",
+            file=sys.stderr,
+        )
+        return 1
 
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     evidence_dir = ROOT / "reports" / stamp / "schedule-realcodex-dogfood"
