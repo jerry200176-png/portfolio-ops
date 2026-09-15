@@ -260,6 +260,59 @@ class Phase1BLeaseRecoveryTests(unittest.TestCase):
         assert orphaned is not None
         self.assertEqual(orphaned.status, "orphaned")
 
+    def test_unexpired_dead_owner_reclaim(self) -> None:
+        """Crash mid-TTL with bound dead identity must reclaim without waiting for expiry."""
+        run = self._run()
+        resource = worktree_resource_key(self.worktree)
+        writer_log = self.worktree / "midttl-writer.log"
+        child = self._spawn_orphan_writer(writer_log)
+        identity = read_process_identity(child.pid)
+        assert identity is not None
+
+        now = "2026-09-15T12:00:00Z"
+        a = self.rt.start_attempt(run.run_id, worker_type="codex")
+        with self.store.transaction() as conn:
+            t1 = self.store.acquire_execution_lease(
+                resource_key=resource,
+                attempt_id=a.attempt_id,
+                run_id=run.run_id,
+                node=a.node,
+                now=now,
+                expires_at="2026-09-15T12:30:00Z",  # still valid later
+                lease_id="lease_a_midttl",
+                conn=conn,
+            )
+            a.fencing_token = t1
+            self.store.update_attempt(a, conn=conn)
+            self.store.bind_execution_identity(
+                resource_key=resource,
+                attempt_id=a.attempt_id,
+                fencing_token=t1,
+                identity=identity,
+                conn=conn,
+            )
+
+        os.kill(child.pid, signal.SIGKILL)
+        child.wait(timeout=5)
+        self._child_pgids = [p for p in self._child_pgids if p != child.pid]
+        deadline = time.time() + 5.0
+        while time.time() < deadline and Path(f"/proc/{child.pid}").exists():
+            time.sleep(0.05)
+
+        later = "2026-09-15T12:01:00Z"  # before expires_at
+        with self.store.transaction() as conn:
+            t2 = self.store.acquire_execution_lease(
+                resource_key=resource,
+                attempt_id="att_B_midttl",
+                run_id=run.run_id,
+                node=a.node,
+                now=later,
+                expires_at="2026-09-15T13:00:00Z",
+                lease_id="lease_b_midttl",
+                conn=conn,
+            )
+        self.assertGreater(t2, t1)
+
     def test_unknown_pending_identity_fail_closed(self) -> None:
         """Spawn crash window: lease held, identity still pending → no takeover."""
         run = self._run()
