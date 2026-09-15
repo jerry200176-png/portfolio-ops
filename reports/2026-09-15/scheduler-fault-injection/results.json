@@ -1,0 +1,18 @@
+[
+  {
+    "case": "kill_scheduler_between_ticks",
+    "ok": true,
+    "result": {
+      "run_id": "run_472f5c70e830472894e250eb222f97df",
+      "node": "reviewer"
+    }
+  },
+  {
+    "case": "after_effect_before_local_confirm",
+    "ok": true,
+    "result": {
+      "effect_status": "succeeded",
+      "action": "reconcile_closed"
+    }
+  }
+]

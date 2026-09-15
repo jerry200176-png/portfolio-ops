@@ -16,7 +16,7 @@ from .durable_runtime import DurableGraphRuntime
 from .github_observe import FakeGitHubReader, GhCliReader, observe_pull_request
 from .github_mutate import FakeGitHubMutator, GhCliMutator
 from .reconciler import GraphReconciler
-from .scheduler import GraphScheduler
+from .scheduler import AutonomousSchedulerLoop, GraphScheduler
 from .harness import FakeWorkerAdapter, GraphHarness
 from .sqlite_store import SqliteControlPlaneStore
 from .worktree_bind import bind_existing_worktree
@@ -246,9 +246,68 @@ def cmd_schedule_tick(args: argparse.Namespace) -> int:
     try:
         reader = GhCliReader()
         rec = GraphReconciler(rt, reader)
-        sched = GraphScheduler(rt, reconciler=rec, head_sha=args.head_sha)
+        mutator = FakeGitHubMutator() if args.fake else GhCliMutator()
+        sched = GraphScheduler(
+            rt,
+            reconciler=rec,
+            mutator=mutator,
+            head_sha=args.head_sha,
+            use_real_codex=args.real_codex,
+            codex_timeout_sec=args.codex_timeout,
+            canonical_db_path=args.db,
+        )
         out = sched.tick(limit=args.limit, pr_number=args.pr)
         print(json.dumps(out.to_dict(), indent=2, sort_keys=True))
+        return 0
+    finally:
+        rt.close()
+
+
+def cmd_schedule_run(args: argparse.Namespace) -> int:
+    rt = _runtime(args.db)
+    try:
+        reader = GhCliReader()
+        rec = GraphReconciler(rt, reader)
+        mutator = FakeGitHubMutator() if args.fake else GhCliMutator()
+        loop = AutonomousSchedulerLoop(
+            rt,
+            reconciler=rec,
+            mutator=mutator,
+            project=args.project,
+            poll_interval_sec=args.poll_interval,
+            max_poll_interval_sec=args.max_poll_interval,
+            lease_ttl_sec=args.lease_ttl,
+            tick_limit=args.limit,
+            use_real_codex=args.real_codex,
+            codex_timeout_sec=args.codex_timeout,
+            canonical_db_path=args.db,
+        )
+        if not args.no_signals:
+            loop.install_signal_handlers()
+        if args.max_ticks is not None:
+            code = loop.run_forever(max_ticks=args.max_ticks)
+        else:
+            code = loop.run_forever()
+        print(json.dumps(loop.operational_snapshot(), indent=2, sort_keys=True))
+        return code
+    finally:
+        rt.close()
+
+
+def cmd_schedule_status(args: argparse.Namespace) -> int:
+    rt = _runtime(args.db)
+    try:
+        from .scheduler_ownership import SchedulerOwnership
+
+        ownership = SchedulerOwnership(store=rt.store, project=args.project)
+        sched = GraphScheduler(rt)
+        runnable = sched.list_runnable(limit=50)
+        payload = {
+            "ownership": ownership.status(),
+            "runnable_run_ids": runnable,
+            "runs": [rt.get_run(rid).to_dict() for rid in runnable[:20]],
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
         return 0
     finally:
         rt.close()
@@ -362,7 +421,27 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--limit", type=int, default=5)
     c.add_argument("--pr", type=int, default=None)
     c.add_argument("--head-sha", default="c" * 40)
+    c.add_argument("--real-codex", action="store_true")
+    c.add_argument("--codex-timeout", type=float, default=900.0)
+    c.add_argument("--fake", action="store_true", help="Use FakeGitHubMutator (tests)")
     c.set_defaults(func=cmd_schedule_tick)
+
+    c = sub.add_parser("schedule-run", help="Autonomous single-host scheduler loop")
+    c.add_argument("--project", default="portfolio-ops")
+    c.add_argument("--limit", type=int, default=5, help="Runs examined per tick")
+    c.add_argument("--poll-interval", type=float, default=2.0)
+    c.add_argument("--max-poll-interval", type=float, default=30.0)
+    c.add_argument("--lease-ttl", type=float, default=30.0)
+    c.add_argument("--max-ticks", type=int, default=None)
+    c.add_argument("--real-codex", action="store_true")
+    c.add_argument("--codex-timeout", type=float, default=900.0)
+    c.add_argument("--fake", action="store_true", help="Use FakeGitHubMutator (tests)")
+    c.add_argument("--no-signals", action="store_true")
+    c.set_defaults(func=cmd_schedule_run)
+
+    c = sub.add_parser("schedule-status", help="Scheduler ownership and runnable Runs")
+    c.add_argument("--project", default="portfolio-ops")
+    c.set_defaults(func=cmd_schedule_status)
 
     return p
 

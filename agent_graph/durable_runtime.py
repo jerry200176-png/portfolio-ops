@@ -756,9 +756,12 @@ class DurableGraphRuntime:
                 "effect": effect.to_dict() if effect else None,
                 "run": self.get_run(run_id).to_dict(),
             }
-        consumed = self.store.consume_approval(
-            approval.approval_id, effect_id=effect.effect_id, now=_utcnow()
-        )
+        # PR create/comment are preparatory; merge approval is consumed only on merge.
+        consumed = False
+        if action == "github_pr_merge":
+            consumed = self.store.consume_approval(
+                approval.approval_id, effect_id=effect.effect_id, now=_utcnow()
+            )
         return {
             "accepted": True,
             "duplicate": False,
