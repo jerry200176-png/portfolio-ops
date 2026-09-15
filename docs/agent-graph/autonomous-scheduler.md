@@ -22,3 +22,7 @@ Second schedulers fail closed; crash recovery uses process identity + lease reco
 ## Shutdown
 
 Send `SIGTERM` to stop accepting new actions, release ownership, and exit.
+
+## Schedule-driven dogfood
+
+Run `GRAPH_REAL_CODEX=1 python3 scripts/graph-schedule-realcodex-dogfood.py` to drive a RealCodex R1 maintenance Run via `AutonomousSchedulerLoop` (no manual `schedule-tick`).
