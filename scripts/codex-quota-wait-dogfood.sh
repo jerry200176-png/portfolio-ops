@@ -47,6 +47,20 @@ if ! command -v codex >/dev/null 2>&1; then
   tick "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"codex_missing_on_path\"}"
   exit 1
 fi
+# Optional: continue an existing Run after tip re-exec at quota resume.
+# Only auto-load when live state is still in quota_wait (avoid trapping fresh starts).
+if [[ -z "${GRAPH_DOGFOOD_RESUME_RUN_ID:-}" && -f "${STATE_DIR}/live-dogfood-state.json" ]]; then
+  GRAPH_DOGFOOD_RESUME_RUN_ID="$(
+    STATE_JSON="${STATE_DIR}/live-dogfood-state.json" python3 - <<'PY'
+import json, os
+from pathlib import Path
+d = json.loads(Path(os.environ["STATE_JSON"]).read_text())
+if str(d.get("status") or "") == "quota_wait":
+    print(d.get("run_id") or "")
+PY
+  )"
+  export GRAPH_DOGFOOD_RESUME_RUN_ID
+fi
 env \
   PATH="$PATH" \
   GRAPH_REAL_CODEX=1 \
@@ -63,6 +77,7 @@ env \
   GRAPH_CONTROL_DB="${GRAPH_CONTROL_DB:-$STATE_DIR/graph-control-sched-dogfood.sqlite}" \
   GRAPH_DOGFOOD_ROOT="$ROOT" \
   GRAPH_DOGFOOD_STATE_JSON="${GRAPH_DOGFOOD_STATE_JSON:-$STATE_DIR/live-dogfood-state.json}" \
+  GRAPH_DOGFOOD_RESUME_RUN_ID="${GRAPH_DOGFOOD_RESUME_RUN_ID:-}" \
   python3 "$DOGFOOD_SCRIPT" >>"$LOG" 2>&1
 code=$?
 set -e

@@ -6,6 +6,9 @@ investigator+builder (no FakeWorker on implementation nodes). Founder does not
 manage Codex terminals or manual schedule-tick.
 
 Requires GRAPH_REAL_CODEX=1.
+Optional GRAPH_DOGFOOD_RESUME_RUN_ID=<run_id> continues an existing Run
+(worktree/DB) instead of creating a new Goal — used after tip re-exec at
+Codex quota resume.
 Exit: 0 success, 1 failure, 2 unset, 3 usage-limit dormant.
 """
 
@@ -89,44 +92,71 @@ def main() -> int:
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
     db_path = ensure_canonical_db_parent(default_canonical_db_path())
-    task_id = f"graph-sched-rc-dogfood-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
-    worktree = Path(
-        create_worktree_via_agent_start(project="portfolio-ops", task_id=task_id, dry_run=True)
-    )
-    assert_canonical_db_outside_worktree(db_path, worktree)
-    # Ruleset require_extra_approval_for_unattributed_changes — attribute to GitHub user.
-    ensure_github_attribution(worktree)
-
     store = SqliteControlPlaneStore(str(db_path))
     rt = DurableGraphRuntime(store)
     reconciler = GraphReconciler(rt, GhCliReader())
     mutator = GhCliMutator()
 
-    base_sha = _git(worktree, "rev-parse", "HEAD")
-    branch = _git(worktree, "branch", "--show-current")
-    stamp_compact = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    marker_rel = f"docs/agent-graph/real-codex-e2e-marker-{stamp_compact}.md"
-    # Placeholder run id resolved after create; builder still sees unique marker path.
-    preliminary = _objective_for_run("pending", marker_rel)
-    run = rt.create_run(
-        objective=preliminary,
-        project="portfolio-ops",
-        risk_tier="R1",
-        success_condition="Marker merged via Effect Journal; Run closed_success",
-        base_sha=base_sha,
-        worktree=str(worktree),
-        branch=branch or None,
-        repository="jerry200176-png/portfolio-ops",
-    )
-    run_id = run.run_id
-    # Persist the definitive objective (with run_id) for worker context / evidence.
-    final_objective = _objective_for_run(run_id, marker_rel)
-    store._conn.execute(
-        "UPDATE goals SET objective=? WHERE goal_id=?",
-        (final_objective, run.goal_id),
-    )
-    store._conn.commit()
-    trace_marker = marker_rel
+    resume_run_id = (os.environ.get("GRAPH_DOGFOOD_RESUME_RUN_ID") or "").strip()
+    if resume_run_id:
+        # Continue an existing Run after quota wait / tip re-exec (do not create a new Goal).
+        existing = rt.get_run(resume_run_id)
+        if existing is None:
+            print(f"GRAPH_DOGFOOD_RESUME_RUN_ID not found: {resume_run_id}", file=sys.stderr)
+            return 1
+        if not existing.worktree or not Path(existing.worktree).is_dir():
+            print(f"resume run worktree missing: {existing.worktree}", file=sys.stderr)
+            return 1
+        worktree = Path(existing.worktree).resolve()
+        assert_canonical_db_outside_worktree(db_path, worktree)
+        ensure_github_attribution(worktree)
+        run = existing
+        run_id = run.run_id
+        branch = run.branch or _git(worktree, "branch", "--show-current")
+        base_sha = run.base_sha or _git(worktree, "rev-parse", "HEAD")
+        goal = store.get_goal(run.goal_id)
+        objective = (goal.objective if goal else "") or ""
+        marker_rel = "docs/agent-graph/real-codex-e2e-marker.md"
+        for line in objective.splitlines():
+            if "Marker path:" in line:
+                marker_rel = line.split("Marker path:", 1)[1].strip() or marker_rel
+                break
+        trace_marker = marker_rel
+        print(f"resuming run_id={run_id} worktree={worktree}", file=sys.stderr)
+    else:
+        task_id = f"graph-sched-rc-dogfood-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        worktree = Path(
+            create_worktree_via_agent_start(project="portfolio-ops", task_id=task_id, dry_run=True)
+        )
+        assert_canonical_db_outside_worktree(db_path, worktree)
+        # Ruleset require_extra_approval_for_unattributed_changes — attribute to GitHub user.
+        ensure_github_attribution(worktree)
+
+        base_sha = _git(worktree, "rev-parse", "HEAD")
+        branch = _git(worktree, "branch", "--show-current")
+        stamp_compact = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+        marker_rel = f"docs/agent-graph/real-codex-e2e-marker-{stamp_compact}.md"
+        # Placeholder run id resolved after create; builder still sees unique marker path.
+        preliminary = _objective_for_run("pending", marker_rel)
+        run = rt.create_run(
+            objective=preliminary,
+            project="portfolio-ops",
+            risk_tier="R1",
+            success_condition="Marker merged via Effect Journal; Run closed_success",
+            base_sha=base_sha,
+            worktree=str(worktree),
+            branch=branch or None,
+            repository="jerry200176-png/portfolio-ops",
+        )
+        run_id = run.run_id
+        # Persist the definitive objective (with run_id) for worker context / evidence.
+        final_objective = _objective_for_run(run_id, marker_rel)
+        store._conn.execute(
+            "UPDATE goals SET objective=? WHERE goal_id=?",
+            (final_objective, run.goal_id),
+        )
+        store._conn.commit()
+        trace_marker = marker_rel
 
     trace: dict[str, Any] = {
         "mode": "schedule-run",
@@ -138,6 +168,7 @@ def main() -> int:
         "marker": trace_marker,
         "ticks": [],
         "worker_path": "RealCodexWorkerAdapter via AutonomousSchedulerLoop",
+        "resumed": bool(resume_run_id),
     }
 
     # Live dogfood must outlast GitHub CI and optionally Codex quota reset.
