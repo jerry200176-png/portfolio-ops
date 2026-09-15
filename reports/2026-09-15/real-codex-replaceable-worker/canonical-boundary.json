@@ -1,0 +1,14 @@
+{
+  "db_outside_worktree": true,
+  "db_path": "/home/jerry/workspace/state/portfolio-ops/graph-control-phase1b-proof.sqlite",
+  "db_sha_after_probe": "e3ba06536f7dbba337dee3c1c5f01b43660ce276abb54c5cee2d5defc5b970aa",
+  "events_after_probe": 1,
+  "events_before_probe": 1,
+  "node_after_probe": "investigator",
+  "node_before_probe": "investigator",
+  "probe_accepted": false,
+  "probe_exited": true,
+  "probe_pid": 3065499,
+  "sandbox": "workspace-write",
+  "worktree": "/home/jerry/workspace/tasks/portfolio-ops/graph-real-codex-proof-20260915051257"
+}

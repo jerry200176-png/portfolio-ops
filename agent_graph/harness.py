@@ -14,10 +14,26 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
+from .canonical_paths import (
+    CanonicalPathError,
+    assert_canonical_db_outside_worktree,
+    run_node_resource_key,
+    safe_result_path,
+    worktree_resource_key,
+)
 from .durable_models import Attempt, Run
 from .durable_runtime import DurableApplyResult, DurableGraphRuntime
 from .models import Event
+from .sqlite_store import (
+    LeaseBusyError,
+    PreviousWorkerStillAliveError,
+    PreviousWorkerUnverifiableError,
+    StaleLeaseError,
+)
 from .worker_contract import (
+    BINDING_REL_PATH,
+    CONTEXT_REL_PATH,
+    RESULT_REL_PATH,
     ProposedOutcome,
     WorkerResult,
     WorkerResultError,
@@ -26,9 +42,21 @@ from .worker_contract import (
     write_worker_result,
 )
 
-RESULT_REL_PATH = ".agent-session/result.json"
-CONTEXT_REL_PATH = ".agent-session/worker-context.json"
-BINDING_REL_PATH = ".agent-session/graph-binding.json"
+# Re-export path constants for existing imports.
+__all__ = [
+    "BINDING_REL_PATH",
+    "CONTEXT_REL_PATH",
+    "RESULT_REL_PATH",
+    "FakeWorkerAdapter",
+    "FileWorkerAdapter",
+    "GraphHarness",
+    "IngestResult",
+    "WorkerAdapter",
+    "write_worker_context",
+    "worker_env",
+]
+
+DEFAULT_LEASE_TTL_SEC = 3600
 
 
 def _utcnow() -> str:
@@ -37,6 +65,51 @@ def _utcnow() -> str:
 
 def _new_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
+
+
+def _iso_plus_seconds(base_iso: str, seconds: float) -> str:
+    dt = datetime.fromisoformat(base_iso.replace("Z", "+00:00"))
+    return (
+        (dt + __import__("datetime").timedelta(seconds=seconds))
+        .astimezone(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def _check_result_identity_consistency(
+    *,
+    result: WorkerResult,
+    run_id: str,
+    attempt_id: str,
+    node: str,
+    expected_state_version: int,
+) -> None:
+    """Worker payload may echo identity fields; mismatches fail closed.
+
+    Authority remains the canonical Attempt row — never the worker file.
+    """
+    raw = result.raw or {}
+    checks = {
+        "run_id": run_id,
+        "attempt_id": attempt_id,
+        "node": node,
+        "expected_state_version": expected_state_version,
+        "RUN_ID": run_id,
+        "ATTEMPT_ID": attempt_id,
+        "NODE": node,
+        "EXPECTED_STATE_VERSION": expected_state_version,
+    }
+    for key, expected in checks.items():
+        if key not in raw or raw[key] is None:
+            continue
+        if str(raw[key]) != str(expected):
+            raise WorkerResultError(
+                f"worker result identity mismatch on {key}: "
+                f"got {raw[key]!r} expected {expected!r}"
+            )
+
 
 
 class WorkerAdapter(Protocol):
@@ -143,7 +216,7 @@ class FileWorkerAdapter:
         self.worktree = Path(worktree)
 
     def execute(self, *, run: Run, attempt: Attempt, context: dict[str, Any]) -> WorkerResult:
-        path = self.worktree / RESULT_REL_PATH
+        path = safe_result_path(self.worktree)
         if not path.is_file():
             raise WorkerResultError(f"missing worker result file: {path}")
         return read_worker_result(path)
@@ -230,6 +303,44 @@ class GraphHarness:
             )
         expected_state_version = int(attempt.expected_state_version)
 
+        # Controller-owned identity: payload echoes are consistency-only.
+        _check_result_identity_consistency(
+            result=result,
+            run_id=run_id,
+            attempt_id=attempt_id,
+            node=attempt.node,
+            expected_state_version=expected_state_version,
+        )
+
+        # Fencing before status: reclaimed/orphaned Attempts fail closed here.
+        current = self.runtime.get_run(run_id)
+        if int(attempt.fencing_token) > 0 and current.worktree:
+            now = _utcnow()
+            resource = worktree_resource_key(current.worktree)
+            try:
+                self.runtime.store.assert_lease_fence(
+                    resource_key=resource,
+                    attempt_id=attempt.attempt_id,
+                    fencing_token=int(attempt.fencing_token),
+                    now=now,
+                )
+            except StaleLeaseError as exc:
+                if attempt.status in ("started", "failed"):
+                    attempt.status = "rejected"
+                    attempt.ended_at = now
+                    with self.runtime.store.transaction() as conn:
+                        self.runtime.store.update_attempt(attempt, conn=conn)
+                return IngestResult(
+                    apply=DurableApplyResult(
+                        accepted=False,
+                        duplicate=False,
+                        run=current,
+                        reason=str(exc),
+                        blocker="stale_execution_lease",
+                    ),
+                    attempt=attempt,
+                )
+
         ingest_key = result.idempotency_key
         existing_attempt = self.runtime.store.get_attempt_by_ingest_key(ingest_key)
         if existing_attempt is not None:
@@ -256,7 +367,6 @@ class GraphHarness:
             )
 
         # Fail closed before any transition if Run moved under this attempt.
-        current = self.runtime.get_run(run_id)
         if current.state_version != expected_state_version:
             now = _utcnow()
             attempt.status = "rejected"
@@ -397,6 +507,8 @@ class GraphHarness:
         model_profile: Optional[str] = None,
         worker_pid: Optional[int] = None,
         write_context: bool = True,
+        extra_context: Optional[dict[str, Any]] = None,
+        lease_ttl_sec: float = DEFAULT_LEASE_TTL_SEC,
     ) -> IngestResult:
         run = self.runtime.get_run(run_id)
         worker = worker or FakeWorkerAdapter(
@@ -409,37 +521,136 @@ class GraphHarness:
             worker_pid=worker_pid if worker_pid is not None else os.getpid(),
         )
         worktree = run.worktree or os.getcwd()
-        context = {
+        goal = self.runtime.store.get_goal(run.goal_id)
+        context: dict[str, Any] = {
             "repository": f"jerry200176-png/{run.project}",
             "RUN_ID": run.run_id,
             "ATTEMPT_ID": attempt.attempt_id,
             "NODE": attempt.node,
             "PROJECT": run.project,
             "WORKTREE": worktree,
+            "GOAL_OBJECTIVE": goal.objective if goal else None,
+            "SUCCESS_CONDITION": goal.success_condition if goal else None,
+            "EXPECTED_STATE_VERSION": attempt.expected_state_version,
         }
-        if write_context and run.worktree:
-            goal = self.runtime.store.get_goal(run.goal_id)
-            write_worker_context(
-                run.worktree,
-                run=run,
-                attempt=attempt,
-                goal_objective=goal.objective if goal else None,
+        if extra_context:
+            context.update(extra_context)
+
+        # Real Codex workers require execution leases + DB outside worktree.
+        held_leases: list[tuple[str, int]] = []
+        if getattr(worker, "worker_type", "") == "codex":
+            db_path = getattr(worker, "canonical_db_path", None) or context.get(
+                "CANONICAL_DB_PATH"
             )
-            # Optionally persist a result file for file-worker parity when fake runs.
-            if isinstance(worker, FakeWorkerAdapter):
-                result = worker.execute(run=run, attempt=attempt, context=context)
-                write_worker_result(Path(run.worktree) / RESULT_REL_PATH, result)
+            if db_path:
+                assert_canonical_db_outside_worktree(db_path, worktree)
+                context["CANONICAL_DB_PATH"] = str(db_path)
+            now = _utcnow()
+            resources = [
+                worktree_resource_key(worktree),
+                run_node_resource_key(run_id, attempt.node),
+            ]
+            try:
+                with self.runtime.store.transaction() as conn:
+                    for resource in resources:
+                        token = self.runtime.store.acquire_execution_lease(
+                            resource_key=resource,
+                            attempt_id=attempt.attempt_id,
+                            run_id=run_id,
+                            node=attempt.node,
+                            now=now,
+                            expires_at=_iso_plus_seconds(now, lease_ttl_sec),
+                            lease_id=_new_id("lease"),
+                            conn=conn,
+                        )
+                        held_leases.append((resource, int(token)))
+                    # Primary fencing token is the worktree lease generation.
+                    attempt.fencing_token = held_leases[0][1]
+                    self.runtime.store.update_attempt(attempt, conn=conn)
+            except (
+                LeaseBusyError,
+                PreviousWorkerStillAliveError,
+                PreviousWorkerUnverifiableError,
+            ) as exc:
+                blocker = getattr(exc, "blocker", None) or (
+                    "previous_worker_still_alive"
+                    if isinstance(exc, PreviousWorkerStillAliveError)
+                    else "previous_worker_unverifiable"
+                    if isinstance(exc, PreviousWorkerUnverifiableError)
+                    else "lease_busy"
+                )
+                attempt.status = "rejected"
+                attempt.ended_at = _utcnow()
+                with self.runtime.store.transaction() as conn:
+                    self.runtime.store.update_attempt(attempt, conn=conn)
+                return IngestResult(
+                    apply=DurableApplyResult(
+                        accepted=False,
+                        duplicate=False,
+                        run=self.runtime.get_run(run_id),
+                        reason=str(exc),
+                        blocker=blocker,
+                    ),
+                    attempt=attempt,
+                )
+
+        try:
+            if write_context and run.worktree:
+                write_worker_context(
+                    run.worktree,
+                    run=run,
+                    attempt=attempt,
+                    goal_objective=goal.objective if goal else None,
+                )
+                if isinstance(worker, FakeWorkerAdapter):
+                    result = worker.execute(run=run, attempt=attempt, context=context)
+                    # Controller-fixed path only.
+                    write_worker_result(safe_result_path(run.worktree), result)
+                else:
+                    result = worker.execute(run=run, attempt=attempt, context=context)
             else:
                 result = worker.execute(run=run, attempt=attempt, context=context)
-        else:
-            result = worker.execute(run=run, attempt=attempt, context=context)
 
-        mark = None
-        if result.proposed_outcome and result.proposed_outcome.outcome_type == "BUILD_COMPLETED":
-            mark = result.proposed_outcome.head_sha
-        return self.ingest_worker_result(
-            run_id=run_id,
-            attempt_id=attempt.attempt_id,
-            result=result,
-            mark_tested_sha=mark,
-        )
+            launch = getattr(worker, "last_launch", None)
+            if launch is not None and getattr(launch, "pid", None):
+                from .process_identity import read_process_identity
+
+                attempt.worker_pid = int(launch.pid)
+                identity = read_process_identity(int(launch.pid))
+                with self.runtime.store.transaction() as conn:
+                    self.runtime.store.update_attempt(attempt, conn=conn)
+                    if identity is not None and held_leases:
+                        for resource, token in held_leases:
+                            self.runtime.store.bind_execution_identity(
+                                resource_key=resource,
+                                attempt_id=attempt.attempt_id,
+                                fencing_token=int(token),
+                                identity=identity,
+                                conn=conn,
+                            )
+
+            mark = None
+            if (
+                result.proposed_outcome
+                and result.proposed_outcome.outcome_type == "BUILD_COMPLETED"
+            ):
+                mark = result.proposed_outcome.head_sha
+            out = self.ingest_worker_result(
+                run_id=run_id,
+                attempt_id=attempt.attempt_id,
+                result=result,
+                mark_tested_sha=mark,
+            )
+            return out
+        finally:
+            if held_leases:
+                now = _utcnow()
+                with self.runtime.store.transaction() as conn:
+                    for resource, token in held_leases:
+                        self.runtime.store.release_execution_lease(
+                            resource_key=resource,
+                            attempt_id=attempt.attempt_id,
+                            fencing_token=int(token),
+                            now=now,
+                            conn=conn,
+                        )

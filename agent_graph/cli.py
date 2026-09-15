@@ -15,12 +15,14 @@ from .durable_runtime import DurableGraphRuntime
 from .harness import FakeWorkerAdapter, GraphHarness
 from .sqlite_store import SqliteControlPlaneStore
 from .worktree_bind import bind_existing_worktree
+from .canonical_paths import default_canonical_db_path, ensure_canonical_db_parent
 
-DEFAULT_DB = Path(__file__).resolve().parents[1] / "state" / "graph-control.sqlite"
+DEFAULT_DB = default_canonical_db_path()
 
 
 def _runtime(db: str) -> DurableGraphRuntime:
-    return DurableGraphRuntime(SqliteControlPlaneStore(db))
+    path = ensure_canonical_db_parent(Path(db))
+    return DurableGraphRuntime(SqliteControlPlaneStore(path))
 
 
 def cmd_run_create(args: argparse.Namespace) -> int:
@@ -66,10 +68,29 @@ def cmd_step(args: argparse.Namespace) -> int:
     rt = _runtime(args.db)
     try:
         harness = GraphHarness(rt)
-        worker = FakeWorkerAdapter(head_sha=args.head_sha) if args.fake_worker else FakeWorkerAdapter()
-        # Phase 1A default worker is fake; file worker is opt-in later.
-        result = harness.step(args.run_id, worker=worker, write_context=not args.no_context)
-        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        if args.codex_worker:
+            from .real_codex_adapter import RealCodexWorkerAdapter
+
+            worker = RealCodexWorkerAdapter(
+                timeout_sec=args.codex_timeout,
+                dry_run=args.codex_dry_run,
+                canonical_db_path=args.db,
+            )
+            model_profile = "codex-route"
+        else:
+            worker = FakeWorkerAdapter(head_sha=args.head_sha)
+            model_profile = None
+        result = harness.step(
+            args.run_id,
+            worker=worker,
+            model_profile=model_profile,
+            write_context=not args.no_context,
+        )
+        payload = result.to_dict()
+        launch = getattr(worker, "last_launch", None)
+        if launch is not None:
+            payload["codex_launch"] = launch.to_dict()
+        print(json.dumps(payload, indent=2, sort_keys=True))
         return 0 if result.apply.accepted or result.duplicate_ingest else 1
     finally:
         rt.close()
@@ -147,6 +168,17 @@ def build_parser() -> argparse.ArgumentParser:
     c = sub.add_parser("step", help="Start attempt, run worker adapter, ingest result")
     c.add_argument("run_id")
     c.add_argument("--fake-worker", action="store_true", default=True)
+    c.add_argument(
+        "--codex-worker",
+        action="store_true",
+        help="Use RealCodexWorkerAdapter via codex-route (replaceable worker)",
+    )
+    c.add_argument("--codex-timeout", type=float, default=900.0)
+    c.add_argument(
+        "--codex-dry-run",
+        action="store_true",
+        help="Plan Codex launch without executing (command construction only)",
+    )
     c.add_argument("--head-sha", default="c" * 40)
     c.add_argument("--no-context", action="store_true")
     c.set_defaults(func=cmd_step)

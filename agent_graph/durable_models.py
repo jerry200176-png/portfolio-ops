@@ -27,6 +27,7 @@ ATTEMPT_STATUSES = (
     "failed",
     "rejected",
     "ingested",
+    "orphaned",
 )
 
 
@@ -113,6 +114,8 @@ class Attempt:
     model_profile: Optional[str] = None
     worker_pid: Optional[int] = None
     result_ingest_key: Optional[str] = None
+    # Execution lease fencing token (0 = no lease / fake workers).
+    fencing_token: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
