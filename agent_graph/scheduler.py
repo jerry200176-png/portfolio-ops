@@ -514,6 +514,8 @@ class AutonomousSchedulerLoop:
         self._stop_requested = False
         self._current_interval = poll_interval_sec
         self._permanent_blockers: set[str] = set()
+        # run_id -> unix epoch when Codex quota dormancy lifts (not permanent).
+        self._codex_dormant_until: dict[str, float] = {}
         self.focus_run_ids: Optional[set[str]] = None
 
     def request_stop(self) -> None:
@@ -536,23 +538,52 @@ class AutonomousSchedulerLoop:
         self.ownership.release()
         self.status.ownership_held = False
 
+    def _active_codex_dormant_skips(self, *, now: Optional[float] = None) -> set[str]:
+        ts = time.time() if now is None else now
+        expired = [rid for rid, until in self._codex_dormant_until.items() if until <= ts]
+        for rid in expired:
+            self._codex_dormant_until.pop(rid, None)
+        return set(self._codex_dormant_until.keys())
+
     def _record_blockers(self, tick: ScheduleTickResult) -> None:
         for item in tick.advanced:
             blocker = item.get("blocker") or (item.get("result") or {}).get("blocker")
-            if blocker in (
-                "founder_approval_required",
-                "stale_approval",
-                "codex_usage_limit",
-            ):
-                self._permanent_blockers.add(item["run_id"])
-            if item.get("action") == "dormant_codex_usage_limit":
-                self._permanent_blockers.add(item["run_id"])
+            rid = item.get("run_id")
+            if not rid:
+                continue
+            if blocker in ("founder_approval_required", "stale_approval"):
+                self._permanent_blockers.add(rid)
+            if item.get("action") == "dormant_codex_usage_limit" or blocker == "codex_usage_limit":
+                resume = None
+                launch = item.get("codex_launch") or {}
+                if isinstance(launch, dict):
+                    resume = launch.get("usage_resume_epoch")
+                if resume is None:
+                    env_epoch = os.environ.get("GRAPH_CODEX_QUOTA_RESUME_EPOCH")
+                    if env_epoch:
+                        try:
+                            resume = float(env_epoch)
+                        except ValueError:
+                            resume = None
+                if resume is None:
+                    # Default: skip for 6h rather than forever (long-lived schedule-run).
+                    resume = time.time() + 6 * 3600
+                self._codex_dormant_until[rid] = float(resume)
 
     def _next_sleep(self, tick: ScheduleTickResult) -> float:
         if tick.idle:
             self._current_interval = min(
                 self.max_poll_interval_sec, self._current_interval * 1.5
             )
+            # If only waiting on Codex quota, sleep toward the earliest resume
+            # (capped) so the loop resumes without process restart.
+            if self._codex_dormant_until:
+                soonest = min(self._codex_dormant_until.values()) - time.time()
+                if soonest > 0:
+                    self._current_interval = min(
+                        max(self._current_interval, soonest),
+                        max(self.max_poll_interval_sec, min(soonest, 6 * 3600)),
+                    )
         else:
             self._current_interval = self.poll_interval_sec
         return self._current_interval
@@ -560,7 +591,7 @@ class AutonomousSchedulerLoop:
     def tick_once(self) -> ScheduleTickResult:
         if self.status.ownership_held:
             self.ownership.renew()
-        skip = set(self._permanent_blockers)
+        skip = set(self._permanent_blockers) | self._active_codex_dormant_skips()
         if self.focus_run_ids is not None:
             # Skip everything outside the focused dogfood/ops set.
             runnable = self.scheduler.list_runnable(limit=200)
@@ -604,7 +635,7 @@ class AutonomousSchedulerLoop:
                 run.risk_tier
             ):
                 blocked.append(run.to_dict())
-            elif run_id in self._permanent_blockers:
+            elif run_id in self._permanent_blockers or run_id in self._codex_dormant_until:
                 blocked.append(run.to_dict())
             else:
                 active.append(run.to_dict())
@@ -614,4 +645,5 @@ class AutonomousSchedulerLoop:
             "active_runs": active,
             "blocked_runs": blocked,
             "runnable_count": len(runnable),
+            "codex_dormant_until": dict(self._codex_dormant_until),
         }

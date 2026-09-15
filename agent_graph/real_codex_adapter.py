@@ -47,6 +47,47 @@ def _read_usage_limit_detail(*log_paths: Path) -> Optional[str]:
     return "codex_usage_limit"
 
 
+def parse_codex_usage_resume_epoch(detail: str) -> Optional[float]:
+    """Best-effort parse of Codex 'try again at …' into UTC epoch seconds.
+
+    Codex messages omit TZ; portfolio-ops host is UTC+8, so naive local times
+    are interpreted as Asia/Taipei unless ``GRAPH_CODEX_QUOTA_TZ`` overrides.
+    """
+    import re
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    text = detail or ""
+    # e.g. "try again at Sep 19th, 2026 4:26 PM"
+    m = re.search(
+        r"try again at\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}\s+\d{1,2}:\d{2}\s*[AP]M)",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if not m:
+        env_epoch = os.environ.get("GRAPH_CODEX_QUOTA_RESUME_EPOCH")
+        if env_epoch:
+            try:
+                return float(env_epoch)
+            except ValueError:
+                return None
+        return None
+    raw = re.sub(r"(\d+)(st|nd|rd|th)", r"\1", m.group(1), flags=re.IGNORECASE)
+    raw = raw.replace(",", "")
+    tz_name = os.environ.get("GRAPH_CODEX_QUOTA_TZ", "Asia/Taipei")
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:  # noqa: BLE001
+        tz = ZoneInfo("UTC")
+    for fmt in ("%b %d %Y %I:%M %p", "%B %d %Y %I:%M %p"):
+        try:
+            dt = datetime.strptime(raw.strip(), fmt).replace(tzinfo=tz)
+            return dt.timestamp()
+        except ValueError:
+            continue
+    return None
+
+
 @dataclass
 class CodexLaunchMeta:
     """Observational metadata for one Attempt execution (not canonical state)."""
@@ -62,6 +103,7 @@ class CodexLaunchMeta:
     worktree: Optional[str] = None
     route_plan: dict[str, Any] = field(default_factory=dict)
     failure_reason: Optional[str] = None
+    usage_resume_epoch: Optional[float] = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -76,6 +118,7 @@ class CodexLaunchMeta:
             "worktree": self.worktree,
             "route_plan": dict(self.route_plan),
             "failure_reason": self.failure_reason,
+            "usage_resume_epoch": self.usage_resume_epoch,
         }
 
 
@@ -342,6 +385,7 @@ class RealCodexWorkerAdapter:
         usage_detail = _read_usage_limit_detail(stdout_path, stderr_path)
         if usage_detail:
             meta.failure_reason = "codex_usage_limit"
+            meta.usage_resume_epoch = parse_codex_usage_resume_epoch(usage_detail)
             self._write_launch_meta(worktree, meta)
             return self._failure_result(
                 attempt,
