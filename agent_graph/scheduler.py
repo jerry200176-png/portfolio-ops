@@ -514,6 +514,7 @@ class AutonomousSchedulerLoop:
         self._stop_requested = False
         self._current_interval = poll_interval_sec
         self._permanent_blockers: set[str] = set()
+        self.focus_run_ids: Optional[set[str]] = None
 
     def request_stop(self) -> None:
         self._stop_requested = True
@@ -559,9 +560,12 @@ class AutonomousSchedulerLoop:
     def tick_once(self) -> ScheduleTickResult:
         if self.status.ownership_held:
             self.ownership.renew()
-        tick = self.scheduler.tick(
-            limit=self.tick_limit, skip_run_ids=self._permanent_blockers
-        )
+        skip = set(self._permanent_blockers)
+        if self.focus_run_ids is not None:
+            # Skip everything outside the focused dogfood/ops set.
+            runnable = self.scheduler.list_runnable(limit=200)
+            skip |= {rid for rid in runnable if rid not in self.focus_run_ids}
+        tick = self.scheduler.tick(limit=self.tick_limit, skip_run_ids=skip)
         self.status.last_tick_at = _utcnow()
         self.status.ticks += 1
         self._record_blockers(tick)
