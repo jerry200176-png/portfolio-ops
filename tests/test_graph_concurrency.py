@@ -125,9 +125,9 @@ class ConcurrencyReplayTests(unittest.TestCase):
             run.run_id, worker=FakeWorkerAdapter(head_sha="b" * 40), write_context=False
         )
         self.assertTrue(out.apply.accepted)
-        self.assertGreater(out.apply.run.state_version, 1)
-        # start_attempt bumps once, ingest transition bumps again (+ optional tested_sha)
-        self.assertGreaterEqual(out.apply.run.state_version, 3)
+        # start_attempt does not consume state_version; ingest transition bumps once.
+        self.assertEqual(out.apply.run.state_version, 2)
+        self.assertEqual(out.attempt.expected_state_version, 1)
 
     def test_stale_expected_version_rejected(self) -> None:
         run = self.rt.create_run(
@@ -295,10 +295,92 @@ class ConcurrencyReplayTests(unittest.TestCase):
         self.rt = DurableGraphRuntime(self.store)
         self.harness = GraphHarness(self.rt)
 
-    def test_schema_version_is_v2(self) -> None:
-        self.assertEqual(SCHEMA_VERSION, 2)
+    def test_schema_version_is_v3(self) -> None:
+        self.assertEqual(SCHEMA_VERSION, 3)
         self.assertEqual(self.store.pragma_journal_mode(), "wal")
         self.assertGreaterEqual(DEFAULT_BUSY_TIMEOUT_MS, 1)
+
+    def test_explicit_event_seq_ignores_timestamp_skew(self) -> None:
+        run = self.rt.create_run(
+            objective="seq",
+            project="portfolio-ops",
+            base_sha=self.base_sha,
+        )
+        # Deliberately earlier wall-clock stamp than TASK_CREATED.
+        early = Event(
+            event_id="early-inv",
+            task_id=run.run_id,
+            timestamp="2000-01-01T00:00:00Z",
+            event_type="INVESTIGATION_COMPLETED",
+            node="investigator",
+            actor_id="inv-1",
+            actor_role="investigator",
+            repository="jerry200176-png/portfolio-ops",
+            base_sha=self.base_sha,
+            head_sha=self.base_sha,
+            conclusion="ok",
+            evidence={},
+        )
+        applied = self.rt.apply_graph_event(
+            run_id=run.run_id,
+            event=early,
+            expected_state_version=run.state_version,
+        )
+        self.assertTrue(applied.accepted)
+        events = self.rt.list_events(run.run_id)
+        self.assertEqual([e.run_event_seq for e in events], [1, 2])
+        self.assertEqual([e.type for e in events], ["TASK_CREATED", "INVESTIGATION_COMPLETED"])
+        # Even with earlier timestamp, append sequence wins.
+        self.assertEqual(events[1].created_at, "2000-01-01T00:00:00Z")
+        self.assertTrue(self.rt.verify_projection_matches_events(run.run_id)["equal"])
+        self.assertEqual(self.rt.get_run(run.run_id).current_node, "builder")
+
+    def test_attempt_bound_version_required_for_stale_sibling(self) -> None:
+        run = self.rt.create_run(
+            objective="attempt-bind",
+            project="portfolio-ops",
+            base_sha=self.base_sha,
+        )
+        a = self.rt.start_attempt(run.run_id, worker_type="fake")
+        b = self.rt.start_attempt(run.run_id, worker_type="fake")
+        self.assertEqual(a.expected_state_version, b.expected_state_version)
+        self.assertEqual(a.expected_state_version, 1)
+        self.assertEqual(a.node, "investigator")
+
+        from agent_graph.worker_contract import validate_worker_result
+
+        def result_for(attempt_id: str) -> dict:
+            return {
+                "schema_version": "1.0",
+                "status": "success",
+                "summary": "ok",
+                "idempotency_key": f"{attempt_id}:INVESTIGATION_COMPLETED",
+                "artifacts": [],
+                "evidence": [{"kind": "t", "ref": attempt_id}],
+                "proposed_outcome": {
+                    "outcome_type": "INVESTIGATION_COMPLETED",
+                    "actor_id": f"inv-{attempt_id[-4:]}",
+                    "actor_role": "investigator",
+                    "head_sha": self.base_sha,
+                    "base_sha": self.base_sha,
+                    "conclusion": "ok",
+                    "evidence": {},
+                    "repository": "jerry200176-png/portfolio-ops",
+                },
+            }
+
+        first = self.harness.ingest_worker_result(
+            run_id=run.run_id, attempt_id=a.attempt_id, result=validate_worker_result(result_for(a.attempt_id))
+        )
+        self.assertTrue(first.apply.accepted)
+        # B does not supply a version; ingest must use attempt binding and stale-reject.
+        second = self.harness.ingest_worker_result(
+            run_id=run.run_id, attempt_id=b.attempt_id, result=validate_worker_result(result_for(b.attempt_id))
+        )
+        self.assertFalse(second.apply.accepted)
+        self.assertEqual(second.apply.blocker, "stale_state_version")
+        self.assertEqual(len([e for e in self.rt.list_events(run.run_id) if e.type == "INVESTIGATION_COMPLETED"]), 1)
+        self.assertTrue(self.rt.verify_projection_matches_events(run.run_id)["equal"])
 
 
 if __name__ == "__main__":

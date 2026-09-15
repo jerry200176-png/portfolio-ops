@@ -82,6 +82,7 @@ class CanonicalEvent:
     type: str
     payload: dict[str, Any]
     created_at: str
+    run_event_seq: int
     attempt_id: Optional[str] = None
     evidence_refs: tuple[str, ...] = ()
 
@@ -89,6 +90,7 @@ class CanonicalEvent:
         return {
             "event_id": self.event_id,
             "run_id": self.run_id,
+            "run_event_seq": self.run_event_seq,
             "attempt_id": self.attempt_id,
             "type": self.type,
             "payload": dict(self.payload),
@@ -105,6 +107,8 @@ class Attempt:
     worker_type: str
     status: str
     started_at: str
+    # Graph state_version observed at dispatch; required for worker ingest.
+    expected_state_version: int
     ended_at: Optional[str] = None
     model_profile: Optional[str] = None
     worker_pid: Optional[int] = None

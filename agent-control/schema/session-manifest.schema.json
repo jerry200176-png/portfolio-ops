@@ -30,10 +30,7 @@
     "preflight_result": { "type": "string", "enum": ["pass"] },
     "provenance_type": { "type": "string", "enum": ["agent-session", "human-authored"] },
     "agent_cli": { "type": ["string", "null"] },
-    "gateway_version": { "type": "string" },
-    "run_id": { "type": ["string", "null"] },
-    "attempt_id": { "type": ["string", "null"] },
-    "node": { "type": ["string", "null"] }
+    "gateway_version": { "type": "string" }
   },
   "additionalProperties": false
 }

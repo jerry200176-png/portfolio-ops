@@ -82,7 +82,7 @@ class DurableControlPlaneTests(unittest.TestCase):
             conclusion="ok",
             evidence={},
         )
-        result = self.rt.apply_graph_event(run_id=run.run_id, event=bad)
+        result = self.rt.apply_graph_event(run_id=run.run_id, event=bad, expected_state_version=1)
         self.assertFalse(result.accepted)
         self.assertIn("illegal transition", result.reason or "")
         self.assertEqual(len(self.rt.list_events(run.run_id)), 1)
@@ -116,7 +116,9 @@ class DurableControlPlaneTests(unittest.TestCase):
         # Rebuild exact payload from stored event for true idempotency
         stored = self.rt.list_events(run.run_id)[0]
         event = Event.from_dict(stored.payload)
-        r = self.rt.apply_graph_event(run_id=run.run_id, event=event)
+        r = self.rt.apply_graph_event(
+            run_id=run.run_id, event=event, expected_state_version=run.state_version
+        )
         self.assertTrue(r.accepted)
         self.assertTrue(r.duplicate)
         self.assertEqual(len(self.rt.list_events(run.run_id)), 1)
@@ -299,10 +301,12 @@ class DurableControlPlaneTests(unittest.TestCase):
         binding = json.loads((wt / ".agent-session" / "graph-binding.json").read_text())
         self.assertEqual(binding["run_id"], run.run_id)
         self.assertEqual(binding["node"], "investigator")
-        manifest = json.loads((wt / ".agent-session" / "manifest.json").read_text())
-        self.assertEqual(manifest["run_id"], run.run_id)
+        self.assertIn("expected_state_version", binding)
+        # Manifest is not the graph binding contract; do not require run_id fields there.
         self.assertTrue((wt / ".agent-session" / "result.json").is_file())
         self.assertTrue((wt / ".agent-session" / "worker-context.json").is_file())
+        ctx = json.loads((wt / ".agent-session" / "worker-context.json").read_text())
+        self.assertEqual(ctx["EXPECTED_STATE_VERSION"], binding["expected_state_version"])
 
     def test_write_worker_result_roundtrip(self) -> None:
         path = Path(self.tmp.name) / "result.json"

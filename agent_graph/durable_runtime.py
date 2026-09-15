@@ -117,8 +117,14 @@ class DurableGraphRuntime:
         with self.store.transaction() as conn:
             self.store.insert_goal(goal, conn=conn)
             self.store.insert_run(run, conn=conn)
-            # Apply creation event inside same transaction
-            result = self._apply_in_tx(conn, run_id=run_id, canonical=create_event, ingest_key=None)
+            # Apply creation event inside same transaction (trusted bootstrap).
+            result = self._apply_in_tx(
+                conn,
+                run_id=run_id,
+                canonical=create_event,
+                ingest_key=None,
+                expected_state_version=0,
+            )
             if not result.accepted:
                 raise RuntimeError(f"failed to create run: {result.reason}")
             return result.run
@@ -241,7 +247,8 @@ class DurableGraphRuntime:
                 raise RuntimeError(
                     f"no runnable node for run {run_id} (current_node={run.current_node})"
                 )
-            expected = run.state_version
+            # Bind the graph snapshot version the worker is authorized to advance.
+            expected_state_version = int(run.state_version)
             now = _utcnow()
             attempt = Attempt(
                 attempt_id=attempt_id or _new_id("att"),
@@ -250,13 +257,15 @@ class DurableGraphRuntime:
                 worker_type=worker_type,
                 model_profile=model_profile,
                 worker_pid=worker_pid,
+                expected_state_version=expected_state_version,
                 started_at=now,
                 status="started",
             )
-            run.status = "waiting_worker"
-            run.updated_at = now
             self.store.insert_attempt(attempt, conn=conn)
-            self.store.update_run_projection(run, expected_version=expected, conn=conn)
+            # Ephemeral waiting status must not consume state_version.
+            self.store.update_run_ephemeral_status(
+                run_id, status="waiting_worker", updated_at=now, conn=conn
+            )
             return attempt
 
     def apply_graph_event(
@@ -264,10 +273,10 @@ class DurableGraphRuntime:
         *,
         run_id: str,
         event: Event,
+        expected_state_version: int,
         attempt_id: Optional[str] = None,
         evidence_refs: tuple[str, ...] = (),
         ingest_key: Optional[str] = None,
-        expected_state_version: Optional[int] = None,
     ) -> DurableApplyResult:
         if event.task_id != run_id:
             raise ValueError("event.task_id must equal run_id")
@@ -290,14 +299,14 @@ class DurableGraphRuntime:
         run_id: str,
         canonical: CanonicalEvent,
         ingest_key: Optional[str],
-        expected_state_version: Optional[int] = None,
+        expected_state_version: int,
     ) -> DurableApplyResult:
         # All reads below occur inside the caller's BEGIN IMMEDIATE transaction.
         run = self.store.get_run(run_id, conn=conn)
         if run is None:
             raise KeyError(f"unknown run_id: {run_id}")
 
-        if expected_state_version is not None and run.state_version != expected_state_version:
+        if run.state_version != expected_state_version:
             return DurableApplyResult(
                 accepted=False,
                 duplicate=False,
@@ -312,7 +321,7 @@ class DurableGraphRuntime:
 
         existing = self.store.get_event(canonical.event_id)
         if existing is not None:
-            if existing.to_dict() != canonical.to_dict():
+            if not _same_logical_event(existing, canonical):
                 return DurableApplyResult(
                     accepted=False,
                     duplicate=True,
@@ -360,7 +369,7 @@ class DurableGraphRuntime:
                 stop_canonical = self._graph_event_to_canonical(
                     stop, attempt_id=canonical.attempt_id, evidence_refs=canonical.evidence_refs
                 )
-                self.store.append_event(stop_canonical, ingest_key=None, conn=conn)
+                stored_stop = self.store.append_event(stop_canonical, ingest_key=None, conn=conn)
                 new_state = reduce(prior + [stop])
                 run = self._project(run, new_state, updated_at=canonical.created_at)
                 try:
@@ -380,7 +389,7 @@ class DurableGraphRuntime:
                     accepted=False,
                     duplicate=False,
                     run=run,
-                    event=stop_canonical,
+                    event=stored_stop,
                     reason=check.reason,
                     blocker=check.blocker,
                 )
@@ -393,7 +402,7 @@ class DurableGraphRuntime:
                 blocker=check.blocker,
             )
 
-        self.store.append_event(canonical, ingest_key=ingest_key, conn=conn)
+        stored = self.store.append_event(canonical, ingest_key=ingest_key, conn=conn)
         new_state = reduce(prior + [graph_event])
         if new_state.task_status == "closed_success" and not can_close_successfully(new_state):
             raise RuntimeError("invariant violated: closed_success without valid human approval")
@@ -413,7 +422,7 @@ class DurableGraphRuntime:
             accepted=True,
             duplicate=False,
             run=run,
-            event=canonical,
+            event=stored,
             reason=None,
             blocker=new_state.blocker,
         )
@@ -484,6 +493,7 @@ class DurableGraphRuntime:
         return CanonicalEvent(
             event_id=event.event_id,
             run_id=event.task_id,
+            run_event_seq=0,  # allocated on append
             attempt_id=attempt_id,
             type=event.event_type,
             payload=payload,
@@ -500,3 +510,15 @@ class DurableGraphRuntime:
         payload["event_type"] = event.type
         payload["timestamp"] = event.created_at
         return Event.from_dict(payload)
+
+
+def _same_logical_event(left: CanonicalEvent, right: CanonicalEvent) -> bool:
+    """Compare event identity/payload; sequence numbers are allocation metadata."""
+    return (
+        left.event_id == right.event_id
+        and left.run_id == right.run_id
+        and left.type == right.type
+        and left.payload == right.payload
+        and left.attempt_id == right.attempt_id
+        and list(left.evidence_refs) == list(right.evidence_refs)
+    )

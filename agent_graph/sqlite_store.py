@@ -21,7 +21,7 @@ from .durable_models import (
     Run,
 )
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 DEFAULT_BUSY_TIMEOUT_MS = 5000
 
 
@@ -70,12 +70,14 @@ CREATE TABLE IF NOT EXISTS runs (
 CREATE TABLE IF NOT EXISTS events (
   event_id TEXT PRIMARY KEY,
   run_id TEXT NOT NULL REFERENCES runs(run_id),
+  run_event_seq INTEGER NOT NULL,
   attempt_id TEXT,
   type TEXT NOT NULL,
   payload_json TEXT NOT NULL,
   evidence_refs_json TEXT NOT NULL DEFAULT '[]',
   created_at TEXT NOT NULL,
-  ingest_key TEXT UNIQUE
+  ingest_key TEXT UNIQUE,
+  UNIQUE (run_id, run_event_seq)
 );
 
 CREATE TABLE IF NOT EXISTS attempts (
@@ -85,6 +87,7 @@ CREATE TABLE IF NOT EXISTS attempts (
   worker_type TEXT NOT NULL,
   model_profile TEXT,
   worker_pid INTEGER,
+  expected_state_version INTEGER NOT NULL,
   started_at TEXT NOT NULL,
   ended_at TEXT,
   status TEXT NOT NULL,
@@ -123,7 +126,7 @@ CREATE TABLE IF NOT EXISTS approvals (
   decided_at TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_events_run_created ON events(run_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_events_run_seq ON events(run_id, run_event_seq);
 CREATE INDEX IF NOT EXISTS idx_attempts_run ON attempts(run_id, started_at);
 CREATE INDEX IF NOT EXISTS idx_artifacts_run ON artifacts(run_id);
 """
@@ -170,14 +173,40 @@ class SqliteControlPlaneStore:
         current = int(row["version"]) if row else 0
         if current < SCHEMA_VERSION:
             with self.transaction() as conn:
-                cols = {
-                    r[1]
-                    for r in conn.execute("PRAGMA table_info(runs)").fetchall()
-                }
-                if "state_version" not in cols:
+                run_cols = {r[1] for r in conn.execute("PRAGMA table_info(runs)").fetchall()}
+                if "state_version" not in run_cols:
                     conn.execute(
                         "ALTER TABLE runs ADD COLUMN state_version INTEGER NOT NULL DEFAULT 0"
                     )
+
+                event_cols = {r[1] for r in conn.execute("PRAGMA table_info(events)").fetchall()}
+                if "run_event_seq" not in event_cols:
+                    conn.execute("ALTER TABLE events ADD COLUMN run_event_seq INTEGER")
+                    # Backfill deterministic append order using historical rowid.
+                    rows = conn.execute(
+                        "SELECT event_id, run_id FROM events ORDER BY run_id ASC, rowid ASC"
+                    ).fetchall()
+                    counters: dict[str, int] = {}
+                    for erow in rows:
+                        rid = erow["run_id"]
+                        counters[rid] = counters.get(rid, 0) + 1
+                        conn.execute(
+                            "UPDATE events SET run_event_seq=? WHERE event_id=?",
+                            (counters[rid], erow["event_id"]),
+                        )
+                    conn.execute(
+                        "CREATE UNIQUE INDEX IF NOT EXISTS idx_events_run_seq_uq "
+                        "ON events(run_id, run_event_seq)"
+                    )
+
+                attempt_cols = {
+                    r[1] for r in conn.execute("PRAGMA table_info(attempts)").fetchall()
+                }
+                if "expected_state_version" not in attempt_cols:
+                    conn.execute(
+                        "ALTER TABLE attempts ADD COLUMN expected_state_version INTEGER NOT NULL DEFAULT 0"
+                    )
+
                 conn.execute(
                     "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
                     (SCHEMA_VERSION,),
@@ -339,12 +368,22 @@ class SqliteControlPlaneStore:
         return _row_to_event(row)
 
     def list_events(self, run_id: str) -> list[CanonicalEvent]:
-        # Append order is canonical; do not sort by created_at (clock skew / fixture stamps).
+        # Explicit persisted sequence is the only canonical ordering contract.
         rows = self._conn.execute(
-            "SELECT * FROM events WHERE run_id=? ORDER BY rowid ASC",
+            "SELECT * FROM events WHERE run_id=? ORDER BY run_event_seq ASC",
             (run_id,),
         ).fetchall()
         return [_row_to_event(r) for r in rows]
+
+    def allocate_run_event_seq(
+        self, run_id: str, *, conn: Optional[sqlite3.Connection] = None
+    ) -> int:
+        c = conn or self._conn
+        row = c.execute(
+            "SELECT COALESCE(MAX(run_event_seq), 0) AS mx FROM events WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        return int(row["mx"]) + 1
 
     def append_event(
         self,
@@ -352,24 +391,52 @@ class SqliteControlPlaneStore:
         *,
         ingest_key: Optional[str] = None,
         conn: Optional[sqlite3.Connection] = None,
-    ) -> None:
+    ) -> CanonicalEvent:
+        """Append event with explicit run_event_seq. Caller must be in a write TX.
+
+        If event_id already exists, returns the persisted event (idempotent) and
+        does not allocate a new sequence number.
+        """
         c = conn or self._conn
+        existing = c.execute(
+            "SELECT * FROM events WHERE event_id=?", (event.event_id,)
+        ).fetchone()
+        if existing is not None:
+            return _row_to_event(existing)
+
+        seq = event.run_event_seq
+        if seq <= 0:
+            seq = self.allocate_run_event_seq(event.run_id, conn=c)
+        stored = CanonicalEvent(
+            event_id=event.event_id,
+            run_id=event.run_id,
+            run_event_seq=seq,
+            attempt_id=event.attempt_id,
+            type=event.type,
+            payload=dict(event.payload),
+            evidence_refs=tuple(event.evidence_refs),
+            created_at=event.created_at,
+        )
         c.execute(
             """
-            INSERT INTO events(event_id, run_id, attempt_id, type, payload_json, evidence_refs_json, created_at, ingest_key)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO events(
+              event_id, run_id, run_event_seq, attempt_id, type, payload_json,
+              evidence_refs_json, created_at, ingest_key
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                event.event_id,
-                event.run_id,
-                event.attempt_id,
-                event.type,
-                json.dumps(event.payload, sort_keys=True),
-                json.dumps(list(event.evidence_refs)),
-                event.created_at,
+                stored.event_id,
+                stored.run_id,
+                stored.run_event_seq,
+                stored.attempt_id,
+                stored.type,
+                json.dumps(stored.payload, sort_keys=True),
+                json.dumps(list(stored.evidence_refs)),
+                stored.created_at,
                 ingest_key,
             ),
         )
+        return stored
 
     # --- Attempts / Artifacts ---
 
@@ -379,8 +446,8 @@ class SqliteControlPlaneStore:
             """
             INSERT INTO attempts(
               attempt_id, run_id, node, worker_type, model_profile, worker_pid,
-              started_at, ended_at, status, result_ingest_key
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              expected_state_version, started_at, ended_at, status, result_ingest_key
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 attempt.attempt_id,
@@ -389,6 +456,7 @@ class SqliteControlPlaneStore:
                 attempt.worker_type,
                 attempt.model_profile,
                 attempt.worker_pid,
+                int(attempt.expected_state_version),
                 attempt.started_at,
                 attempt.ended_at,
                 attempt.status,
@@ -424,10 +492,26 @@ class SqliteControlPlaneStore:
             worker_type=row["worker_type"],
             model_profile=row["model_profile"],
             worker_pid=row["worker_pid"],
+            expected_state_version=int(row["expected_state_version"]),
             started_at=row["started_at"],
             ended_at=row["ended_at"],
             status=row["status"],
             result_ingest_key=row["result_ingest_key"],
+        )
+
+    def update_run_ephemeral_status(
+        self,
+        run_id: str,
+        *,
+        status: str,
+        updated_at: str,
+        conn: Optional[sqlite3.Connection] = None,
+    ) -> None:
+        """Update non-graph status fields without bumping state_version."""
+        c = conn or self._conn
+        c.execute(
+            "UPDATE runs SET status=?, updated_at=? WHERE run_id=?",
+            (status, updated_at, run_id),
         )
 
     def get_attempt_by_ingest_key(self, ingest_key: str) -> Optional[Attempt]:
@@ -498,9 +582,12 @@ def _row_to_run(row: sqlite3.Row) -> Run:
 
 def _row_to_event(row: sqlite3.Row) -> CanonicalEvent:
     refs = json.loads(row["evidence_refs_json"] or "[]")
+    keys = set(row.keys())
+    seq = int(row["run_event_seq"]) if "run_event_seq" in keys and row["run_event_seq"] is not None else 0
     return CanonicalEvent(
         event_id=row["event_id"],
         run_id=row["run_id"],
+        run_event_seq=seq,
         attempt_id=row["attempt_id"],
         type=row["type"],
         payload=json.loads(row["payload_json"]),

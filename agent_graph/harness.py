@@ -169,6 +169,7 @@ def write_worker_context(
         "GOAL_OBJECTIVE": goal_objective,
         "BASE_SHA": run.base_sha,
         "HEAD_SHA": run.head_sha,
+        "EXPECTED_STATE_VERSION": attempt.expected_state_version,
         "result_path": str(worktree / RESULT_REL_PATH),
     }
     if extra:
@@ -180,13 +181,13 @@ def write_worker_context(
         "run_id": run.run_id,
         "attempt_id": attempt.attempt_id,
         "node": attempt.node,
+        "expected_state_version": attempt.expected_state_version,
         "project": run.project,
         "worktree": str(worktree),
     }
     (worktree / BINDING_REL_PATH).write_text(
         json.dumps(binding, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    _mirror_manifest_fields(worktree, binding)
     return path
 
 
@@ -197,23 +198,9 @@ def worker_env(run: Run, attempt: Attempt, worktree: str | Path) -> dict[str, st
         "NODE": attempt.node,
         "PROJECT": run.project,
         "WORKTREE": str(worktree),
+        "EXPECTED_STATE_VERSION": str(attempt.expected_state_version),
         "GRAPH_CONTROL_PLANE": "1",
     }
-
-
-def _mirror_manifest_fields(worktree: Path, binding: dict[str, Any]) -> None:
-    """Best-effort mirror into session manifest without rewriting agent-start."""
-    manifest_path = worktree / ".agent-session" / "manifest.json"
-    if not manifest_path.is_file():
-        return
-    try:
-        data = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return
-    data["run_id"] = binding["run_id"]
-    data["attempt_id"] = binding["attempt_id"]
-    data["node"] = binding["node"]
-    manifest_path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 class GraphHarness:
@@ -235,6 +222,13 @@ class GraphHarness:
             raise KeyError(f"unknown attempt_id: {attempt_id}")
         if attempt.run_id != run_id:
             raise ValueError("attempt_id does not belong to run_id")
+        # Worker ingest always uses the version bound at attempt dispatch.
+        # There is no unsafe bypass for normal worker adapters.
+        if attempt.expected_state_version is None:
+            raise WorkerResultError(
+                f"attempt {attempt_id} missing expected_state_version binding"
+            )
+        expected_state_version = int(attempt.expected_state_version)
 
         ingest_key = result.idempotency_key
         existing_attempt = self.runtime.store.get_attempt_by_ingest_key(ingest_key)
@@ -259,6 +253,28 @@ class GraphHarness:
             # Already finished without ingest key match → safe reject
             raise WorkerResultError(
                 f"attempt {attempt_id} is not ingestible (status={attempt.status})"
+            )
+
+        # Fail closed before any transition if Run moved under this attempt.
+        current = self.runtime.get_run(run_id)
+        if current.state_version != expected_state_version:
+            now = _utcnow()
+            attempt.status = "rejected"
+            attempt.ended_at = now
+            with self.runtime.store.transaction() as conn:
+                self.runtime.store.update_attempt(attempt, conn=conn)
+            return IngestResult(
+                apply=DurableApplyResult(
+                    accepted=False,
+                    duplicate=False,
+                    run=current,
+                    reason=(
+                        f"stale state_version: expected {expected_state_version} "
+                        f"got {current.state_version}"
+                    ),
+                    blocker="stale_state_version",
+                ),
+                attempt=attempt,
             )
 
         if result.status != "success" or result.proposed_outcome is None:
@@ -339,6 +355,7 @@ class GraphHarness:
                     graph_event, attempt_id=attempt_id, evidence_refs=evidence_refs
                 ),
                 ingest_key=ingest_key,
+                expected_state_version=expected_state_version,
             )
 
             now = _utcnow()
