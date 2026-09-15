@@ -1,6 +1,6 @@
 {
   "GRAPH_CONTROL_PLANE_V1_AUTONOMOUS": "NO",
-  "audited_at": "2026-09-15T09:57:02Z",
+  "audited_at": "2026-09-15T11:06:37Z",
   "blocker": "codex_usage_limit_pending_live_dogfood",
   "criteria": {
     "10_scope_portfolio_ops_allowlist": true,
@@ -19,7 +19,7 @@
   "evidence_closed_success": false,
   "evidence_path": null,
   "has_real_codex_adapter": true,
-  "main_sha": "b954b9b8ecfbf8b02b3e04c3420eb5a34545154b",
+  "main_sha": "d87ace9050ace9c6b6a1419219c42a8c42c3728f",
   "numbered_criteria": {
     "10_scope_portfolio_ops_allowlist": true,
     "11_production_deploy_db_migration_disabled": true,

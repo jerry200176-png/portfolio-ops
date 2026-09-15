@@ -3,7 +3,7 @@
     "case": "kill_scheduler_between_ticks",
     "ok": true,
     "result": {
-      "run_id": "run_3205520be3724e288283e5f1bbeb6632",
+      "run_id": "run_5fdc42c88e364a7bb92fff2ba6d7bd8a",
       "node": "reviewer"
     }
   },
@@ -40,6 +40,23 @@
         "wait_ci"
       ],
       "calls": 3
+    }
+  },
+  {
+    "case": "mid_ttl_dead_scheduler_reclaim",
+    "ok": true,
+    "result": {
+      "old_token": 1,
+      "new_token": 2,
+      "reclaimed": true
+    }
+  },
+  {
+    "case": "sigterm_releases_ownership",
+    "ok": true,
+    "result": {
+      "shutting_down": true,
+      "active_after": null
     }
   }
 ]
