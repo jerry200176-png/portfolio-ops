@@ -98,6 +98,50 @@ echo $! >"$STATE_DIR/codex-quota-watchdog.pid"
 log "watchdog_started pid=$(cat "$STATE_DIR/codex-quota-watchdog.pid") tip=$TIP resume=$RUN_ID"
 echo "AGENT_LOOP_TICK_realcodex {\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"preresume_reexec\",\"tip\":\"$TIP\",\"run_id\":\"$RUN_ID\"}"
 
+# Wait for dogfood python to come back (watchdog starts waiter asynchronously).
+DOGFOOD_PID=""
+for _ in $(seq 1 30); do
+  DOGFOOD_PID="$(pgrep -f 'scripts/graph-schedule-realcodex-dogfood.py' | head -1 || true)"
+  if [[ -n "$DOGFOOD_PID" ]]; then
+    break
+  fi
+  sleep 1
+done
+if [[ -z "$DOGFOOD_PID" ]]; then
+  log "ERROR: dogfood python did not start after re-exec"
+  echo "AGENT_LOOP_WAKE_graph_v1 {\"prompt\":\"Graph Control Plane v1: preresume reexec failed — dogfood python missing. Inspect watchdog log and restart from tip with RESUME_RUN_ID.\",\"event\":\"preresume_dogfood_missing\"}"
+  exit 1
+fi
+log "dogfood_python_pid=$DOGFOOD_PID"
+
+# Fail-closed: tip script must still load the live Run (no lease steal).
+export PATH="$DOGFOOD_PATH"
+VALIDATE_OUT="$(
+  cd "$ROOT" && \
+  GRAPH_REAL_CODEX=1 \
+  GRAPH_CONTROL_DB="${GRAPH_CONTROL_DB:-$STATE_DIR/graph-control-sched-dogfood.sqlite}" \
+  GRAPH_DOGFOOD_RESUME_RUN_ID="$RUN_ID" \
+  GRAPH_DOGFOOD_VALIDATE_RESUME_ONLY=1 \
+  python3 "$ROOT/scripts/graph-schedule-realcodex-dogfood.py" 2>/dev/null
+)" || true
+if ! echo "$VALIDATE_OUT" | grep -q '"ok": true'; then
+  log "ERROR: VALIDATE_RESUME_ONLY failed after re-exec"
+  log "validate_out=$VALIDATE_OUT"
+  echo "AGENT_LOOP_WAKE_graph_v1 {\"prompt\":\"Graph Control Plane v1: preresume validate-resume failed after tip re-exec. Inspect state and resume wiring before Codex window.\",\"event\":\"preresume_validate_failed\"}"
+  exit 1
+fi
+log "validate_resume_ok $VALIDATE_OUT"
+
+# Preflight dependencies the live RealCodex path needs once quota clears.
+PREFLIGHT_OK=1
+command -v codex >/dev/null 2>&1 || { log "ERROR: codex missing on PATH"; PREFLIGHT_OK=0; }
+command -v gh >/dev/null 2>&1 || { log "ERROR: gh missing on PATH"; PREFLIGHT_OK=0; }
+if [[ "$PREFLIGHT_OK" -ne 1 ]]; then
+  echo "AGENT_LOOP_WAKE_graph_v1 {\"prompt\":\"Graph Control Plane v1: preresume preflight failed (codex/gh). Fix PATH before Codex resume.\",\"event\":\"preresume_preflight_failed\"}"
+  exit 1
+fi
+log "preflight_ok codex+gh"
+
 # Refresh live state bookkeeping (do not clear quota_wait / run_id).
 python3 - <<PY
 import json, time
@@ -107,8 +151,12 @@ d = json.loads(p.read_text())
 d["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 d["dogfood_runtime_tip"] = "$TIP"
 d["watchdog_pid"] = int(Path("$STATE_DIR/codex-quota-watchdog.pid").read_text().strip())
+d["dogfood_pid"] = int("$DOGFOOD_PID")
 d["GRAPH_DOGFOOD_RESUME_RUN_ID"] = "$RUN_ID"
-d["note"] = "preresume tip re-exec; waiter will auto-resume run while status=quota_wait"
+d["preresume_validated"] = True
+d["preresume_validated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+d["note"] = "preresume tip re-exec validated; waiter resumed run; awaiting Codex quota clear"
 p.write_text(json.dumps(d, indent=2) + "\n")
 PY
 log "preresume_reexec done"
+echo "AGENT_LOOP_TICK_realcodex {\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"preresume_validated\",\"tip\":\"$TIP\",\"run_id\":\"$RUN_ID\",\"dogfood_pid\":$DOGFOOD_PID}"
