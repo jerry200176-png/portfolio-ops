@@ -45,3 +45,13 @@ systemctl --user status graph-scheduler.service
 Run `GRAPH_REAL_CODEX=1 python3 scripts/graph-schedule-realcodex-dogfood.py` to drive a RealCodex R1 maintenance Run via `AutonomousSchedulerLoop` (no manual `schedule-tick`).
 
 On success, evidence is written to `reports/<date>/schedule-realcodex-dogfood/{SUMMARY,EVIDENCE,trace}.json`.
+
+## RealCodex dogfood ops (host)
+
+For the live wait-through dogfood (Codex quota dormancy):
+
+- `scripts/codex-quota-wait-dogfood.sh` — forced budgets + PATH including `~/.npm-global/bin`
+- `scripts/codex-quota-watchdog.sh` — restarts on death or stale scheduler lease
+- `scripts/install-graph-realcodex-dogfood-ops.sh` — install into `~/workspace/state/portfolio-ops/`
+
+Do not interrupt a healthy wait-through process; install updates on-disk scripts only.
