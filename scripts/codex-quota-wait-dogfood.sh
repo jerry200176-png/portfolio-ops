@@ -97,7 +97,7 @@ env \
 code=$?
 set -e
 tick "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"status\":\"dogfood_exit\",\"code\":$code}"
-if [[ "$code" -eq 0 ]]; then
+  if [[ "$code" -eq 0 ]]; then
   date -u +%Y-%m-%dT%H:%M:%SZ >"$DONE_MARKER"
   mkdir -p "$STATE_DIR/evidence"
   stamp="$(date -u +%Y-%m-%d)"
@@ -106,7 +106,19 @@ if [[ "$code" -eq 0 ]]; then
       "$STATE_DIR/evidence/schedule-realcodex-dogfood-$stamp" || true
   fi
   if [[ -f "$ROOT/scripts/graph-v1-completion-audit.py" ]]; then
-    python3 "$ROOT/scripts/graph-v1-completion-audit.py" >>"$LOG" 2>&1 || true
+    python3 "$ROOT/scripts/graph-v1-completion-audit.py" \
+      >"$STATE_DIR/evidence/v1-completion-audit-$stamp.json" 2>>"$LOG" || true
+    # Surface for agent wakes / Founders
+    if grep -q '"GRAPH_CONTROL_PLANE_V1_AUTONOMOUS": "YES"' \
+      "$STATE_DIR/evidence/v1-completion-audit-$stamp.json" 2>/dev/null; then
+      tick "{\"status\":\"closed_success\",\"audit\":\"YES\"}"
+      echo "AGENT_LOOP_WAKE_graph_v1 {\"prompt\":\"Graph Control Plane v1: dogfood closed_success and completion audit YES. Verify EVIDENCE then UpdateGoal complete.\",\"event\":\"audit_yes\"}" \
+        >>"$STATE_DIR/graph-v1-wake.log"
+    else
+      tick "{\"status\":\"closed_success\",\"audit\":\"NO_or_incomplete\"}"
+      echo "AGENT_LOOP_WAKE_graph_v1 {\"prompt\":\"Graph Control Plane v1: dogfood exited 0 but audit is not YES. Inspect evidence and audit JSON under state/evidence.\",\"event\":\"audit_not_yes\"}" \
+        >>"$STATE_DIR/graph-v1-wake.log"
+    fi
   fi
   tick "{\"status\":\"closed_success\",\"done\":true}"
   exit 0
