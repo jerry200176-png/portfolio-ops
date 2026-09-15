@@ -79,7 +79,11 @@ def main() -> int:
         return 2
 
     # codex-route invokes `codex` from PATH; env -i launchers often omit npm-global.
-    if shutil.which("codex") is None:
+    # Validate-only resume load never launches Codex.
+    if (
+        os.environ.get("GRAPH_DOGFOOD_VALIDATE_RESUME_ONLY") != "1"
+        and shutil.which("codex") is None
+    ):
         print(
             "codex not found on PATH (expected under ~/.npm-global/bin). "
             "Refusing to busy-loop RealCodex launches.",
