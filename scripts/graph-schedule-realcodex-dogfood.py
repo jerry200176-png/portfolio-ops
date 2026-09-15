@@ -34,7 +34,7 @@ from agent_graph.github_observe import GhCliReader
 from agent_graph.reconciler import GraphReconciler
 from agent_graph.scheduler import AutonomousSchedulerLoop
 from agent_graph.sqlite_store import SqliteControlPlaneStore
-from agent_graph.worktree_bind import create_worktree_via_agent_start
+from agent_graph.worktree_bind import create_worktree_via_agent_start, ensure_github_attribution
 
 
 def _objective_for_run(run_id: str, marker_rel: str) -> str:
@@ -84,6 +84,8 @@ def main() -> int:
         create_worktree_via_agent_start(project="portfolio-ops", task_id=task_id, dry_run=True)
     )
     assert_canonical_db_outside_worktree(db_path, worktree)
+    # Ruleset require_extra_approval_for_unattributed_changes — attribute to GitHub user.
+    ensure_github_attribution(worktree)
 
     store = SqliteControlPlaneStore(str(db_path))
     rt = DurableGraphRuntime(store)
