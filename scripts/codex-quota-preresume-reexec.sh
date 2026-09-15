@@ -54,34 +54,34 @@ if [[ -f "$ROOT/scripts/codex-quota-preresume-reexec.sh" ]]; then
 fi
 log "tip=$TIP scripts installed"
 
-# Stop sleeping dogfood + waiter (watchdog may also be running — restart both cleanly).
+# Stop sleeping dogfood + waiter + watchdog.
 stop_pid() {
-  local pid="$1"
+  local pid="${1:-}"
   [[ -n "$pid" ]] || return 0
   kill "$pid" 2>/dev/null || true
   sleep 1
   kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
 }
-PY="$(pgrep -f 'scripts/graph-schedule-realcodex-dogfood.py' | head -1 || true)"
-WAIT="$(cat "$PIDFILE" 2>/dev/null || true)"
-WD="$(pgrep -f 'codex-quota-watchdog.sh' | head -1 || true)"
+for p in \
+  "$(pgrep -f 'scripts/graph-schedule-realcodex-dogfood.py' | head -1 || true)" \
+  "$(cat "$PIDFILE" 2>/dev/null || true)" \
+  "$(pgrep -f 'codex-quota-watchdog.sh' | head -1 || true)" \
+  "$(pgrep -f 'codex-quota-wait-dogfood.sh' | head -1 || true)"
+do
+  stop_pid "$p"
+done
 # Prefer live-state PIDs when present.
 if [[ -f "$STATE_DIR/live-dogfood-state.json" ]]; then
-  mapfile -t _pids < <(python3 - <<PY
+  while read -r p; do stop_pid "$p"; done < <(
+    python3 - <<PY
 import json
 d=json.load(open("$STATE_DIR/live-dogfood-state.json"))
 for k in ("dogfood_pid","waiter_pid","watchdog_pid"):
     v=d.get(k)
     if v: print(int(v))
 PY
-)
-  for p in "${_pids[@]:-}"; do stop_pid "$p"; done
+  )
 fi
-stop_pid "$PY"
-stop_pid "$WAIT"
-stop_pid "$WD"
-# Also clear any leftover waiter wrapper still attached to old python
-pgrep -af 'codex-quota-wait-dogfood.sh' | awk '{print $1}' | while read -r p; do stop_pid "$p"; done
 sleep 2
 log "stopped prior dogfood/waiter/watchdog"
 
