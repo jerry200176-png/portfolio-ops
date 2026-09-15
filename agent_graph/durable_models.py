@@ -27,6 +27,7 @@ ATTEMPT_STATUSES = (
     "failed",
     "rejected",
     "ingested",
+    "orphaned",
 )
 
 

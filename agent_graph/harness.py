@@ -24,7 +24,12 @@ from .canonical_paths import (
 from .durable_models import Attempt, Run
 from .durable_runtime import DurableApplyResult, DurableGraphRuntime
 from .models import Event
-from .sqlite_store import LeaseBusyError, StaleLeaseError
+from .sqlite_store import (
+    LeaseBusyError,
+    PreviousWorkerStillAliveError,
+    PreviousWorkerUnverifiableError,
+    StaleLeaseError,
+)
 from .worker_contract import (
     BINDING_REL_PATH,
     CONTEXT_REL_PATH,
@@ -307,6 +312,35 @@ class GraphHarness:
             expected_state_version=expected_state_version,
         )
 
+        # Fencing before status: reclaimed/orphaned Attempts fail closed here.
+        current = self.runtime.get_run(run_id)
+        if int(attempt.fencing_token) > 0 and current.worktree:
+            now = _utcnow()
+            resource = worktree_resource_key(current.worktree)
+            try:
+                self.runtime.store.assert_lease_fence(
+                    resource_key=resource,
+                    attempt_id=attempt.attempt_id,
+                    fencing_token=int(attempt.fencing_token),
+                    now=now,
+                )
+            except StaleLeaseError as exc:
+                if attempt.status in ("started", "failed"):
+                    attempt.status = "rejected"
+                    attempt.ended_at = now
+                    with self.runtime.store.transaction() as conn:
+                        self.runtime.store.update_attempt(attempt, conn=conn)
+                return IngestResult(
+                    apply=DurableApplyResult(
+                        accepted=False,
+                        duplicate=False,
+                        run=current,
+                        reason=str(exc),
+                        blocker="stale_execution_lease",
+                    ),
+                    attempt=attempt,
+                )
+
         ingest_key = result.idempotency_key
         existing_attempt = self.runtime.store.get_attempt_by_ingest_key(ingest_key)
         if existing_attempt is not None:
@@ -333,7 +367,6 @@ class GraphHarness:
             )
 
         # Fail closed before any transition if Run moved under this attempt.
-        current = self.runtime.get_run(run_id)
         if current.state_version != expected_state_version:
             now = _utcnow()
             attempt.status = "rejected"
@@ -353,33 +386,6 @@ class GraphHarness:
                 ),
                 attempt=attempt,
             )
-
-        # Execution lease fencing: real workers must still own their generation.
-        if int(attempt.fencing_token) > 0 and current.worktree:
-            now = _utcnow()
-            resource = worktree_resource_key(current.worktree)
-            try:
-                self.runtime.store.assert_lease_fence(
-                    resource_key=resource,
-                    attempt_id=attempt.attempt_id,
-                    fencing_token=int(attempt.fencing_token),
-                    now=now,
-                )
-            except StaleLeaseError as exc:
-                attempt.status = "rejected"
-                attempt.ended_at = now
-                with self.runtime.store.transaction() as conn:
-                    self.runtime.store.update_attempt(attempt, conn=conn)
-                return IngestResult(
-                    apply=DurableApplyResult(
-                        accepted=False,
-                        duplicate=False,
-                        run=current,
-                        reason=str(exc),
-                        blocker="stale_execution_lease",
-                    ),
-                    attempt=attempt,
-                )
 
         if result.status != "success" or result.proposed_outcome is None:
             now = _utcnow()
@@ -544,22 +550,49 @@ class GraphHarness:
                 worktree_resource_key(worktree),
                 run_node_resource_key(run_id, attempt.node),
             ]
-            with self.runtime.store.transaction() as conn:
-                for resource in resources:
-                    token = self.runtime.store.acquire_execution_lease(
-                        resource_key=resource,
-                        attempt_id=attempt.attempt_id,
-                        run_id=run_id,
-                        node=attempt.node,
-                        now=now,
-                        expires_at=_iso_plus_seconds(now, lease_ttl_sec),
-                        lease_id=_new_id("lease"),
-                        conn=conn,
-                    )
-                    held_leases.append((resource, int(token)))
-                # Primary fencing token is the worktree lease generation.
-                attempt.fencing_token = held_leases[0][1]
-                self.runtime.store.update_attempt(attempt, conn=conn)
+            try:
+                with self.runtime.store.transaction() as conn:
+                    for resource in resources:
+                        token = self.runtime.store.acquire_execution_lease(
+                            resource_key=resource,
+                            attempt_id=attempt.attempt_id,
+                            run_id=run_id,
+                            node=attempt.node,
+                            now=now,
+                            expires_at=_iso_plus_seconds(now, lease_ttl_sec),
+                            lease_id=_new_id("lease"),
+                            conn=conn,
+                        )
+                        held_leases.append((resource, int(token)))
+                    # Primary fencing token is the worktree lease generation.
+                    attempt.fencing_token = held_leases[0][1]
+                    self.runtime.store.update_attempt(attempt, conn=conn)
+            except (
+                LeaseBusyError,
+                PreviousWorkerStillAliveError,
+                PreviousWorkerUnverifiableError,
+            ) as exc:
+                blocker = getattr(exc, "blocker", None) or (
+                    "previous_worker_still_alive"
+                    if isinstance(exc, PreviousWorkerStillAliveError)
+                    else "previous_worker_unverifiable"
+                    if isinstance(exc, PreviousWorkerUnverifiableError)
+                    else "lease_busy"
+                )
+                attempt.status = "rejected"
+                attempt.ended_at = _utcnow()
+                with self.runtime.store.transaction() as conn:
+                    self.runtime.store.update_attempt(attempt, conn=conn)
+                return IngestResult(
+                    apply=DurableApplyResult(
+                        accepted=False,
+                        duplicate=False,
+                        run=self.runtime.get_run(run_id),
+                        reason=str(exc),
+                        blocker=blocker,
+                    ),
+                    attempt=attempt,
+                )
 
         try:
             if write_context and run.worktree:
@@ -580,9 +613,21 @@ class GraphHarness:
 
             launch = getattr(worker, "last_launch", None)
             if launch is not None and getattr(launch, "pid", None):
+                from .process_identity import read_process_identity
+
                 attempt.worker_pid = int(launch.pid)
+                identity = read_process_identity(int(launch.pid))
                 with self.runtime.store.transaction() as conn:
                     self.runtime.store.update_attempt(attempt, conn=conn)
+                    if identity is not None and held_leases:
+                        for resource, token in held_leases:
+                            self.runtime.store.bind_execution_identity(
+                                resource_key=resource,
+                                attempt_id=attempt.attempt_id,
+                                fencing_token=int(token),
+                                identity=identity,
+                                conn=conn,
+                            )
 
             mark = None
             if (

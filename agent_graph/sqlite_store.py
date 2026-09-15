@@ -21,7 +21,7 @@ from .durable_models import (
     Run,
 )
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 DEFAULT_BUSY_TIMEOUT_MS = 5000
 
 
@@ -30,11 +30,25 @@ class StaleStateError(RuntimeError):
 
 
 class LeaseBusyError(RuntimeError):
-    """Execution lease held by another Attempt."""
+    """Execution lease held by another Attempt (not yet recoverable)."""
+
+    blocker = "lease_busy"
 
 
 class StaleLeaseError(RuntimeError):
     """Attempt fencing token no longer owns the resource lease."""
+
+
+class PreviousWorkerStillAliveError(RuntimeError):
+    """Expired lease cannot be reclaimed: previous worker process is still alive."""
+
+    blocker = "previous_worker_still_alive"
+
+
+class PreviousWorkerUnverifiableError(RuntimeError):
+    """Expired lease cannot be reclaimed: owner identity cannot be confirmed dead."""
+
+    blocker = "previous_worker_unverifiable"
 
 
 SCHEMA_SQL = """
@@ -123,7 +137,12 @@ CREATE TABLE IF NOT EXISTS leases (
   expires_at TEXT,
   created_at TEXT NOT NULL,
   released_at TEXT,
-  node TEXT
+  node TEXT,
+  worker_pid INTEGER,
+  worker_pgid INTEGER,
+  worker_starttime_ticks INTEGER,
+  worker_boot_id TEXT,
+  identity_status TEXT NOT NULL DEFAULT 'pending'
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_leases_resource_active
@@ -232,6 +251,15 @@ class SqliteControlPlaneStore:
                     conn.execute("ALTER TABLE leases ADD COLUMN released_at TEXT")
                 if "node" not in lease_cols:
                     conn.execute("ALTER TABLE leases ADD COLUMN node TEXT")
+                for col, decl in (
+                    ("worker_pid", "INTEGER"),
+                    ("worker_pgid", "INTEGER"),
+                    ("worker_starttime_ticks", "INTEGER"),
+                    ("worker_boot_id", "TEXT"),
+                    ("identity_status", "TEXT NOT NULL DEFAULT 'pending'"),
+                ):
+                    if col not in lease_cols:
+                        conn.execute(f"ALTER TABLE leases ADD COLUMN {col} {decl}")
                 conn.execute(
                     "CREATE UNIQUE INDEX IF NOT EXISTS idx_leases_resource_active "
                     "ON leases(resource_key) WHERE released_at IS NULL"
@@ -590,6 +618,19 @@ class SqliteControlPlaneStore:
 
     # --- Execution leases (Phase 1B) ---
 
+    def _lease_row_identity(self, row: sqlite3.Row) -> Optional[dict[str, Any]]:
+        keys = set(row.keys())
+        if "worker_pid" not in keys or row["worker_pid"] is None:
+            return None
+        return {
+            "pid": int(row["worker_pid"]),
+            "pgid": int(row["worker_pgid"]) if row["worker_pgid"] is not None else None,
+            "starttime_ticks": int(row["worker_starttime_ticks"])
+            if row["worker_starttime_ticks"] is not None
+            else None,
+            "boot_id": row["worker_boot_id"],
+        }
+
     def acquire_execution_lease(
         self,
         *,
@@ -601,18 +642,16 @@ class SqliteControlPlaneStore:
         expires_at: str,
         lease_id: str,
         conn: Optional[sqlite3.Connection] = None,
+        allow_reclaim_dead: bool = True,
     ) -> int:
-        """Acquire exclusive lease; returns fencing_token. Caller must be in write TX."""
+        """Acquire exclusive lease; returns fencing_token.
+
+        Expiry does NOT authorize takeover. Reclaim requires the previous
+        worker process identity to be confirmed dead.
+        """
+        from .process_identity import ProcessIdentity, classify_owner_liveness
+
         c = conn or self._conn
-        # Expire stale active leases for this resource.
-        c.execute(
-            """
-            UPDATE leases
-            SET released_at=?
-            WHERE resource_key=? AND released_at IS NULL AND expires_at IS NOT NULL AND expires_at<=?
-            """,
-            (now, resource_key, now),
-        )
         active = c.execute(
             """
             SELECT * FROM leases
@@ -621,17 +660,13 @@ class SqliteControlPlaneStore:
             """,
             (resource_key,),
         ).fetchone()
-        if active is not None and active["owner"] != attempt_id:
-            raise LeaseBusyError(
-                f"resource {resource_key} held by {active['owner']} "
-                f"(token={active['fencing_token']})"
-            )
-        prior = c.execute(
-            "SELECT COALESCE(MAX(fencing_token), 0) AS mx FROM leases WHERE resource_key=?",
-            (resource_key,),
-        ).fetchone()
-        token = int(prior["mx"]) + 1
+
         if active is not None and active["owner"] == attempt_id:
+            prior = c.execute(
+                "SELECT COALESCE(MAX(fencing_token), 0) AS mx FROM leases WHERE resource_key=?",
+                (resource_key,),
+            ).fetchone()
+            token = int(prior["mx"]) + 1
             c.execute(
                 """
                 UPDATE leases SET fencing_token=?, expires_at=?, run_id=?, node=?, created_at=?
@@ -639,17 +674,106 @@ class SqliteControlPlaneStore:
                 """,
                 (token, expires_at, run_id, node, now, active["lease_id"]),
             )
-        else:
+            return token
+
+        if active is not None:
+            expired = bool(active["expires_at"] and active["expires_at"] <= now)
+            if not expired:
+                raise LeaseBusyError(
+                    f"resource {resource_key} held by {active['owner']} "
+                    f"(token={active['fencing_token']})"
+                )
+            # Expired → reconciliation required (not automatic takeover).
+            identity_status = (
+                active["identity_status"] if "identity_status" in active.keys() else None
+            ) or "pending"
+            if identity_status == "pending" or not allow_reclaim_dead:
+                raise PreviousWorkerUnverifiableError(
+                    f"resource {resource_key}: expired lease owner={active['owner']} "
+                    f"identity_status={identity_status}; reconciliation required"
+                )
+            stored = ProcessIdentity.from_mapping(self._lease_row_identity(active))
+            liveness = classify_owner_liveness(stored)
+            if liveness == "alive":
+                raise PreviousWorkerStillAliveError(
+                    f"resource {resource_key}: previous worker still alive "
+                    f"(owner={active['owner']} pid={active['worker_pid']})"
+                )
+            if liveness != "dead":
+                raise PreviousWorkerUnverifiableError(
+                    f"resource {resource_key}: previous worker identity unverifiable "
+                    f"(owner={active['owner']} liveness={liveness})"
+                )
+            # Confirmed dead: reclaim — release old lease, mark attempt recovered.
             c.execute(
-                """
-                INSERT INTO leases(
-                  lease_id, run_id, resource_key, owner, fencing_token,
-                  expires_at, created_at, released_at, node
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)
-                """,
-                (lease_id, run_id, resource_key, attempt_id, token, expires_at, now, node),
+                "UPDATE leases SET released_at=? WHERE lease_id=? AND released_at IS NULL",
+                (now, active["lease_id"]),
             )
+            old_attempt = c.execute(
+                "SELECT * FROM attempts WHERE attempt_id=?", (active["owner"],)
+            ).fetchone()
+            if old_attempt is not None and old_attempt["status"] in ("started", "failed"):
+                c.execute(
+                    """
+                    UPDATE attempts SET status=?, ended_at=COALESCE(ended_at, ?)
+                    WHERE attempt_id=?
+                    """,
+                    ("orphaned", now, active["owner"]),
+                )
+
+        prior = c.execute(
+            "SELECT COALESCE(MAX(fencing_token), 0) AS mx FROM leases WHERE resource_key=?",
+            (resource_key,),
+        ).fetchone()
+        token = int(prior["mx"]) + 1
+        c.execute(
+            """
+            INSERT INTO leases(
+              lease_id, run_id, resource_key, owner, fencing_token,
+              expires_at, created_at, released_at, node,
+              worker_pid, worker_pgid, worker_starttime_ticks, worker_boot_id,
+              identity_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, NULL, NULL, NULL, 'pending')
+            """,
+            (lease_id, run_id, resource_key, attempt_id, token, expires_at, now, node),
+        )
         return token
+
+    def bind_execution_identity(
+        self,
+        *,
+        resource_key: str,
+        attempt_id: str,
+        fencing_token: int,
+        identity: "ProcessIdentity",
+        conn: Optional[sqlite3.Connection] = None,
+    ) -> None:
+        from .process_identity import ProcessIdentity as _PI
+
+        assert isinstance(identity, _PI)
+        c = conn or self._conn
+        cur = c.execute(
+            """
+            UPDATE leases SET
+              worker_pid=?, worker_pgid=?, worker_starttime_ticks=?, worker_boot_id=?,
+              identity_status='bound'
+            WHERE resource_key=? AND owner=? AND fencing_token=? AND released_at IS NULL
+            """,
+            (
+                identity.pid,
+                identity.pgid,
+                identity.starttime_ticks,
+                identity.boot_id,
+                resource_key,
+                attempt_id,
+                int(fencing_token),
+            ),
+        )
+        if cur.rowcount < 1:
+            raise StaleLeaseError(
+                f"cannot bind identity; lease not held for {resource_key} "
+                f"owner={attempt_id} token={fencing_token}"
+            )
 
     def release_execution_lease(
         self,
@@ -670,15 +794,18 @@ class SqliteControlPlaneStore:
         )
         return cur.rowcount > 0
 
-    def get_active_lease(self, resource_key: str, *, now: str) -> Optional[dict[str, Any]]:
+    def get_active_lease(
+        self, resource_key: str, *, now: Optional[str] = None
+    ) -> Optional[dict[str, Any]]:
+        """Return unreclaimed lease for resource (expiry does not clear ownership)."""
+        del now  # retained for API compatibility; expiry is not auto-clear.
         row = self._conn.execute(
             """
             SELECT * FROM leases
             WHERE resource_key=? AND released_at IS NULL
-              AND (expires_at IS NULL OR expires_at>?)
             ORDER BY fencing_token DESC LIMIT 1
             """,
-            (resource_key, now),
+            (resource_key,),
         ).fetchone()
         return dict(row) if row else None
 
@@ -691,15 +818,15 @@ class SqliteControlPlaneStore:
         now: str,
         conn: Optional[sqlite3.Connection] = None,
     ) -> None:
+        del now
         c = conn or self._conn
         row = c.execute(
             """
             SELECT * FROM leases
             WHERE resource_key=? AND released_at IS NULL
-              AND (expires_at IS NULL OR expires_at>?)
             ORDER BY fencing_token DESC LIMIT 1
             """,
-            (resource_key, now),
+            (resource_key,),
         ).fetchone()
         if row is None:
             raise StaleLeaseError(f"no active lease for {resource_key}")

@@ -108,8 +108,8 @@ class Phase1BHardenTests(unittest.TestCase):
             ),
         )
 
-    def test_schema_version_is_v4(self) -> None:
-        self.assertEqual(SCHEMA_VERSION, 4)
+    def test_schema_version_is_v5(self) -> None:
+        self.assertEqual(SCHEMA_VERSION, 5)
 
     def test_canonical_db_inside_worktree_refused(self) -> None:
         bad_db = self.worktree / "state" / "graph.sqlite"
