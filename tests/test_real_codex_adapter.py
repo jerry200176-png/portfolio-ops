@@ -133,6 +133,18 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
                 exit 7
                 """
             )
+        elif mode == "usage_limit":
+            body = textwrap.dedent(
+                f"""\
+                #!/usr/bin/env bash
+                set -euo pipefail
+                for a in "$@"; do
+                  if [[ "$a" == "--dry-run" ]]; then echo '{ROUTE_DRY_PLAN}'; exit 0; fi
+                done
+                echo 'ERROR: You have hit your usage limit. try again at Sep 19th, 2026 4:26 PM.' >&2
+                exit 1
+                """
+            )
         elif mode == "timeout":
             body = textwrap.dedent(
                 f"""\
@@ -233,6 +245,15 @@ class RealCodexAdapterUnitTests(unittest.TestCase):
         self.assertEqual(out.attempt.status, "failed")
         self.assertEqual(self.rt.get_run(run.run_id).current_node, "investigator")
 
+    def test_usage_limit_classified(self) -> None:
+        run = self._run()
+        route = self._route_stub(mode="usage_limit")
+        adapter = RealCodexWorkerAdapter(codex_route=str(route), timeout_sec=10, canonical_db_path=self.db)
+        out = self.harness.step(run.run_id, worker=adapter)
+        self.assertFalse(out.apply.accepted)
+        self.assertEqual(adapter.last_launch.failure_reason, "codex_usage_limit")
+        self.assertIn("USAGE_LIMIT", out.attempt.result_ingest_key or "")
+        self.assertEqual(self.rt.get_run(run.run_id).current_node, "investigator")
     def test_timeout_fails_closed(self) -> None:
         run = self._run()
         route = self._route_stub(mode="timeout")

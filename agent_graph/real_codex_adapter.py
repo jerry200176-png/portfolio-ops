@@ -30,6 +30,23 @@ PROMPT_REL_PATH = ".agent-session/node-prompt.md"
 LAUNCH_META_REL = ".agent-session/codex-launch.json"
 
 
+def _read_usage_limit_detail(*log_paths: Path) -> Optional[str]:
+    """Return a single-line detail if Codex hit account usage limit."""
+    chunks: list[str] = []
+    for path in log_paths:
+        try:
+            chunks.append(Path(path).read_text(encoding="utf-8", errors="replace"))
+        except OSError:
+            continue
+    blob = "\n".join(chunks)
+    if "usage limit" not in blob.lower():
+        return None
+    for line in blob.splitlines():
+        if "usage limit" in line.lower():
+            return line.strip()
+    return "codex_usage_limit"
+
+
 @dataclass
 class CodexLaunchMeta:
     """Observational metadata for one Attempt execution (not canonical state)."""
@@ -322,6 +339,16 @@ class RealCodexWorkerAdapter:
             return self._failure_result(
                 attempt, f"Codex timed out after {self.timeout_sec}s", key_suffix="TIMEOUT"
             )
+        usage_detail = _read_usage_limit_detail(stdout_path, stderr_path)
+        if usage_detail:
+            meta.failure_reason = "codex_usage_limit"
+            self._write_launch_meta(worktree, meta)
+            return self._failure_result(
+                attempt,
+                f"codex_usage_limit: {usage_detail}",
+                key_suffix="USAGE_LIMIT",
+                blocker="codex_usage_limit",
+            )
         if exit_code != 0:
             meta.failure_reason = f"nonzero_exit:{exit_code}"
             self._write_launch_meta(worktree, meta)
@@ -393,20 +420,25 @@ class RealCodexWorkerAdapter:
 
     @staticmethod
     def _failure_result(
-        attempt: Attempt, summary: str, *, key_suffix: str = "FAILURE"
+        attempt: Attempt,
+        summary: str,
+        *,
+        key_suffix: str = "FAILURE",
+        blocker: Optional[str] = None,
     ) -> WorkerResult:
+        evidence: dict[str, Any] = {
+            "kind": "worker_failure",
+            "ref": attempt.attempt_id,
+            "summary": summary,
+        }
+        if blocker:
+            evidence["blocker"] = blocker
         return WorkerResult(
             status="failure",
             summary=summary,
             idempotency_key=f"{attempt.attempt_id}:{key_suffix}",
             artifacts=(),
-            evidence=(
-                {
-                    "kind": "worker_failure",
-                    "ref": attempt.attempt_id,
-                    "summary": summary,
-                },
-            ),
+            evidence=(evidence,),
             proposed_outcome=None,
         )
 
