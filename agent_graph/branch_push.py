@@ -29,6 +29,17 @@ def ensure_branch_pushed(
     if not wt.is_dir():
         raise BranchPushError(f"worktree missing: {wt}")
 
+    # Ensure commits on this tip will be GitHub-attributed when builder forgot config.
+    try:
+        from .worktree_bind import ensure_github_attribution
+
+        ensure_github_attribution(wt)
+    except Exception as exc:  # noqa: BLE001 — push still attempted; attribution best-effort
+        # Do not block push solely on config failure; surface in return meta.
+        attribution_error = str(exc)
+    else:
+        attribution_error = None
+
     def _git(*args: str) -> str:
         proc = subprocess.run(
             ["git", "-C", str(wt), *args],
@@ -63,6 +74,7 @@ def ensure_branch_pushed(
                 "branch": branch,
                 "head_sha": head,
                 "remote": remote,
+                "attribution_error": attribution_error,
             }
 
     _git("push", "-u", remote, "HEAD")
@@ -72,6 +84,7 @@ def ensure_branch_pushed(
         "branch": branch,
         "head_sha": head,
         "remote": remote,
+        "attribution_error": attribution_error,
     }
 
 

@@ -14,6 +14,36 @@ from typing import Any, Optional
 
 DEFAULT_AGENT_START = "/home/jerry/workspace/agent-control/bin/agent-start"
 
+# Commits must attribute to the GitHub account or ruleset
+# require_extra_approval_for_unattributed_changes blocks merge.
+DEFAULT_GIT_AUTHOR_NAME = "jerry200176-png"
+DEFAULT_GIT_AUTHOR_EMAIL = "jerry200176-png@users.noreply.github.com"
+
+
+def ensure_github_attribution(
+    worktree: str | Path,
+    *,
+    name: str = DEFAULT_GIT_AUTHOR_NAME,
+    email: str = DEFAULT_GIT_AUTHOR_EMAIL,
+) -> dict[str, str]:
+    """Set local worktree git identity for GitHub-attributed commits."""
+    wt = Path(worktree).resolve()
+    if not wt.is_dir():
+        raise FileNotFoundError(f"worktree not found: {wt}")
+    subprocess.run(
+        ["git", "-C", str(wt), "config", "user.name", name],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(wt), "config", "user.email", email],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return {"user.name": name, "user.email": email}
+
 
 def bind_existing_worktree(
     runtime,
