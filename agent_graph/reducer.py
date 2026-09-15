@@ -101,6 +101,12 @@ def apply_event(state: TaskState, event: Event) -> TaskState:
         new.closed = True
         new.blocker = "human_rejected"
 
+    elif et == "EFFECT_RECONCILED":
+        new.current_node = "close"
+        new.task_status = "closed_success"
+        new.closed = True
+        new.blocker = None
+
     elif et == "EXTERNAL_OBSERVATION":
         new.observations = _merge_observation(new.observations, event)
         # PR head move observed externally: invalidate approval if graph head differs.

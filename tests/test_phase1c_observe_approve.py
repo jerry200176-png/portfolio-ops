@@ -46,8 +46,8 @@ class Phase1CObserveApproveTests(unittest.TestCase):
         self.assertEqual(run2.status, "waiting_for_approval")
         return run.run_id
 
-    def test_schema_v6(self) -> None:
-        self.assertEqual(SCHEMA_VERSION, 6)
+    def test_schema_v7(self) -> None:
+        self.assertEqual(SCHEMA_VERSION, 7)
 
     def test_observe_pr_and_ci_at_sha_a(self) -> None:
         run_id = self._advance_to_human_gate()

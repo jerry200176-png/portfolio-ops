@@ -14,6 +14,9 @@ from pathlib import Path
 from .canonical_paths import default_canonical_db_path, ensure_canonical_db_parent
 from .durable_runtime import DurableGraphRuntime
 from .github_observe import FakeGitHubReader, GhCliReader, observe_pull_request
+from .github_mutate import FakeGitHubMutator, GhCliMutator
+from .reconciler import GraphReconciler
+from .scheduler import GraphScheduler
 from .harness import FakeWorkerAdapter, GraphHarness
 from .sqlite_store import SqliteControlPlaneStore
 from .worktree_bind import bind_existing_worktree
@@ -194,6 +197,63 @@ def cmd_approve(args: argparse.Namespace) -> int:
         rt.close()
 
 
+
+
+def cmd_effect(args: argparse.Namespace) -> int:
+    """Execute allowlisted effect (no production deploy)."""
+    rt = _runtime(args.db)
+    try:
+        mutator = FakeGitHubMutator() if args.fake else GhCliMutator()
+        params = {}
+        if args.pr is not None:
+            params["pr_number"] = int(args.pr)
+        if args.body:
+            params["body"] = args.body
+        if args.title:
+            params["title"] = args.title
+        if args.head:
+            params["head"] = args.head
+        out = rt.execute_approved_effect(
+            run_id=args.run_id,
+            action=args.action,
+            repo=args.repo,
+            target=args.target or (f"pr/{args.pr}" if args.pr else "unknown"),
+            mutator=mutator,
+            params=params,
+            require_ci=args.require_ci,
+            observed_head_sha=args.observed_head_sha,
+        )
+        print(json.dumps(out, indent=2, sort_keys=True))
+        return 0 if out.get("accepted") else 1
+    finally:
+        rt.close()
+
+
+def cmd_reconcile(args: argparse.Namespace) -> int:
+    rt = _runtime(args.db)
+    try:
+        reader = FakeGitHubReader(json.loads(Path(args.fixture_json).read_text(encoding="utf-8"))) if args.fixture_json else GhCliReader()
+        rec = GraphReconciler(rt, reader)
+        out = rec.reconcile_run(args.run_id, pr_number=args.pr, repo=args.repo)
+        print(json.dumps(out.to_dict(), indent=2, sort_keys=True))
+        return 0
+    finally:
+        rt.close()
+
+
+def cmd_schedule_tick(args: argparse.Namespace) -> int:
+    rt = _runtime(args.db)
+    try:
+        reader = GhCliReader()
+        rec = GraphReconciler(rt, reader)
+        sched = GraphScheduler(rt, reconciler=rec, head_sha=args.head_sha)
+        out = sched.tick(limit=args.limit, pr_number=args.pr)
+        print(json.dumps(out.to_dict(), indent=2, sort_keys=True))
+        return 0
+    finally:
+        rt.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="graph", description="Durable Graph Control Plane CLI (Phase 1A–1C)"
@@ -275,6 +335,34 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--external-ref", default=None)
     c.add_argument("--expires-at", default=None)
     c.set_defaults(func=cmd_approve)
+
+
+    c = sub.add_parser("effect", help="Execute allowlisted GitHub PR effect")
+    c.add_argument("run_id")
+    c.add_argument("--action", required=True, choices=["github_pr_create", "github_pr_comment", "github_pr_merge"])
+    c.add_argument("--repo", default="jerry200176-png/portfolio-ops")
+    c.add_argument("--target", default=None)
+    c.add_argument("--pr", type=int, default=None)
+    c.add_argument("--title", default=None)
+    c.add_argument("--body", default=None)
+    c.add_argument("--head", default=None)
+    c.add_argument("--observed-head-sha", default=None)
+    c.add_argument("--require-ci", action="store_true")
+    c.add_argument("--fake", action="store_true", help="Use FakeGitHubMutator (tests)")
+    c.set_defaults(func=cmd_effect)
+
+    c = sub.add_parser("reconcile", help="Bounded observe+reconcile for a Run")
+    c.add_argument("run_id")
+    c.add_argument("--pr", type=int, default=None)
+    c.add_argument("--repo", default=None)
+    c.add_argument("--fixture-json", default=None)
+    c.set_defaults(func=cmd_reconcile)
+
+    c = sub.add_parser("schedule-tick", help="Single scheduler tick (no daemon)")
+    c.add_argument("--limit", type=int, default=5)
+    c.add_argument("--pr", type=int, default=None)
+    c.add_argument("--head-sha", default="c" * 40)
+    c.set_defaults(func=cmd_schedule_tick)
 
     return p
 

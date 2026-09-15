@@ -26,6 +26,7 @@ ROUTING_TABLE: dict[str, str] = {
     # Phase 1C terminal: Founder approval authorizes effect, does not merge/deploy.
     "HUMAN_APPROVED": "approved_for_effect",
     "HUMAN_REJECTED": "close",
+    "EFFECT_RECONCILED": "close",
     # NODE_FAILED stays on the same node (retry) unless exhausted — handled specially
     "GRAPH_STOPPED": "close",
 }
@@ -39,6 +40,7 @@ ALLOWED_FROM: dict[str, frozenset[Optional[str]]] = {
     "REVIEW_APPROVED": frozenset({"reviewer"}),
     "HUMAN_APPROVED": frozenset({"human_gate"}),
     "HUMAN_REJECTED": frozenset({"human_gate"}),
+    "EFFECT_RECONCILED": frozenset({"approved_for_effect"}),
     # Observations may be ingested while the Run is open (incl. waiting / approved).
     "EXTERNAL_OBSERVATION": frozenset(
         {
@@ -64,6 +66,7 @@ EXPECTED_NODE: dict[str, str] = {
     "REVIEW_APPROVED": "reviewer",
     "HUMAN_APPROVED": "human_gate",
     "HUMAN_REJECTED": "human_gate",
+    "EFFECT_RECONCILED": "approved_for_effect",
     # EXTERNAL_OBSERVATION: event.node must equal current_node (validated separately)
 }
 
