@@ -173,6 +173,21 @@ class GraphScheduler:
         self.harness = GraphHarness(runtime)
 
     def _worker_for_run(self, run: Any) -> Any:
+        # Runtime selection only — domain contracts stay provider-neutral.
+        provider = (os.environ.get("GRAPH_WORKER_PROVIDER") or "").strip().lower()
+        if provider in ("stub", "cursor", "cursor_agent") or (
+            provider == "external_cli"
+        ):
+            from .external_cli_adapter import ExternalCliWorkerAdapter
+
+            pid = "stub" if provider in ("", "external_cli", "stub") else provider
+            if provider == "external_cli":
+                pid = (os.environ.get("GRAPH_EXTERNAL_CLI_PROVIDER") or "stub").strip()
+            return ExternalCliWorkerAdapter(
+                provider_id=pid,
+                timeout_sec=self.codex_timeout_sec,
+                canonical_db_path=self.canonical_db_path,
+            )
         if self.use_real_codex and run.current_node in ("investigator", "builder"):
             from .real_codex_adapter import RealCodexWorkerAdapter
 
