@@ -541,9 +541,14 @@ class GraphHarness:
         if extra_context:
             context.update(extra_context)
 
-        # Real Codex workers require execution leases + DB outside worktree.
+        # Real external CLI workers (Codex / external_cli) require execution leases
+        # + DB outside worktree. Domain worker_type stays provider-neutral for
+        # external_cli; Codex retains legacy worker_type=codex.
         held_leases: list[tuple[str, int]] = []
-        if getattr(worker, "worker_type", "") == "codex":
+        needs_lease = bool(getattr(worker, "requires_execution_lease", False)) or getattr(
+            worker, "worker_type", ""
+        ) in {"codex", "external_cli"}
+        if needs_lease:
             db_path = getattr(worker, "canonical_db_path", None) or context.get(
                 "CANONICAL_DB_PATH"
             )

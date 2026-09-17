@@ -13,6 +13,7 @@ from .sqlite_store import SqliteControlPlaneStore
 from .harness import GraphHarness, FakeWorkerAdapter
 from .worker_contract import WorkerResult, validate_worker_result
 from .real_codex_adapter import RealCodexWorkerAdapter
+from .external_cli_adapter import ExternalCliWorkerAdapter
 from .prompt_compiler import compile_node_prompt
 
 __all__ = [
@@ -24,6 +25,7 @@ __all__ = [
     "GraphHarness",
     "FakeWorkerAdapter",
     "RealCodexWorkerAdapter",
+    "ExternalCliWorkerAdapter",
     "WorkerResult",
     "validate_worker_result",
     "compile_node_prompt",

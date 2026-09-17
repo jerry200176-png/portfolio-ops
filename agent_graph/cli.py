@@ -81,6 +81,16 @@ def cmd_step(args: argparse.Namespace) -> int:
                 canonical_db_path=args.db,
             )
             model_profile = "codex-route"
+        elif getattr(args, "external_cli_worker", False):
+            from .external_cli_adapter import ExternalCliWorkerAdapter
+
+            worker = ExternalCliWorkerAdapter(
+                provider_id=args.external_cli_provider,
+                timeout_sec=args.external_cli_timeout,
+                dry_run=args.external_cli_dry_run,
+                canonical_db_path=args.db,
+            )
+            model_profile = f"external_cli:{args.external_cli_provider}"
         else:
             worker = FakeWorkerAdapter(head_sha=args.head_sha)
             model_profile = None
@@ -93,7 +103,10 @@ def cmd_step(args: argparse.Namespace) -> int:
         payload = result.to_dict()
         launch = getattr(worker, "last_launch", None)
         if launch is not None:
-            payload["codex_launch"] = launch.to_dict()
+            payload["worker_launch"] = launch.to_dict()
+            # Back-compat key for existing Codex consumers.
+            if getattr(worker, "worker_type", "") == "codex":
+                payload["codex_launch"] = launch.to_dict()
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0 if result.apply.accepted or result.duplicate_ingest else 1
     finally:
@@ -384,6 +397,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--codex-dry-run",
         action="store_true",
         help="Plan Codex launch without executing (command construction only)",
+    )
+    c.add_argument(
+        "--external-cli-worker",
+        action="store_true",
+        help="Use ExternalCliWorkerAdapter (provider-neutral; default provider=stub)",
+    )
+    c.add_argument(
+        "--external-cli-provider",
+        default="stub",
+        help="Observational provider_id: stub|cursor|cursor_agent (not a domain contract)",
+    )
+    c.add_argument("--external-cli-timeout", type=float, default=900.0)
+    c.add_argument(
+        "--external-cli-dry-run",
+        action="store_true",
+        help="Build invocation/command without spawning the CLI",
     )
     c.add_argument("--head-sha", default="c" * 40)
     c.add_argument("--no-context", action="store_true")
