@@ -664,3 +664,102 @@ class GraphHarness:
                             now=now,
                             conn=conn,
                         )
+
+    def observe_worktree_lease(self, run_id: str) -> dict[str, Any]:
+        """Observe worktree lease liveness for a Run (no mutation)."""
+        from .canonical_paths import worktree_resource_key
+        from .process_identity import ProcessIdentity, classify_owner_liveness
+
+        run = self.runtime.get_run(run_id)
+        worktree = run.worktree or ""
+        if not worktree:
+            return {
+                "run_id": run_id,
+                "resource_key": None,
+                "lease": None,
+                "liveness": "no_worktree",
+                "recovery": "bind_worktree",
+            }
+        resource = worktree_resource_key(worktree)
+        lease = self.runtime.store.get_active_lease(resource)
+        if lease is None:
+            return {
+                "run_id": run_id,
+                "resource_key": resource,
+                "lease": None,
+                "liveness": "none",
+                "recovery": "step_ok",
+            }
+        identity_status = lease.get("identity_status") or "pending"
+        stored = ProcessIdentity.from_mapping(
+            self.runtime.store._lease_row_identity(lease)  # noqa: SLF001 — shared store helper
+        )
+        liveness = (
+            classify_owner_liveness(stored) if identity_status == "bound" else "unverifiable"
+        )
+        if liveness == "alive":
+            recovery = "wait"
+        elif liveness == "dead":
+            recovery = "reclaim_and_step"
+        else:
+            recovery = "reconcile_required"
+        return {
+            "run_id": run_id,
+            "resource_key": resource,
+            "lease": {
+                "lease_id": lease.get("lease_id"),
+                "owner": lease.get("owner"),
+                "fencing_token": lease.get("fencing_token"),
+                "expires_at": lease.get("expires_at"),
+                "identity_status": identity_status,
+                "worker_pid": lease.get("worker_pid"),
+            },
+            "liveness": liveness,
+            "recovery": recovery,
+            "founder_required": False,
+        }
+
+    def recover_and_step(
+        self,
+        run_id: str,
+        *,
+        worker: Optional[WorkerAdapter] = None,
+        model_profile: Optional[str] = None,
+        lease_ttl_sec: float = DEFAULT_LEASE_TTL_SEC,
+        extra_context: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """If prior worker is dead, reclaim via step; if alive, wait (no Founder).
+
+        Reuses existing lease CAS / fencing — does not invent a second orchestrator.
+        """
+        observation = self.observe_worktree_lease(run_id)
+        if observation.get("recovery") == "wait":
+            return {
+                "accepted": False,
+                "action": "wait_prior_worker_alive",
+                "founder_required": False,
+                "observation": observation,
+                "step": None,
+            }
+        if observation.get("recovery") == "reconcile_required":
+            return {
+                "accepted": False,
+                "action": "reconcile_required",
+                "founder_required": False,
+                "observation": observation,
+                "step": None,
+            }
+        stepped = self.step(
+            run_id,
+            worker=worker,
+            model_profile=model_profile,
+            lease_ttl_sec=lease_ttl_sec,
+            extra_context=extra_context,
+        )
+        return {
+            "accepted": bool(stepped.apply.accepted or stepped.duplicate_ingest),
+            "action": "reclaim_and_step" if observation.get("liveness") == "dead" else "step",
+            "founder_required": False,
+            "observation": observation,
+            "step": stepped.to_dict(),
+        }

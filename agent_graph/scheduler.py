@@ -443,6 +443,72 @@ class GraphScheduler:
                 try:
                     node_before = run.current_node
                     worker = self._worker_for_run(run)
+                    needs_lease = bool(
+                        getattr(worker, "requires_execution_lease", False)
+                    ) or getattr(worker, "worker_type", "") in {"codex", "external_cli"}
+                    if needs_lease:
+                        model_profile = (
+                            "codex-route"
+                            if getattr(worker, "worker_type", "") == "codex"
+                            else f"external_cli:{getattr(worker, 'provider_id', 'stub')}"
+                        )
+                        recovered = self.harness.recover_and_step(
+                            run_id,
+                            worker=worker,
+                            model_profile=model_profile,
+                        )
+                        if recovered.get("action") in (
+                            "wait_prior_worker_alive",
+                            "reconcile_required",
+                        ):
+                            advanced.append(
+                                {
+                                    "run_id": run_id,
+                                    "action": recovered["action"],
+                                    "accepted": False,
+                                    "founder_required": False,
+                                    "observation": recovered.get("observation"),
+                                }
+                            )
+                            continue
+                        stepped_dict = recovered.get("step") or {}
+                        apply = stepped_dict.get("apply") or {}
+                        entry = {
+                            "run_id": run_id,
+                            "action": recovered.get("action") or "step",
+                            "accepted": recovered.get("accepted"),
+                            "node": (apply.get("run") or {}).get("current_node"),
+                            "worker_type": getattr(worker, "worker_type", "unknown"),
+                            "node_before": node_before,
+                            "founder_required": False,
+                        }
+                        launch = getattr(worker, "last_launch", None)
+                        if launch is not None:
+                            entry["worker_pid"] = launch.pid
+                            entry["worker_launch"] = launch.to_dict()
+                            if getattr(launch, "failure_reason", None) == "codex_usage_limit":
+                                entry["action"] = "dormant_codex_usage_limit"
+                                entry["blocker"] = "codex_usage_limit"
+                            elif getattr(launch, "failure_reason", None) == "codex_binary_missing":
+                                entry["action"] = "codex_binary_missing"
+                                entry["blocker"] = "codex_binary_missing"
+                        if (
+                            self.use_real_codex
+                            and node_before == "builder"
+                            and recovered.get("accepted")
+                            and entry.get("action") in ("step", "reclaim_and_step")
+                        ):
+                            from .branch_push import BranchPushError, try_ensure_branch_pushed
+
+                            wt = (apply.get("run") or {}).get("worktree") or run.worktree
+                            try:
+                                entry["branch_push"] = try_ensure_branch_pushed(wt)
+                            except BranchPushError as exc:
+                                entry["action"] = "branch_push_failed"
+                                entry["blocker"] = "branch_push_failed"
+                                entry["error"] = str(exc)
+                        advanced.append(entry)
+                        continue
                     stepped = self.harness.step(
                         run_id,
                         worker=worker,
