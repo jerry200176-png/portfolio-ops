@@ -1,0 +1,244 @@
+#!/usr/bin/env python3
+"""Small model selector for Hermes signals + the native Codex CLI.
+
+The command deliberately has no daemon, network service, file-count heuristic,
+or mandatory gate. It chooses a tier from task signals, then invokes Codex
+with its supported --profile flag. Hermes verdicts are recorded as advisory
+metadata and never directly upgrade or block a run.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shlex
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+
+
+def _codex_home() -> Path:
+    return Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser()
+
+
+def _load_policy() -> dict:
+    path = _codex_home() / "model-routing.toml"
+    if not path.is_file():
+        raise RuntimeError(f"machine routing policy missing: {path}")
+    with path.open("rb") as handle:
+        raw = tomllib.load(handle)
+    required = {
+        "levels", "default_tier", "low_tier", "profiles", "fallback",
+        "luna_workloads", "normal_workloads", "sol_workloads",
+        "sol_complexity_threshold", "protected_risk_levels",
+        "protected_workloads", "fallback_reasoning_effort",
+    }
+    missing = sorted(required.difference(raw))
+    if missing:
+        raise RuntimeError(f"machine routing policy missing keys: {', '.join(missing)}")
+    return raw
+
+
+def _level(value: str, name: str, policy: dict) -> int:
+    normalized = str(value or "medium").strip().lower()
+    levels = policy["levels"]
+    if normalized not in levels:
+        raise ValueError(f"{name} must be one of: {', '.join(levels)}")
+    return levels.index(normalized)
+
+
+def _signal(args: argparse.Namespace, policy: dict) -> dict:
+    signal = {}
+    if args.signal_json:
+        signal.update(json.loads(Path(args.signal_json).read_text(encoding="utf-8")))
+    for key in ("complexity", "ambiguity", "blast_radius", "risk", "workload", "hermes_verdict"):
+        value = getattr(args, key, None)
+        if value is not None:
+            signal[key] = value
+    signal["sol_insufficient"] = bool(signal.get("sol_insufficient", False) or args.sol_insufficient)
+    signal["astra_eligible"] = bool(signal.get("astra_eligible", False) or args.astra_eligible)
+    signal["protected_reasoning"] = bool(
+        signal.get("protected_reasoning", False) or args.protected_reasoning
+    )
+    signal["complexity"] = str(signal.get("complexity", "medium")).lower()
+    signal["ambiguity"] = str(signal.get("ambiguity", "medium")).lower()
+    signal["blast_radius"] = str(signal.get("blast_radius", "medium")).lower()
+    signal["risk"] = str(signal.get("risk", "medium")).lower()
+    signal["workload"] = str(signal.get("workload", "normal")).lower()
+    signal["hermes_verdict"] = str(signal.get("hermes_verdict", "unset")).upper()
+    for key in ("complexity", "ambiguity", "blast_radius", "risk"):
+        _level(signal[key], key, policy)
+    workloads = set(policy["luna_workloads"] + policy["normal_workloads"] + policy["sol_workloads"])
+    if signal["workload"] not in workloads:
+        raise ValueError(f"workload must be one of: {', '.join(sorted(workloads))}")
+    return signal
+
+
+def _choose(signal: dict, policy: dict) -> tuple[str, str]:
+    complexity = _level(signal["complexity"], "complexity", policy)
+    risk = _level(signal["risk"], "risk", policy)
+    protected_levels = {
+        _level(value, "protected_risk_levels", policy)
+        for value in policy["protected_risk_levels"]
+    }
+    complexity_threshold = _level(policy["sol_complexity_threshold"], "sol_complexity_threshold", policy)
+    protected = (
+        signal["protected_reasoning"]
+        or risk in protected_levels
+        or signal["workload"] in set(policy["protected_workloads"])
+    )
+
+    if signal["sol_insufficient"] and signal["astra_eligible"]:
+        return "astra", "explicit_sol_insufficient_plus_astra_eligible"
+    if complexity >= complexity_threshold or risk in protected_levels:
+        return "sol", "protected_reasoning" if protected else "complexity_only"
+    if signal["workload"] in set(policy["sol_workloads"]):
+        return "sol", "protected_reasoning" if protected else "workload_specific"
+    if (
+        signal["workload"] in set(policy["luna_workloads"])
+        and all(
+            _level(signal[key], key, policy) == _level("low", "levels", policy)
+            for key in ("complexity", "ambiguity", "blast_radius", "risk")
+        )
+    ):
+        return policy["low_tier"], "low-risk_repetitive_or_simple_work"
+    return policy["default_tier"], "default_general_task_route"
+
+
+def _available_models(policy: dict) -> set[str]:
+    cache = _codex_home() / "models_cache.json"
+    if not cache.is_file():
+        return set()
+    try:
+        payload = json.loads(cache.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    return {
+        item.get("slug")
+        for item in payload.get("models", [])
+        if isinstance(item, dict) and isinstance(item.get("slug"), str)
+    }
+
+
+def _resolve(
+    tier: str,
+    policy: dict,
+    reason: str,
+    *,
+    origin: str | None = None,
+) -> tuple[str, str, str | None, str]:
+    available = _available_models(policy)
+    seen = set()
+    requested = tier
+    while tier not in seen:
+        seen.add(tier)
+        profile = policy["profiles"].get(tier)
+        if not isinstance(profile, str) or not profile.strip():
+            raise RuntimeError(f"machine routing policy has no profile for tier {tier}")
+        profile_path = _codex_home() / f"{profile}.config.toml"
+        model = None
+        if profile_path.is_file():
+            try:
+                with profile_path.open("rb") as handle:
+                    model = tomllib.load(handle).get("model")
+            except (OSError, tomllib.TOMLDecodeError):
+                model = None
+        if isinstance(model, str) and model.strip() and (not available or model in available):
+            return tier, model.strip(), None, "selected" if origin is None else f"fallback:{origin}"
+        if tier == "sol" and (origin == "astra" or reason != "complexity_only"):
+            raise RuntimeError(
+                f"protected Sol route unavailable; fail-closed (reason={reason})"
+            )
+        if tier == "sol":
+            next_tier = policy["fallback"].get("sol_complexity_only")
+            fallback_effort = policy["fallback_reasoning_effort"].get("sol_complexity_only")
+            if not next_tier:
+                raise RuntimeError("complexity-only Sol route unavailable; no configured fallback")
+            selected, selected_model, _, resolution = _resolve(
+                next_tier, policy, reason, origin="sol_complexity_only"
+            )
+            return selected, selected_model, fallback_effort, resolution
+        if origin == "sol_complexity_only":
+            raise RuntimeError(
+                "complexity-only Sol fallback unavailable; fail-closed at the configured Terra tier"
+            )
+        next_tier = policy["fallback"].get(tier)
+        if next_tier is None:
+            break
+        origin = tier
+        tier = next_tier
+    raise RuntimeError(f"no usable Codex profile/model for requested tier {requested}")
+
+
+def _plan(args: argparse.Namespace) -> dict:
+    policy = _load_policy()
+    signal = _signal(args, policy)
+    requested, reason = _choose(signal, policy)
+    selected, model, effort_override, resolution = _resolve(requested, policy, reason)
+    return {
+        "requested_tier": requested,
+        "selected_tier": selected,
+        "profile": policy["profiles"][selected],
+        "model": model,
+        "reasoning_effort_override": effort_override,
+        "reason": reason,
+        "resolution": resolution,
+        "hermes_signal": {
+            "verdict": signal["hermes_verdict"],
+            "verdict_is_advisory": True,
+        },
+        "signals": signal,
+    }
+
+
+def _parser(policy: dict) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--signal-json", help="JSON file containing Hermes/orchestrator signals")
+    parser.add_argument("--complexity", choices=tuple(policy["levels"]), help="task reasoning complexity")
+    parser.add_argument("--ambiguity", choices=tuple(policy["levels"]), help="requirements/root-cause ambiguity")
+    parser.add_argument("--blast-radius", dest="blast_radius", choices=tuple(policy["levels"]), help="potential change impact")
+    parser.add_argument("--risk", choices=tuple(policy["levels"]), help="task execution risk")
+    workloads = sorted(set(policy["luna_workloads"] + policy["normal_workloads"] + policy["sol_workloads"]))
+    parser.add_argument("--workload", choices=tuple(workloads), help="task shape")
+    parser.add_argument("--hermes-verdict", choices=("PASS", "WARN", "BLOCK"), help="advisory Hermes result")
+    parser.add_argument("--sol-insufficient", action="store_true", help="explicit orchestrator escalation condition")
+    parser.add_argument("--astra-eligible", action="store_true", help="current environment supports Astra")
+    parser.add_argument("--protected-reasoning", action="store_true", help="protect this route from silent downgrade")
+    parser.add_argument("--dry-run", action="store_true", help="print the native Codex invocation without running it")
+    return parser
+
+
+def main() -> int:
+    try:
+        policy = _load_policy()
+    except (OSError, RuntimeError, tomllib.TOMLDecodeError) as exc:
+        print(f"codex-route: {exc}", file=sys.stderr)
+        return 2
+    parser = _parser(policy)
+    args, codex_args = parser.parse_known_args()
+    if codex_args and codex_args[0] == "--":
+        codex_args = codex_args[1:]
+    if codex_args and codex_args[0] in {"exec", "e"}:
+        codex_args = codex_args[1:]
+    try:
+        plan = _plan(args)
+    except (ValueError, OSError, RuntimeError, json.JSONDecodeError) as exc:
+        print(f"codex-route: {exc}", file=sys.stderr)
+        return 2
+    command = ["codex", "exec", "--profile", plan["profile"]]
+    if plan["reasoning_effort_override"]:
+        command += ["-c", f'model_reasoning_effort="{plan["reasoning_effort_override"]}"']
+    command += codex_args
+    plan["command"] = shlex.join(command)
+    print(json.dumps(plan, ensure_ascii=False, indent=2))
+    if args.dry_run:
+        return 0
+    if not codex_args:
+        parser.error("a Codex prompt/command is required after --")
+    return subprocess.call(command)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

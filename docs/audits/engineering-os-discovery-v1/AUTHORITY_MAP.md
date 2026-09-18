@@ -41,7 +41,7 @@ Legend: **C** = canonical · **P** = projection · **R** = reader · **W** = wri
 | Product BugReport | AllTrue DB `bug_reports*` | GH issues / ops dumps | Phase-A/C | app + workflows | product SOP; **not** harness |
 | EI research knowledge | EI `data/research/cases/*.json` | reports/research/*.md | humans | ei pipelines | empty corpus |
 | Sunrise outcomes | OUTCOME_LOG + admin outcomes API | BI reports | Founder | app + GHA | measured baseline |
-| Model routing | `~/.codex/model-routing.toml` | — | Codex sessions | Founder/file edit | N/A (not Goal authority) |
+| Model routing | `~/.codex/model-routing.toml` (Codex machine) + portfolio-ops `docs/model-routed-product-delivery.md` (portable roles) + `agent-control/config/provider-model-map.toml` (Cursor slugs) | — | Codex/`codex-route`, Cursor/`model-route-resolve`, product Skills (reference only) | Founder/file edit; agents must not silently rewrite | N/A (not Goal authority) |
 | CubeLV UI/session | CubeLV product | — | Founder | CubeLV | must not write leases/deploy |
 | Exo ticket/lock | `.exo/` local | — | exo CLI | exo | experiment only |
 

@@ -1,0 +1,171 @@
+# Probe log 2026-09-18T11:30:47Z
+## Cursor agent models (sol/luna/astra/composer)
+auto - Auto (current, default)
+composer-2.5 - Composer 2.5
+gpt-5.6-sol-high - GPT-5.6 Sol 1M High
+gpt-5.6-sol-high-fast - GPT-5.6 Sol 1M High Fast
+gpt-5.6-sol-xhigh - GPT-5.6 Sol 1M Extra High
+gpt-5.6-sol-xhigh-fast - GPT-5.6 Sol 1M Extra High Fast
+gpt-5.6-luna-high - GPT-5.6 Luna 1M High
+composer-2.5-fast - Composer 2.5 Fast
+gpt-5.6-sol-none - GPT-5.6 Sol 1M None
+gpt-5.6-sol-none-fast - GPT-5.6 Sol 1M None Fast
+gpt-5.6-sol-low - GPT-5.6 Sol 1M Low
+gpt-5.6-sol-low-fast - GPT-5.6 Sol 1M Low Fast
+gpt-5.6-sol-medium - GPT-5.6 Sol 1M
+gpt-5.6-sol-medium-fast - GPT-5.6 Sol 1M Fast
+gpt-5.6-sol-max - GPT-5.6 Sol 1M Max
+gpt-5.6-sol-max-fast - GPT-5.6 Sol 1M Max Fast
+gpt-5.6-terra-none - GPT-5.6 Terra 1M None
+gpt-5.6-terra-none-fast - GPT-5.6 Terra 1M None Fast
+gpt-5.6-terra-low - GPT-5.6 Terra 1M Low
+gpt-5.6-terra-low-fast - GPT-5.6 Terra 1M Low Fast
+gpt-5.6-terra-medium - GPT-5.6 Terra 1M
+gpt-5.6-terra-medium-fast - GPT-5.6 Terra 1M Fast
+gpt-5.6-terra-high - GPT-5.6 Terra 1M High
+gpt-5.6-terra-high-fast - GPT-5.6 Terra 1M High Fast
+gpt-5.6-terra-xhigh - GPT-5.6 Terra 1M Extra High
+gpt-5.6-terra-xhigh-fast - GPT-5.6 Terra 1M Extra High Fast
+gpt-5.6-terra-max - GPT-5.6 Terra 1M Max
+gpt-5.6-terra-max-fast - GPT-5.6 Terra 1M Max Fast
+gpt-5.6-luna-none - GPT-5.6 Luna 1M None
+gpt-5.6-luna-none-fast - GPT-5.6 Luna 1M None Fast
+gpt-5.6-luna-low - GPT-5.6 Luna 1M Low
+gpt-5.6-luna-low-fast - GPT-5.6 Luna 1M Low Fast
+gpt-5.6-luna-medium - GPT-5.6 Luna 1M
+gpt-5.6-luna-medium-fast - GPT-5.6 Luna 1M Fast
+gpt-5.6-luna-high-fast - GPT-5.6 Luna 1M High Fast
+gpt-5.6-luna-xhigh - GPT-5.6 Luna 1M Extra High
+gpt-5.6-luna-xhigh-fast - GPT-5.6 Luna 1M Extra High Fast
+gpt-5.6-luna-max - GPT-5.6 Luna 1M Max
+gpt-5.6-luna-max-fast - GPT-5.6 Luna 1M Max Fast
+
+## Sol CLI probe
+ActionRequiredError: You've hit your usage limit You've saved $482 on API model usage this month with Pro. Switch to a different model or set a Spend Limit to continue with this model. Your usage limits will reset when your monthly cycle ends on 10/12/2026.
+
+## Composer CLI probe
+- Answer questions about fail-closed rules
+
+I **cannot** edit files, run tests, or open a PR in Ask mode. Switch to **Agent mode** if you want implementation, verification, or a PR.
+
+What should we do next — review the diff, walk through `model-route-resolve`, or something else?
+
+## model-route-resolve cursor planning vs available composer-only
+{
+  "provider": "cursor",
+  "requested_tier": "sol",
+  "selected_tier": "sol",
+  "model": "gpt-5.6-sol-medium",
+  "ok": true,
+  "fail_closed": false,
+  "resolution": "selected",
+  "role": "planning",
+  "signals": {
+    "complexity": "medium",
+    "risk": "medium",
+    "workload": "coding",
+    "protected_reasoning": false,
+    "sol_insufficient": false,
+    "astra_eligible": false
+  },
+  "implementation_allowed": false
+}
+exit:0
+
+## model-route-resolve cursor planning with forced empty-sol availability (fixture-like)
+{
+  "provider": "cursor",
+  "requested_tier": "sol",
+  "selected_tier": null,
+  "model": "gpt-5.6-sol-medium",
+  "ok": false,
+  "fail_closed": true,
+  "resolution": "capacity_blocked",
+  "role": "planning",
+  "signals": {
+    "complexity": "medium",
+    "risk": "medium",
+    "workload": "coding",
+    "protected_reasoning": false,
+    "sol_insufficient": false,
+    "astra_eligible": false
+  },
+  "error": "requested cursor model 'gpt-5.6-sol-medium' for tier 'sol' not in available set; CAPACITY_BLOCKED (no silent downgrade)"
+}
+exit:2
+
+## protected decision
+{
+  "provider": "cursor",
+  "requested_tier": "sol",
+  "selected_tier": "sol",
+  "model": "gpt-5.6-sol-medium",
+  "ok": true,
+  "fail_closed": false,
+  "resolution": "selected_plan_only",
+  "role": "planning",
+  "signals": {
+    "complexity": "medium",
+    "risk": "medium",
+    "workload": "coding",
+    "protected_reasoning": false,
+    "sol_insufficient": false,
+    "astra_eligible": false
+  },
+  "implementation_allowed": false,
+  "protected_decision": true,
+  "note": "Plan may be produced; implementation/activation/data repair remain Founder-gated"
+}
+exit:0
+
+## codex-route dry-run low vs protected
+{
+  "requested_tier": "luna",
+  "selected_tier": "luna",
+  "profile": "implementation",
+  "model": "gpt-5.6-luna",
+  "reasoning_effort_override": null,
+  "reason": "low-risk_repetitive_or_simple_work",
+  "resolution": "selected",
+  "hermes_signal": {
+    "verdict": "UNSET",
+    "verdict_is_advisory": true
+  },
+  "signals": {
+    "complexity": "low",
+    "ambiguity": "low",
+    "blast_radius": "low",
+    "risk": "low",
+    "workload": "batch",
+    "sol_insufficient": false,
+    "astra_eligible": false,
+    "protected_reasoning": false,
+    "hermes_verdict": "UNSET"
+  },
+  "command": "codex exec --profile implementation noop",
+  "provider": "codex",
+  "ok": true,
+  "fail_closed": false
+}
+exit:0
+{
+  "requested_tier": "sol",
+  "selected_tier": "sol",
+  "profile": "architecture",
+  "model": "gpt-5.6-sol",
+  "reasoning_effort_override": null,
+  "reason": "protected_reasoning",
+  "resolution": "selected",
+  "hermes_signal": {
+    "verdict": "UNSET",
+    "verdict_is_advisory": true
+  },
+  "signals": {
+    "complexity": "high",
+    "ambiguity": "medium",
+    "blast_radius": "medium",
+    "risk": "critical",
+    "workload": "high-risk",
+    "sol_insufficient": false,
+    "astra_eligible": false,
+exit:0

@@ -1,0 +1,27 @@
+# Non-secret Cursor/Codex role → model slug map.
+# Machine Codex profiles remain ~/.codex/*.config.toml.
+# Resolve against a live `agent models` / Codex catalog; never invent slugs.
+# Empty string means unavailable on that provider → fail-closed for that tier.
+
+[cursor.tiers]
+sol = "gpt-5.6-sol-medium"
+astra = ""
+terra = "gpt-5.6-terra-medium"
+luna = "gpt-5.6-luna-medium"
+
+# Session-capable light CLI when GPT Luna is capacity-blocked.
+# Never auto-substitute for a requested sol/astra/luna commitment.
+[cursor.session_light]
+model = "composer-2.5-fast"
+
+[codex.tiers]
+sol = "gpt-5.6-sol"
+astra = "gpt-6-astra"
+terra = "gpt-5.6-terra"
+luna = "gpt-5.6-luna"
+
+[codex.profiles]
+sol = "architecture"
+astra = "astra"
+terra = "terra"
+luna = "implementation"
