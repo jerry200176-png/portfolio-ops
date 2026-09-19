@@ -81,8 +81,10 @@ The Founder is not required to visit GitHub merely to relay an Agent review or
 perform routine repository clicks.
 
 An eligible independent reviewer must still re-derive the evidence, and an
-authorized executor records the review, comment, or other repository action
-through the existing GitHub path. Conversation approval is not a substitute
+authorized executor records the evidence, comment, or other repository action
+under the executor's own authenticated identity through the existing GitHub
+path. An executor cannot proxy an `APPROVE` review unless that executor is also
+independently eligible to provide it. Conversation approval is not a substitute
 for a ruleset-required GitHub review. A rejected or unauthorized API write
 (including HTTP 403) means the review/action was **not submitted**; report that
 fact and use an already-authorized executor rather than claiming approval or
