@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "audit_id": "AGENT_COMPANY_CONTROL_PLANE_AUDIT_V1",
+  "completed_at": "2026-09-17T08:40:00Z",
+  "nature": "READ_ONLY_ARCHITECTURE_AUDIT",
+  "implementation_performed": false,
+  "external_tools_adopted": false,
+  "production_mutation": false,
+  "staging_mutation": false,
+  "worktree": "/home/jerry/workspace/tasks/portfolio-ops/control-plane-audit-v1",
+  "branch": "chore/task-control-plane-audit-v1",
+  "base_sha": "9b41bbe3e2f1541bcaf190e41acad003ff94b958",
+  "artifact_dir": "docs/audits/agent-company-control-plane-v1",
+  "artifacts": [
+    "CURRENT_ARCHITECTURE.md",
+    "CURRENT_CONTROL_LOOP.md",
+    "FOUNDER_RELAY_AUDIT.md",
+    "CAPABILITY_MATRIX.md",
+    "EXTERNAL_BENCHMARKS.md",
+    "BUILD_VS_ADOPT.md",
+    "MULTI_MACHINE_RUNTIME.md",
+    "TARGET_ARCHITECTURE.md",
+    "CONTROL_PLANE_UI_SPEC.md",
+    "GAP_BACKLOG.md",
+    "EXECUTIVE_RECOMMENDATION.md",
+    "AUDIT_RESULT.json"
+  ],
+  "evidence_tips": {
+    "alltrue_main_sha": "a454475a25b883d91a605cef873eddfd3381efe8",
+    "production_sha_pi": "16e38fb969cf73a227a86c4dfe9918078b00a459",
+    "production_url_note": "https://daan.lifenet.com.tw is Pi production tip, not Daan staging server",
+    "h4b_pr": 3025,
+    "h4b_merge_sha": "6932c4732a42ad1d6555961711b95f020b115f43",
+    "harness_code_schema_version": 4,
+    "harness_live_db_schema_version": 1,
+    "harness_live_db": "/home/jerry/workspace/state/alltrue/harness.sqlite",
+    "portfolio_ops_bare_tip": "9b41bbe3e2f1541bcaf190e41acad003ff94b958",
+    "graph_scheduler_systemd": "inactive/disabled",
+    "restate_poc": "POC_PASSED local; PRODUCTION_ADOPTED false",
+    "agent_control_sessions_approx": 1011,
+    "alltrue_worktrees_approx": 267
+  },
+  "fleet": {
+    "jerry_wsl": "control_plane_and_coding_workers",
+    "pi": "production_alltrue",
+    "daan": "staging_plus_dify_co_resident",
+    "cubelv": "coding_agent_identity_not_host"
+  },
+  "competing_sources_of_truth": [
+    "harness.sqlite v1 vs code v4",
+    "state/alltrue JSON supervisor flood vs harness store",
+    "AllTrue harness vs portfolio-ops agent_graph",
+    "FOUNDER_INBOX vs harness escalations vs exo receipts"
+  ],
+  "strongest_existing": [
+    "autonomy_gate_and_exact_sha_deploy",
+    "agent_control_worktree_isolation",
+    "MERGED_NE_ACCEPTED_discipline",
+    "harness_contract_design_h0_h4b_on_main",
+    "daan_host_checkout_immutability_fix_3036"
+  ],
+  "fragile_or_fake_automation": [
+    "supervisor_is_cursor_session_plus_json",
+    "worker_run_merged_but_db_not_migrated",
+    "ci_failure_requires_manual_wake",
+    "graph_scheduler_unit_present_but_disabled",
+    "dual_control_planes"
+  ],
+  "biggest_gaps": [
+    "G-P0-01_harness_store_authority_cutover",
+    "G-P0-02_ci_external_event_auto_wake",
+    "G-P0-03_single_reconciler_tick",
+    "G-P1-01_canonical_intake_dedup",
+    "G-P2-01_founder_console_after_sot"
+  ],
+  "build_vs_adopt_headline": {
+    "KEEP_HARDEN": ["alltrue_harness", "agent_control", "autonomy_gate", "exact_sha_deploy"],
+    "ADAPT_EXTERNAL": ["restate_wake_spine_after_gate1", "langfuse_later", "restate_ui_plus_custom_console"],
+    "DEFER": ["temporal", "kubernetes", "swe_rex_replace", "a2a_mesh", "langgraph_as_os"],
+    "DELETE_OR_PARK": ["dual_live_scheduler", "cubelv_as_host_myth"]
+  },
+  "next_bounded_goal": {
+    "id": "HARNESS_STORE_AUTHORITY_CUTOVER",
+    "start_now": false,
+    "objective": "Migrate harness.sqlite to schema v4+; make it sole authority; CURRENT_STATE becomes projection; prove reattach without Founder paste for one dogfood WorkerRun",
+    "must_not": [
+      "adopt_restate_to_production",
+      "build_ui",
+      "enable_graph_scheduler_in_parallel",
+      "mutate_pi_or_daan",
+      "expand_product_features"
+    ],
+    "follow_on_goal": "RESTATE_ADOPTION_GATE_1"
+  },
+  "founder_relay_classes": {
+    "AUTOMATABLE_DETERMINISTIC": 12,
+    "AUTOMATABLE_AGENTIC": 2,
+    "FOUNDER_REQUIRED": 9,
+    "UNNECESSARY_PROCESS": 2
+  },
+  "cosplay_do_not_build": [
+    "k8s_agent_sandbox_fleet",
+    "fairness_multitenant_scheduler",
+    "a2a_as_primary_bus",
+    "full_llm_step_replay_platform",
+    "second_orchestrator_for_redundancy"
+  ],
+  "quality_gates": {
+    "code_vs_docs_separated": true,
+    "current_vs_target_separated": true,
+    "primitives_accounted": true,
+    "pi_daan_cubelv_represented": true,
+    "founder_relays_enumerated": true,
+    "external_benchmarks_current": true,
+    "build_vs_adopt_with_costs": true,
+    "graph_overengineering_checked": true,
+    "deterministic_vs_llm_separated": true,
+    "chat_not_authoritative_in_target": true,
+    "no_production_mutation": true,
+    "no_tool_adoption_during_audit": true,
+    "recommendations_roi_ordered": true
+  },
+  "mutations_performed": [
+    "created_docs_under_docs/audits/agent-company-control-plane-v1/",
+    "agent-start_created_worktree_chore/task-control-plane-audit-v1 (dry-run still created worktree)"
+  ],
+  "external_benchmark_versions": {
+    "openhands": "v1.20.0",
+    "software_agent_sdk": "v1.49.1",
+    "swe_rex": "v1.4.0",
+    "restate": "v1.7.10",
+    "temporal_server": "v1.32.0",
+    "langgraph": "1.2.11",
+    "pydantic_ai": "v2.44.0",
+    "mcp_spec_latest_tag": "2026-07-28",
+    "a2a": "1.0.0",
+    "acp_schema": "v1.21.0",
+    "langfuse": "v4.37.0",
+    "k8s_agent_sandbox": "v1.0.2"
+  }
+}

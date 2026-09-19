@@ -1,0 +1,14 @@
+{
+  "accepted": false,
+  "attempt_status": "failed",
+  "event_types": [
+    "TASK_CREATED"
+  ],
+  "node_after": "investigator",
+  "node_before": "investigator",
+  "pid": 3071625,
+  "pid_exited": true,
+  "state_version_after": 1,
+  "state_version_before": 1,
+  "timed_out": true
+}

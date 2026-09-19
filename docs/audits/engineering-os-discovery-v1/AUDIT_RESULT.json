@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "audit_id": "ENGINEERING_OS_DISCOVERY_V1",
+  "completed_at": "2026-09-18T02:20:00Z",
+  "nature": "READ_ONLY_ARCHITECTURE_AUDIT",
+  "production_mutation": false,
+  "new_framework": false,
+  "new_database": false,
+  "worktree": "/home/jerry/workspace/tasks/portfolio-ops/engineering-os-discovery-v1",
+  "branch": "chore/task-engineering-os-discovery-v1",
+  "base_sha": "5479119f65803dd6e7fd60e106deeff2f629675a",
+  "artifact_dir": "docs/audits/engineering-os-discovery-v1",
+  "artifacts": [
+    "README.md",
+    "SYSTEM_TOPOLOGY.md",
+    "CAPABILITY_MATRIX.md",
+    "AUTHORITY_MAP.md",
+    "MANUAL_INTERVENTION_MAP.md",
+    "TARGET_GAP_GRAPH.md",
+    "NEXT_5_BOUNDED_GOALS.md",
+    "AUDIT_RESULT.json"
+  ],
+  "executive_verdict": "Federated dual control plane with strong AllTrue harness primitives (H0–H4b MERGED; store v4 domain_authority) but no closed Founder-Goal autonomy loop. Largest gaps are ExternalEvent→WorkerRun wake, durable reconcile tick, hollow checkout/policy conflict, and product intake→Task bridge — not missing planners.",
+  "distance_to_goal_only_autonomy": "PARTIAL_PLATFORM_NOT_CLOSED_LOOP",
+  "must_not_rebuild": [
+    "GoalContract_Evidence_DecisionReceipt",
+    "CAS_leases_fencing",
+    "H3_PlanResult",
+    "H4_DispatchAttempt",
+    "H4b_WorkerRun_agent_start_attach",
+    "autonomy_gate_exact_SHA_deploy",
+    "Phase_C_allowlist",
+    "MERGED_neq_ACCEPTED_ladder",
+    "ADAPT_RESTATE_decision_for_wake_only"
+  ],
+  "top_autonomy_gaps": [
+    "H5_CI_auto_wake_MISSING",
+    "H7_durable_tick_PARTIAL_chat_is_loop",
+    "hollow_portfolio_ops_checkout_CONFLICT",
+    "BugReport_to_harness_Task_MISSING",
+    "Delivery_closure_auto_observe_PARTIAL",
+    "AllTrue_outcome_learning_MISSING"
+  ],
+  "duplicate_conflict_systems": [
+    "harness.sqlite_vs_graph-control.sqlite",
+    "hollow_AUTONOMY_2026-07-25_vs_tip_2026-09-04",
+    "WorkerRun_vs_graph_WorkerResult_vocabulary",
+    "EI_state_json_vs_engineering-intelligence_repo",
+    "AllTrue_System-clean_stale_vs_bare_main"
+  ],
+  "runtime_facts": {
+    "harness_schema_version": 4,
+    "harness_authority_role": "domain_authority",
+    "harness_cutover_oa_meta": true,
+    "harness_machine_reboot": "UNPROVEN",
+    "harness_restate_gate1": "FROZEN",
+    "harness_worker_runs": 1,
+    "harness_goals_live": 0,
+    "graph_scheduler_service": "disabled_inactive",
+    "graph_control_canonical_runs": 1,
+    "graph_dogfood_status": "quota_wait_pids_dead",
+    "real_codex_dogfood_done": false,
+    "governance_autopilot": "timer_active_service_failed_exit_127",
+    "portfolio_ops_hollow_checkout": true,
+    "prior_audit_harness_v1_claim": "STALE_SUPERSEDED"
+  },
+  "next_5_goals": [
+    "CONTROL_PLANE_CHECKOUT_INTEGRITY",
+    "H4B_E2E_WAKE_ACCEPTANCE",
+    "EXTERNAL_EVENT_WAKE_ADAPTER_V1",
+    "SINGLE_DURABLE_RECONCILE_TICK",
+    "CANONICAL_INTAKE_WORKITEM_V1"
+  ],
+  "durability_prior_decision": {
+    "source": "docs/audits/control-plane-durability-gate-v1/DURABILITY_GATE_RESULT.json",
+    "decision": "ADAPT_RESTATE",
+    "production_adoption": false
+  },
+  "unknowns": [
+    "Whether Founder intends graph-control as future company-wide Goal authority or portfolio-ops-only",
+    "Cutover OA contradiction: sqlite meta true vs docs/harness/HARNESS_STATUS pending",
+    "Who routinely writes live harness tasks for real GH/In-App work vs Supervisor JSON",
+    "Dogfood auto-resume at 2026-09-19 16:26 without manual restart (PIDs dead; units disabled)",
+    "ACP adoption — none in tree",
+    "Production tip vs main tip lag for features riding harness merges"
+  ]
+}

@@ -1,0 +1,20 @@
+[Unit]
+Description=portfolio-ops RealCodex schedule dogfood wait-through (quota-aware)
+After=default.target
+ConditionPathExists=!%h/workspace/state/portfolio-ops/real-codex-dogfood.done
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/state/portfolio-ops/dogfood-runtime
+Environment=GRAPH_DOGFOOD_ROOT=%h/workspace/state/portfolio-ops/dogfood-runtime
+Environment=GRAPH_DOGFOOD_STATE_DIR=%h/workspace/state/portfolio-ops
+Environment=HOME=%h
+Environment=PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin:%h/workspace/agent-control/bin
+ExecStart=%h/workspace/state/portfolio-ops/codex-quota-wait-dogfood.sh
+Restart=on-failure
+RestartSec=60
+StandardOutput=append:%h/workspace/state/portfolio-ops/codex-quota-retry.log
+StandardError=append:%h/workspace/state/portfolio-ops/codex-quota-retry.log
+
+[Install]
+WantedBy=default.target

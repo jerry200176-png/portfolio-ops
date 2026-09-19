@@ -1,0 +1,21 @@
+[Unit]
+Description=portfolio-ops RealCodex dogfood watchdog (restart dead/stale waiters)
+After=default.target
+ConditionPathExists=!%h/workspace/state/portfolio-ops/real-codex-dogfood.done
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/state/portfolio-ops/dogfood-runtime
+Environment=GRAPH_DOGFOOD_ROOT=%h/workspace/state/portfolio-ops/dogfood-runtime
+Environment=GRAPH_DOGFOOD_STATE_DIR=%h/workspace/state/portfolio-ops
+Environment=HOME=%h
+Environment=PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin:%h/workspace/agent-control/bin
+Environment=WATCHDOG_POLL_SEC=300
+ExecStart=%h/workspace/state/portfolio-ops/codex-quota-watchdog.sh
+Restart=always
+RestartSec=30
+StandardOutput=append:%h/workspace/state/portfolio-ops/codex-quota-watchdog.log
+StandardError=append:%h/workspace/state/portfolio-ops/codex-quota-watchdog.log
+
+[Install]
+WantedBy=default.target

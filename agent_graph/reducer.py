@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from .models import AGENT_RUN_EVENTS, Event, TaskState
+from .observation import parse_fact_from_evidence
 from .router import ROUTING_TABLE, _failure_signature
 
 
@@ -34,16 +37,20 @@ def apply_event(state: TaskState, event: Event) -> TaskState:
         human_approved=state.human_approved,
         closed=state.closed,
         stopped=state.stopped,
+        observations=dict(state.observations or {}),
     )
 
     if event.base_sha is not None:
         new.base_sha = event.base_sha
 
-    # Head SHA change invalidates prior human approval
-    if event.head_sha is not None:
+    # Head SHA change invalidates prior human approval and SHA-bound CI authority.
+    if event.head_sha is not None and event.event_type != "EXTERNAL_OBSERVATION":
         if new.head_sha is not None and event.head_sha != new.head_sha:
             new.approved_head_sha = None
             new.human_approved = False
+            new.observations = _invalidate_observations_for_head_move(
+                new.observations, old_sha=new.head_sha, new_sha=event.head_sha
+            )
         new.head_sha = event.head_sha
 
     if event.event_type in AGENT_RUN_EVENTS:
@@ -76,14 +83,14 @@ def apply_event(state: TaskState, event: Event) -> TaskState:
     elif et == "REVIEW_APPROVED":
         new.reviewer_actor_id = event.actor_id
         new.current_node = ROUTING_TABLE[et]
-        new.task_status = "human_approval_required"
+        new.task_status = "waiting_for_approval"
 
     elif et == "HUMAN_APPROVED":
         new.human_approved = True
         new.approved_head_sha = event.head_sha or new.head_sha
-        new.current_node = "close"
-        new.task_status = "closed_success"
-        new.closed = True
+        new.current_node = "approved_for_effect"
+        new.task_status = "approved_for_effect"
+        new.closed = False
         new.blocker = None
 
     elif et == "HUMAN_REJECTED":
@@ -93,6 +100,32 @@ def apply_event(state: TaskState, event: Event) -> TaskState:
         new.task_status = "closed_blocked"
         new.closed = True
         new.blocker = "human_rejected"
+
+    elif et == "EFFECT_RECONCILED":
+        new.current_node = "close"
+        new.task_status = "closed_success"
+        new.closed = True
+        new.blocker = None
+
+    elif et == "EXTERNAL_OBSERVATION":
+        new.observations = _merge_observation(new.observations, event)
+        # PR head move observed externally: invalidate approval if graph head differs.
+        fact = parse_fact_from_evidence(event.evidence)
+        if fact and fact.fact_type == "PR_HEAD_OBSERVED":
+            observed = fact.observed_head_sha
+            if new.head_sha and observed and observed != new.head_sha:
+                new.approved_head_sha = None
+                new.human_approved = False
+                if new.task_status == "approved_for_effect":
+                    new.task_status = "waiting_for_approval"
+                    new.current_node = "human_gate"
+            # Align Run head with observed PR head when observation is authoritative.
+            if observed:
+                if new.head_sha and observed != new.head_sha:
+                    new.observations = _invalidate_observations_for_head_move(
+                        new.observations, old_sha=new.head_sha, new_sha=observed
+                    )
+                new.head_sha = observed
 
     elif et == "NODE_FAILED":
         node = event.node
@@ -113,6 +146,56 @@ def apply_event(state: TaskState, event: Event) -> TaskState:
     return new
 
 
+def _merge_observation(observations: dict[str, Any], event: Event) -> dict[str, Any]:
+    out = dict(observations or {})
+    fact = parse_fact_from_evidence(event.evidence)
+    if fact is None:
+        return out
+    facts = list(out.get("facts") or [])
+    # Idempotent: replace same logical key rather than duplicate.
+    key = fact.logical_key()
+    facts = [f for f in facts if f.get("logical_key") != key]
+    entry = fact.to_dict()
+    entry["logical_key"] = key
+    entry["event_id"] = event.event_id
+    facts.append(entry)
+    out["facts"] = facts
+
+    ci_by_sha = dict(out.get("ci_by_sha") or {})
+    if fact.fact_type in ("CI_PENDING", "CI_PASSED", "CI_FAILED"):
+        ci_by_sha[fact.observed_head_sha] = fact.fact_type
+    out["ci_by_sha"] = ci_by_sha
+
+    pr_heads = dict(out.get("pr_head_by_ref") or {})
+    if fact.fact_type in ("PR_HEAD_OBSERVED", "PR_EXISTS"):
+        pr_heads[fact.external_ref] = fact.observed_head_sha
+    out["pr_head_by_ref"] = pr_heads
+
+    latest = dict(out.get("latest_by_type") or {})
+    latest[fact.fact_type] = {
+        "external_ref": fact.external_ref,
+        "observed_head_sha": fact.observed_head_sha,
+        "observed_at": fact.observed_at,
+    }
+    out["latest_by_type"] = latest
+    return out
+
+
+def _invalidate_observations_for_head_move(
+    observations: dict[str, Any], *, old_sha: str, new_sha: str
+) -> dict[str, Any]:
+    """Keep history, but strip CI authority of the old SHA for authorization."""
+    del new_sha
+    out = dict(observations or {})
+    ci_by_sha = dict(out.get("ci_by_sha") or {})
+    if old_sha in ci_by_sha:
+        # Mark superseded rather than deleting history facts list.
+        ci_by_sha[old_sha] = f"SUPERSEDED:{ci_by_sha[old_sha]}"
+    out["ci_by_sha"] = ci_by_sha
+    out["head_move"] = {"from": old_sha, "invalidated_ci": True}
+    return out
+
+
 def can_close_successfully(state: TaskState) -> bool:
     """Security gate: successful close requires human approval of current head."""
     if not state.human_approved:
@@ -121,4 +204,13 @@ def can_close_successfully(state: TaskState) -> bool:
         return False
     if state.head_sha and state.approved_head_sha != state.head_sha:
         return False
-    return state.task_status == "closed_success"
+    return state.task_status in ("closed_success", "approved_for_effect")
+
+
+def approval_still_valid(state: TaskState) -> bool:
+    """Founder approval is usable only for the exact approved head SHA."""
+    if not state.human_approved or not state.approved_head_sha:
+        return False
+    if state.head_sha and state.approved_head_sha != state.head_sha:
+        return False
+    return True

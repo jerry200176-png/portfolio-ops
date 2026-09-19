@@ -1,0 +1,26 @@
+{
+  "blocker": "codex_usage_limit",
+  "closed_success": false,
+  "composition_ok_through": "RealCodex investigator launch + usage_limit dormant",
+  "goal_id": "goal_a4180589a52d4b8a82f60e0cebb1d318",
+  "mode": "schedule-run",
+  "proof": {
+    "action": "dormant_codex_usage_limit",
+    "attempt_id": "att_f7b6bcd43b9c41a99088e209e45bfd8f",
+    "ephemeral": true,
+    "fencing_token": 1,
+    "scheduler_ownership_released": true,
+    "worker_pid": 3352982,
+    "worker_type": "codex"
+  },
+  "quota_reset_local": "2026-09-19T16:26:00+08:00",
+  "run_id": "run_92d8d5f3436b47f898fbd9ffe19c8f19",
+  "tick_action": {
+    "accepted": false,
+    "action": "dormant_codex_usage_limit",
+    "ephemeral": true,
+    "exit_code": 1,
+    "failure_reason": "codex_usage_limit",
+    "worker_pid": 3352982
+  }
+}

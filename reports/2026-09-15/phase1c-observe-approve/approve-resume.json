@@ -1,0 +1,409 @@
+{
+  "accepted": true,
+  "apply": {
+    "accepted": true,
+    "blocker": null,
+    "duplicate": false,
+    "event_id": "run_abac8211ed89449e967db339d1823ecb:HUMAN_APPROVED:appr_b12b86d491c04a8db2329bcd991e7b49",
+    "reason": null,
+    "run": {
+      "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blocker": null,
+      "branch": null,
+      "closed": false,
+      "created_at": "2026-09-15T07:44:12Z",
+      "current_node": "approved_for_effect",
+      "goal_id": "goal_3730cf9eb1c041df9e3757e0bd12776d",
+      "graph_snapshot": {
+        "agent_run_count": 3,
+        "approved_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+        "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "blocker": null,
+        "builder_actor_id": "builder-1",
+        "closed": false,
+        "current_node": "approved_for_effect",
+        "failure_signatures": [],
+        "head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+        "human_approved": true,
+        "observations": {
+          "ci_by_sha": {
+            "3a497ebb7a4e5d4093c5e346872989c764b541a6": "CI_PASSED"
+          },
+          "facts": [
+            {
+              "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:8d36b47c3573e19938f39fb6",
+              "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "fact_type": "PR_EXISTS",
+              "logical_key": "obs:8d36b47c3573e19938f39fb6",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+              "raw": {
+                "state": "MERGED",
+                "title": "feat(graph): Phase 1B RealCodex replaceable worker"
+              },
+              "source": "github"
+            },
+            {
+              "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:469fd4b5547f63caab56110e",
+              "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "fact_type": "PR_HEAD_OBSERVED",
+              "logical_key": "obs:469fd4b5547f63caab56110e",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+              "raw": {
+                "headRefOid": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+              },
+              "source": "github"
+            },
+            {
+              "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:e806582d9b4670c1c47dfc7d",
+              "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "fact_type": "PR_MERGED_EXTERNALLY",
+              "logical_key": "obs:e806582d9b4670c1c47dfc7d",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+              "raw": {
+                "mergedAt": "2026-09-15T07:30:24Z",
+                "state": "MERGED"
+              },
+              "source": "github"
+            },
+            {
+              "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:cb5aa3d9243a3d363f513ee2",
+              "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "fact_type": "CI_PASSED",
+              "logical_key": "obs:cb5aa3d9243a3d363f513ee2",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+              "raw": {
+                "conclusion": "CI_PASSED",
+                "statusCheckRollup": [
+                  {
+                    "__typename": "CheckRun",
+                    "completedAt": "2026-09-15T05:47:48Z",
+                    "conclusion": "SUCCESS",
+                    "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159600/job/104268396065",
+                    "name": "governance-check",
+                    "startedAt": "2026-09-15T05:47:18Z",
+                    "status": "COMPLETED",
+                    "workflowName": "ExoProtocol Governance"
+                  },
+                  {
+                    "__typename": "CheckRun",
+                    "completedAt": "2026-09-15T05:47:34Z",
+                    "conclusion": "SUCCESS",
+                    "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159578/job/104268396095",
+                    "name": "validate",
+                    "startedAt": "2026-09-15T05:47:17Z",
+                    "status": "COMPLETED",
+                    "workflowName": "Governance CI"
+                  },
+                  {
+                    "__typename": "CheckRun",
+                    "completedAt": "2026-09-15T05:49:51Z",
+                    "conclusion": "SUCCESS",
+                    "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159540/job/104268395909",
+                    "name": "CodeQL",
+                    "startedAt": "2026-09-15T05:47:18Z",
+                    "status": "COMPLETED",
+                    "workflowName": "Security baseline"
+                  },
+                  {
+                    "__typename": "CheckRun",
+                    "completedAt": "2026-09-15T05:48:08Z",
+                    "conclusion": "SUCCESS",
+                    "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159540/job/104268395678",
+                    "name": "Secret scan",
+                    "startedAt": "2026-09-15T05:47:17Z",
+                    "status": "COMPLETED",
+                    "workflowName": "Security baseline"
+                  },
+                  {
+                    "__typename": "CheckRun",
+                    "completedAt": "2026-09-15T05:47:15Z",
+                    "conclusion": "SKIPPED",
+                    "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159540/job/104268396711",
+                    "name": "OpenSSF Scorecard",
+                    "startedAt": "2026-09-15T05:47:16Z",
+                    "status": "COMPLETED",
+                    "workflowName": "Security baseline"
+                  },
+                  {
+                    "__typename": "CheckRun",
+                    "completedAt": "2026-09-15T05:47:17Z",
+                    "conclusion": "NEUTRAL",
+                    "detailsUrl": "https://cursor.com/docs/bugbot",
+                    "name": "Cursor Bugbot",
+                    "startedAt": "2026-09-15T05:47:16Z",
+                    "status": "COMPLETED",
+                    "workflowName": ""
+                  }
+                ]
+              },
+              "source": "github"
+            }
+          ],
+          "head_move": {
+            "from": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "invalidated_ci": true
+          },
+          "latest_by_type": {
+            "CI_PASSED": {
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+            },
+            "PR_EXISTS": {
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+            },
+            "PR_HEAD_OBSERVED": {
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+            },
+            "PR_MERGED_EXTERNALLY": {
+              "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+              "observed_at": "2026-09-15T07:44:12Z",
+              "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+            }
+          },
+          "pr_head_by_ref": {
+            "jerry200176-png/portfolio-ops#pr/76": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+          }
+        },
+        "repository": "jerry200176-png/portfolio-ops",
+        "retry_count": {},
+        "reviewer_actor_id": "reviewer-1",
+        "stopped": false,
+        "task_id": "run_abac8211ed89449e967db339d1823ecb",
+        "task_status": "approved_for_effect"
+      },
+      "graph_version": "v0",
+      "head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+      "human_approved": true,
+      "project": "portfolio-ops",
+      "risk_tier": "R3",
+      "run_id": "run_abac8211ed89449e967db339d1823ecb",
+      "state_version": 10,
+      "status": "approved_for_effect",
+      "stopped": false,
+      "tested_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "updated_at": "2026-09-15T07:44:15Z",
+      "worktree": null
+    }
+  },
+  "approval": {
+    "action": "approve_effect",
+    "actor": "founder",
+    "approval_id": "appr_b12b86d491c04a8db2329bcd991e7b49",
+    "bound_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+    "created_at": "2026-09-15T07:44:15Z",
+    "decided_at": "2026-09-15T07:44:15Z",
+    "expires_at": null,
+    "external_ref": "PR#76",
+    "run_id": "run_abac8211ed89449e967db339d1823ecb",
+    "scope": "approve_effect@3a497ebb7a4e5d4093c5e346872989c764b541a6",
+    "status": "granted"
+  },
+  "approval_valid": true,
+  "blocker": null,
+  "duplicate": false,
+  "reason": null,
+  "run": {
+    "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "blocker": null,
+    "branch": null,
+    "closed": false,
+    "created_at": "2026-09-15T07:44:12Z",
+    "current_node": "approved_for_effect",
+    "goal_id": "goal_3730cf9eb1c041df9e3757e0bd12776d",
+    "graph_snapshot": {
+      "agent_run_count": 3,
+      "approved_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+      "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blocker": null,
+      "builder_actor_id": "builder-1",
+      "closed": false,
+      "current_node": "approved_for_effect",
+      "failure_signatures": [],
+      "head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+      "human_approved": true,
+      "observations": {
+        "ci_by_sha": {
+          "3a497ebb7a4e5d4093c5e346872989c764b541a6": "CI_PASSED"
+        },
+        "facts": [
+          {
+            "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:8d36b47c3573e19938f39fb6",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "fact_type": "PR_EXISTS",
+            "logical_key": "obs:8d36b47c3573e19938f39fb6",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+            "raw": {
+              "state": "MERGED",
+              "title": "feat(graph): Phase 1B RealCodex replaceable worker"
+            },
+            "source": "github"
+          },
+          {
+            "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:469fd4b5547f63caab56110e",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "fact_type": "PR_HEAD_OBSERVED",
+            "logical_key": "obs:469fd4b5547f63caab56110e",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+            "raw": {
+              "headRefOid": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+            },
+            "source": "github"
+          },
+          {
+            "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:e806582d9b4670c1c47dfc7d",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "fact_type": "PR_MERGED_EXTERNALLY",
+            "logical_key": "obs:e806582d9b4670c1c47dfc7d",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+            "raw": {
+              "mergedAt": "2026-09-15T07:30:24Z",
+              "state": "MERGED"
+            },
+            "source": "github"
+          },
+          {
+            "event_id": "run_abac8211ed89449e967db339d1823ecb:obs:cb5aa3d9243a3d363f513ee2",
+            "evidence_ref": "https://github.com/jerry200176-png/portfolio-ops/pull/76",
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "fact_type": "CI_PASSED",
+            "logical_key": "obs:cb5aa3d9243a3d363f513ee2",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+            "raw": {
+              "conclusion": "CI_PASSED",
+              "statusCheckRollup": [
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T05:47:48Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159600/job/104268396065",
+                  "name": "governance-check",
+                  "startedAt": "2026-09-15T05:47:18Z",
+                  "status": "COMPLETED",
+                  "workflowName": "ExoProtocol Governance"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T05:47:34Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159578/job/104268396095",
+                  "name": "validate",
+                  "startedAt": "2026-09-15T05:47:17Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Governance CI"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T05:49:51Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159540/job/104268395909",
+                  "name": "CodeQL",
+                  "startedAt": "2026-09-15T05:47:18Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Security baseline"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T05:48:08Z",
+                  "conclusion": "SUCCESS",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159540/job/104268395678",
+                  "name": "Secret scan",
+                  "startedAt": "2026-09-15T05:47:17Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Security baseline"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T05:47:15Z",
+                  "conclusion": "SKIPPED",
+                  "detailsUrl": "https://github.com/jerry200176-png/portfolio-ops/actions/runs/34934159540/job/104268396711",
+                  "name": "OpenSSF Scorecard",
+                  "startedAt": "2026-09-15T05:47:16Z",
+                  "status": "COMPLETED",
+                  "workflowName": "Security baseline"
+                },
+                {
+                  "__typename": "CheckRun",
+                  "completedAt": "2026-09-15T05:47:17Z",
+                  "conclusion": "NEUTRAL",
+                  "detailsUrl": "https://cursor.com/docs/bugbot",
+                  "name": "Cursor Bugbot",
+                  "startedAt": "2026-09-15T05:47:16Z",
+                  "status": "COMPLETED",
+                  "workflowName": ""
+                }
+              ]
+            },
+            "source": "github"
+          }
+        ],
+        "head_move": {
+          "from": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "invalidated_ci": true
+        },
+        "latest_by_type": {
+          "CI_PASSED": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+          },
+          "PR_EXISTS": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+          },
+          "PR_HEAD_OBSERVED": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+          },
+          "PR_MERGED_EXTERNALLY": {
+            "external_ref": "jerry200176-png/portfolio-ops#pr/76",
+            "observed_at": "2026-09-15T07:44:12Z",
+            "observed_head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+          }
+        },
+        "pr_head_by_ref": {
+          "jerry200176-png/portfolio-ops#pr/76": "3a497ebb7a4e5d4093c5e346872989c764b541a6"
+        }
+      },
+      "repository": "jerry200176-png/portfolio-ops",
+      "retry_count": {},
+      "reviewer_actor_id": "reviewer-1",
+      "stopped": false,
+      "task_id": "run_abac8211ed89449e967db339d1823ecb",
+      "task_status": "approved_for_effect"
+    },
+    "graph_version": "v0",
+    "head_sha": "3a497ebb7a4e5d4093c5e346872989c764b541a6",
+    "human_approved": true,
+    "project": "portfolio-ops",
+    "risk_tier": "R3",
+    "run_id": "run_abac8211ed89449e967db339d1823ecb",
+    "state_version": 10,
+    "status": "approved_for_effect",
+    "stopped": false,
+    "tested_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "updated_at": "2026-09-15T07:44:15Z",
+    "worktree": null
+  }
+}

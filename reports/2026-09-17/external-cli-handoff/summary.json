@@ -1,0 +1,101 @@
+{
+  "apply": {
+    "accepted": true,
+    "blocker": null,
+    "duplicate": false,
+    "event_id": "att_d8ff29b87ab64252b3276efa7e02884c:INVESTIGATION_COMPLETED",
+    "reason": null,
+    "run": {
+      "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blocker": null,
+      "branch": "chore/task-external-cli-dogfood",
+      "closed": false,
+      "created_at": "2026-09-17T09:24:54Z",
+      "current_node": "builder",
+      "goal_id": "goal_0046be73b0b04c42aac1101024aff80e",
+      "graph_snapshot": {
+        "agent_run_count": 1,
+        "approved_head_sha": null,
+        "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "blocker": null,
+        "builder_actor_id": null,
+        "closed": false,
+        "current_node": "builder",
+        "failure_signatures": [],
+        "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "human_approved": false,
+        "observations": {
+          "ci_by_sha": {},
+          "head_move": {
+            "from": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "invalidated_ci": true
+          }
+        },
+        "repository": "jerry200176-png/portfolio-ops",
+        "retry_count": {},
+        "reviewer_actor_id": null,
+        "stopped": false,
+        "task_id": "run_4f200b8cd29c4c49b2b9f69f487dcc51",
+        "task_status": "building"
+      },
+      "graph_version": "v0",
+      "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "human_approved": false,
+      "project": "portfolio-ops",
+      "risk_tier": "low",
+      "run_id": "run_4f200b8cd29c4c49b2b9f69f487dcc51",
+      "state_version": 2,
+      "status": "running",
+      "stopped": false,
+      "tested_sha": null,
+      "updated_at": "2026-09-17T09:24:54Z",
+      "worktree": "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt"
+    }
+  },
+  "attempt": {
+    "attempt_id": "att_d8ff29b87ab64252b3276efa7e02884c",
+    "ended_at": "2026-09-17T09:24:54Z",
+    "expected_state_version": 1,
+    "fencing_token": 1,
+    "model_profile": "external_cli:stub",
+    "node": "investigator",
+    "result_ingest_key": "att_d8ff29b87ab64252b3276efa7e02884c:INVESTIGATION_COMPLETED",
+    "run_id": "run_4f200b8cd29c4c49b2b9f69f487dcc51",
+    "started_at": "2026-09-17T09:24:54Z",
+    "status": "ingested",
+    "worker_pid": 483327,
+    "worker_type": "external_cli"
+  },
+  "chat_dependence": false,
+  "completed_at": "2026-09-17T09:24:54Z",
+  "current_node_after": "builder",
+  "host_pid": 483325,
+  "independent_process": true,
+  "launch": {
+    "command": [
+      "python3",
+      "/home/jerry/workspace/tasks/portfolio-ops/external-cli-worker-handoff-v1/scripts/graph-external-cli-stub-worker.py",
+      "--worktree",
+      "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt"
+    ],
+    "exit_code": 0,
+    "extras": {},
+    "failure_reason": null,
+    "invocation_path": "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt/.agent-session/worker-invocation.json",
+    "pid": 483327,
+    "prompt_path": "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt/.agent-session/node-prompt.md",
+    "provider_id": "stub",
+    "result_path": "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt/.agent-session/result.json",
+    "role": "investigator",
+    "stderr_path": "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt/.agent-session/external-cli-att_d8ff29b87ab64252b3276efa7e02884c.stderr.log",
+    "stdout_path": "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt/.agent-session/external-cli-att_d8ff29b87ab64252b3276efa7e02884c.stdout.log",
+    "timed_out": false,
+    "worktree": "/tmp/ext-cli-dogfood-5f0n8pwj/task-wt"
+  },
+  "ok": true,
+  "provider_id_observational": "stub",
+  "run_id": "run_4f200b8cd29c4c49b2b9f69f487dcc51",
+  "state_version_after": 2,
+  "worker_pid": 483327,
+  "worker_type_domain": "external_cli"
+}
