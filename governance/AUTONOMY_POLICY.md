@@ -72,6 +72,24 @@ Keep Founder approval for:
 Everything else that is low-risk, reversible, scoped, and fully gated by
 required checks is Agent-owned end-to-end (PR → merge → deploy → verify).
 
+## Founder decisions and GitHub execution
+
+Founder decisions are requested and recorded in the active collaboration
+conversation (or another already-approved decision channel) with the exact
+question, recommendation, impact, approved scope, and applicable head SHA.
+The Founder is not required to visit GitHub merely to relay an Agent review or
+perform routine repository clicks.
+
+An eligible independent reviewer must still re-derive the evidence, and an
+authorized executor records the evidence, comment, or other repository action
+under the executor's own authenticated identity through the existing GitHub
+path. An executor cannot proxy an `APPROVE` review unless that executor is also
+independently eligible to provide it. Conversation approval is not a substitute
+for a ruleset-required GitHub review. A rejected or unauthorized API write
+(including HTTP 403) means the review/action was **not submitted**; report that
+fact and use an already-authorized executor rather than claiming approval or
+asking the Founder to bypass the control in the GitHub UI.
+
 ## Stop-the-line conditions
 
 Surface immediately, then contain only through allowed paths:
