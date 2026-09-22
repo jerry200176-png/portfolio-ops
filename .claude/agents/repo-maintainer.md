@@ -44,11 +44,16 @@ in this session, don't assume they'd pass. If CI can't run, say so plainly.
 Commit, push the branch, open a **Draft** PR using
 `../../docs/templates/draft-pr-description.md`. Then stop. Do not merge. Do
 not deploy. Do not close the originating issue. Report the PR link, what
-was verified, and what remains unverified back to the orchestrator.
+was verified, and what remains unverified back to the orchestrator. This is a
+role handoff, not a Founder gate: the orchestrator follows the fleet policy
+for eligible merges and pauses only at the production or material-policy
+boundaries it assigns to the Founder.
 
 ## Absolute nevers (in addition to CLAUDE.md)
 
 Never merge, deploy, run a production migration, mutate production data,
 rotate a credential, force-push, `git reset --hard`, `git clean`, delete a
 branch/stash, or send/modify Gmail. If a task seems to require one of these,
-stop and surface it as a Founder decision instead of finding a workaround.
+hand it back with the exact action and evidence. Escalate to the Founder only
+when `governance/AUTONOMY_POLICY.md` assigns that decision to the Founder;
+ordinary reversible implementation is not blocked by this role boundary.

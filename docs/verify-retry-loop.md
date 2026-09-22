@@ -2,9 +2,11 @@
 
 This is an inner loop on `implement -> verify` for **eligible** work. It does
 not replace `docs/agent-operating-loop.md`, ExoProtocol, or
-`governance/AUTONOMY_POLICY.md`. Merge of R0–R3 after required GitHub checks
-follows `docs/fleet-merge-policy.md`. A green inner loop is not by itself a
-merge; GitHub required checks are. History rewrite, `--admin`, secret
+`governance/AUTONOMY_POLICY.md`. Merge eligible changes only when required
+GitHub checks pass and the merge will not trigger unapproved production
+activation (`docs/fleet-merge-policy.md`). Production migration execution and
+deployment/activation remain Founder-gated. A green inner loop is not by
+itself a merge; GitHub required checks are. History rewrite, `--admin`, secret
 print, and production SSH stay machine-banned even when this loop is green.
 
 The maturity idea (spec, independent checker, auto retry, run record) is
@@ -23,10 +25,12 @@ Use this loop only when **all** of the following are true:
 3. Failure should retry the implementation, not guess a new architecture.
 4. The task is a repeatable class, not a one-off product decision.
 
-Do **not** use it for T2/T3 product, auth, PII, billing, migrations, CI
-rewrites, or any irreversible action. If the checker cannot be written as
-commands, stay on the outer loop: implement once, then merge after required
-GitHub checks.
+Do **not** use it for unresolved product-policy decisions, auth, PII, billing
+semantics, production migration execution, CI rewrites, or any irreversible
+action. Reversible migration authoring and isolated testing may use the normal
+engineering loop. If the checker cannot be written as commands, stay on the
+outer loop: implement once, then merge eligible work after required GitHub
+checks and the production-activation check.
 
 First pilot class: **portfolio-ops T0 docs** (this repository's `docs/` and
 templates only, no `.github/` workflow edits unless the task is explicitly

@@ -30,11 +30,19 @@ target product repository's own `AGENTS.md`/`CLAUDE.md`.
    and deployment boundaries.
 6. Never claim a change is complete without the relevant diff, test/CI result,
    and (for release work) deployment and smoke evidence. The implementing
-   Agent is the operator (`governance/AUTONOMY_POLICY.md`): low-risk
-   reversible work proceeds through PR → required checks → squash-merge →
-   deploy → runtime verify. Founder approval is reserved for irreversible or
-   high-blast-radius risk. Machine bans remain: secrets, force-push,
-   `--admin`, production SSH, Gmail delete.
+   Agent is the operator (`governance/AUTONOMY_POLICY.md`) for reversible
+   engineering work: investigate, plan, change application code, author
+   migrations, test locally or in authorized isolated environments, and
+   prepare PRs without implementation-detail approval. Merge only when
+   required checks pass and the merge will not trigger unapproved production
+   side effects. Production migration execution and production deployment or
+   activation require explicit Founder approval before the side effect; a
+   destructive design that locks in product direction requires a decision
+   before implementation commits to it. If a repair exposes a material
+   product-policy question, continue separable containment and ask only when
+   that decision blocks the next safe step; do not invent product semantics.
+   Machine bans remain: secrets, force-push, `--admin`, production SSH, Gmail
+   delete.
 
 ## Enforcement boundary
 

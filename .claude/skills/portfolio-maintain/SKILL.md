@@ -11,9 +11,12 @@ it holds the safety boundaries and Git rules that apply regardless of mode.
 This file dispatches to a mode; each mode file holds its own procedure so
 you only load what you need.
 
-**Default posture**: execute through a PR, then squash-merge R0–R3 when
-required GitHub checks are green (`docs/fleet-merge-policy.md`). Finish the
-task (issue close, mail, committed workflow dispatch). See
+**Default posture**: execute reversible engineering work through a PR and
+merge only when required checks are green and the merge will not trigger an
+unapproved production side effect (`docs/fleet-merge-policy.md`). Migration
+authoring and authorized isolated testing are Agent-owned; production
+migration execution and deployment/activation require explicit Founder
+approval. Do not wait for implementation-detail approval. See
 `governance/AUTONOMY_POLICY.md`.
 
 ## Modes
@@ -26,7 +29,7 @@ safe default).
 |---|---|---|
 | `bootstrap` | First-run or re-baseline: scan local + GitHub repos, populate/refresh `portfolio.yaml`, tier everything | `modes/bootstrap.md` |
 | `triage` | Refresh GitHub + Gmail signals for Tier 0/1 projects, update `state/work-queue.yaml` | `modes/triage.md` |
-| `execute` | Run baseline audits and do the highest-ROI safe work as PRs, then merge R0–R2 when checks are green | `modes/execute.md` |
+| `execute` | Run baseline audits and do the highest-ROI safe work as PRs; merge eligible changes only when checks pass and no unapproved production activation is triggered | `modes/execute.md` |
 | `status` | Read-only: summarize current `portfolio.yaml` / `CEO_DASHBOARD.md` / today's reports, no mutation, no new agent dispatch | `modes/status.md` |
 | `weekly-review` | Everything in `triage` + `status`, plus security posture, dependency health, delivery signals, governance drift, stale-work cleanup | `modes/weekly-review.md` |
 
@@ -59,8 +62,11 @@ memory of a previous run:
 
 ## Hard stops (all modes)
 
-Stop for **machine bans**, not for a human click: force-push, production
-SSH, secret print, Gmail delete, `--admin`. Full list: `../../../CLAUDE.md`.
+Do not pause reversible engineering work for implementation-detail approval.
+Pause only at Founder-only production, destructive-design, or material policy
+decisions in `governance/AUTONOMY_POLICY.md`. Machine bans remain absolute:
+force-push, production SSH, secret print, Gmail delete, `--admin`. Full list:
+`../../../CLAUDE.md`.
 
 ## Context discipline
 
