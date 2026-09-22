@@ -52,15 +52,26 @@ REMOTE="${PROJECT_REMOTE[$PROJECT]}"
 TASK_ROOT="${PROJECT_TASK_ROOT[$PROJECT]}"
 [[ -d "$BARE" ]] || fail "bare repo missing: $BARE"
 [[ "$(git -C "$BARE" rev-parse --is-bare-repository)" == "true" ]] || fail "not bare: $BARE"
-mkdir -p "$TASK_ROOT" "$SESSIONS_DIR" "$LOGS_DIR"
-
-ok "fetching origin main ??bare"
-git -C "$BARE" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || true
-git -C "$BARE" fetch --prune origin
-git -C "$BARE" fetch origin main:main || true
-BASE_SHA="$(git -C "$BARE" rev-parse refs/remotes/origin/main 2>/dev/null || git -C "$BARE" rev-parse main)"
 BRANCH="chore/task-${TASK_ID}"
 WORKTREE="${TASK_ROOT}/${TASK_ID}"
+
+if [[ "$DRY_RUN" == "1" ]]; then
+  BASE_SHA="$(git -C "$BARE" rev-parse --verify refs/remotes/origin/main 2>/dev/null)" \
+    || fail "dry-run requires cached refs/remotes/origin/main; run a normal launch to fetch and preflight"
+  [[ ! -e "$WORKTREE" ]] || fail "worktree exists: $WORKTREE"
+  assert_not_forbidden_path "$WORKTREE"
+  assert_task_path "$PROJECT" "$WORKTREE"
+  git -C "$BARE" show-ref --verify --quiet "refs/heads/${BRANCH}" && fail "branch exists: $BRANCH"
+  ok "plan project=$PROJECT task_id=$TASK_ID branch=$BRANCH base_sha=$BASE_SHA worktree=$WORKTREE production_mutation=disabled"
+  echo "$WORKTREE"
+  exit 0
+fi
+
+mkdir -p "$TASK_ROOT"
+ok "fetching origin main — bare"
+git -C "$BARE" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || true
+git -C "$BARE" fetch --prune origin
+BASE_SHA="$(git -C "$BARE" rev-parse --verify refs/remotes/origin/main)"
 
 [[ ! -e "$WORKTREE" ]] || fail "worktree exists: $WORKTREE"
 assert_not_forbidden_path "$WORKTREE"
@@ -105,6 +116,7 @@ fi
 SESSION_ID="$(new_session_id)"
 STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 MANIFEST_PATH="${SESSIONS_DIR}/${SESSION_ID}.json"
+mkdir -p "$SESSIONS_DIR" "$LOGS_DIR"
 mkdir -p "${WORKTREE}/.agent-session"
 
 AGENT_CLI_JSON="null"
@@ -140,8 +152,7 @@ ok "worktree=${WORKTREE}"
 ok "manifest=${MANIFEST_PATH}"
 ok "production_mutation=disabled"
 
-if [[ "$DRY_RUN" == "1" || -z "$CLI" ]]; then
-  [[ "$DRY_RUN" == "1" ]] && ok "dry-run: not launching CLI"
+if [[ -z "$CLI" ]]; then
   echo "$WORKTREE"
   exit 0
 fi
