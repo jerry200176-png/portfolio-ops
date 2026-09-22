@@ -50,10 +50,14 @@ manifest. Run focused tests, lint/typecheck, build when applicable,
 secret/dependency checks, and a read-only production verification plan. Finish
 at a Draft PR with evidence, risk, rollback, and unverified items; independent
 evidence review re-derives the claims. After **required** GitHub checks are
-green, squash-merge R0–R3 per `docs/fleet-merge-policy.md`. Then close the
-issue, send task mail, and dispatch committed product workflows when those
-are the work. Machine bans (secrets, force-push, production SSH, Gmail
-delete) stay. Do not wait for a human click.
+green, merge eligible changes per `docs/fleet-merge-policy.md` only when the
+merge will not trigger an unapproved production side effect. Author and test
+migrations locally or in authorized isolated environments; production
+migration execution and production deployment/activation require explicit
+Founder approval before the triggering action. Then close the issue, send task
+mail, and dispatch only committed workflows that do not cross that boundary.
+Machine bans (secrets, force-push, production SSH, Gmail delete) stay. Do not
+wait for a human click on reversible engineering work.
 
 For eligible T0/T1 work whose success is a re-runnable command, run the inner
 verify-retry loop in `docs/verify-retry-loop.md` before calling verify done:
