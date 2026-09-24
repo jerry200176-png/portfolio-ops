@@ -7,7 +7,7 @@ REPOS_ROOT="${REPOS_ROOT:-/home/jerry/workspace/repos}"
 TASKS_ROOT="${TASKS_ROOT:-/home/jerry/workspace/tasks}"
 SESSIONS_DIR="${AGENT_CONTROL_ROOT}/sessions"
 LOGS_DIR="${AGENT_CONTROL_ROOT}/logs"
-GATEWAY_VERSION="0.5.0"
+GATEWAY_VERSION="$(<"$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/VERSION")"
 
 declare -A PROJECT_BARE=(
   [portfolio-ops]="${REPOS_ROOT}/portfolio-ops.git"

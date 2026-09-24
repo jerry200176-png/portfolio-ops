@@ -38,6 +38,7 @@ class AgentStartDryRunTest(unittest.TestCase):
         ):
             directory.mkdir(parents=True, exist_ok=True)
         for relative in (
+            "agent-control/VERSION",
             "agent-control/bin/agent-start",
             "agent-control/lib/common.sh",
             "agent-control/schema/session-manifest.schema.json",
