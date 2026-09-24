@@ -15,7 +15,8 @@ fixes.
 | Squash-merge low-risk reversible PR (R0–R1; scoped reversible R2) after **required** checks | **Yes** |
 | Product deploy path that runs because `main` moved (risk class allows it) | **Yes** — deploy is not itself a Founder gate |
 | `workflow_dispatch` of a **committed** reversible workflow already on default branch | **Yes** — record the run URL |
-| Production data mutation, irreversible migration, identity/permission/security policy, billing, major data repair, destructive ops, major product direction, activation without reliable rollback | **No** — Founder approval |
+| R3 production mutation, migration, security or billing change | **Conditional** — verified execution package and committed product control plane |
+| New major product direction with no existing decision | **No** — Jerry decides business direction |
 | SSH / artisan / phpunit on the production host | **No** — machine ban |
 | Force-push, history rewrite, `--admin` | **No** — machine ban |
 
@@ -28,9 +29,10 @@ After opening the PR, wait until:
 3. Every **required** status check is `SUCCESS` (skipped is OK only when
    the workflow is designed to skip for this diff).
 4. No unresolved review threads that the ruleset requires resolved.
-5. R3 / Founder-risk classes include an explicit Founder decision record
-   before any irreversible activation. Do not merge irreversible production
-   activation on chat claims alone.
+5. R3 includes a reviewed execution package: exact target/SHA, scope,
+   recovery point where applicable, compatibility, bounded operation,
+   rollback or forward repair, and post-action probes. Stop if recovery or
+   an essential control cannot be verified.
 6. The diff does not print credential values or add a force-push / `--admin`
    bypass.
 7. The change does not delete tests, lower assertions, broaden allowlists,
@@ -50,10 +52,10 @@ rollback/report through the product path, and do not lower gates.
 | R0 | Docs, INDEX, radar, no production behavior | Agent merges after checks |
 | R1 | Isolated fix, no migration/authz/billing/security-policy change | Agent merges + deploys after checks |
 | R2 | Scheduling/UX/API behavior that remains reversible with rollback | Agent merges + deploys after checks |
-| R3 / Founder-risk | Production data repair, irreversible migration, privilege/security policy, billing rules, destructive ops, activation without reliable rollback | Code may be prepared as PR; **activation/mutation requires Founder** |
+| R3 | Production data repair, irreversible migration, privilege/security policy, billing rules, destructive ops | Agent merges and executes only after the controlled R3 gates above |
 
-When unsure between R1 and R2, declare R2. When unsure whether Founder risk
-applies, treat it as Founder-risk and stop before irreversible activation.
+When unsure between R1 and R2, declare R2. When unsure whether R3 applies,
+declare R3 and complete its execution package before activation.
 
 ## What is not “acceptance”
 
@@ -73,4 +75,5 @@ deploy/Actions and runtime identity. Dispatch follow-up committed
 ## Rollback
 
 R0/R1/R2: revert commit or prior deploy SHA via the product control plane.
-Founder-risk: use the approved Repair Manifest / Founder-directed path only.
+R3: use the committed Repair Manifest or product recovery path recorded in
+the execution package; verify the result before resuming mutation.

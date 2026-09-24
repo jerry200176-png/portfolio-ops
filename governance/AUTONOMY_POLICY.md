@@ -4,13 +4,14 @@
 every governed repository.
 
 The implementing **Agent is the operator** for reversible engineering work.
-Jerry owns the company and remains the decision-maker for irreversible or
-high-blast-radius production risk. A human click that does not re-derive
+Jerry owns the company and sets product direction. The Agent executes even
+high-risk work only through a verified, bounded execution package. A human click that does not re-derive
 checks is not a control — and waiting for Founder approval on low-risk work
 is an unnecessary bottleneck.
 
 Product overlays may add stricter CI checks and domain P0 bans. They may not
-add a Founder rubber-stamp for docs/UI/small reversible fixes.
+add a routine Founder approval step to a release that meets the execution
+controls below.
 
 Procedure for PRs: `docs/fleet-merge-policy.md`. Rationale:
 `docs/security-boundaries.md`.
@@ -44,33 +45,27 @@ controls to make CI green.
 | Close a GitHub issue after evidence | **Yes** | Evidence Contract filled; in-app bugs still need product public-reply |
 | Send or reply on Gmail for the current task | **Yes** | Grounded content; never print secrets |
 | Gmail trash / delete | **No** | Machine ban |
-| Production **data** mutation | **No** | Founder approval + backup/recovery point + audited path |
-| Irreversible migration / production activation without reliable rollback | **No** | Founder approval |
-| Identity / permission / security policy changes | **No** | Founder approval |
-| Billing rule / money-path changes | **No** | Founder approval |
-| Major data repair / destructive operations | **No** | Founder approval |
-| Major product direction decisions | **No** | Founder approval |
-| Credential rotation / revoke | **No** | Founder-directed; never print secret values |
+| Production **data** mutation | Conditional | Exact target, current backup/recovery point, bounded operation, audited product path, post-action evidence |
+| Irreversible migration / production activation without reliable rollback | Conditional | Verified recovery path and bounded execution package; stop if recovery cannot be verified |
+| Identity / permission / security policy changes | Conditional | Required security checks and explicit verification of affected permissions |
+| Billing rule / money-path changes | Conditional | Existing approved business rule, bounded execution package, financial reconciliation |
+| Major data repair / destructive operations | Conditional | Current backup, isolated restore proof where applicable, exact target and bounded batch |
+| Major product direction decisions | No | Jerry sets business direction; ask only when direction is genuinely unspecified |
+| Credential rotation / revoke | Conditional | Existing committed workflow, verify replacement before revocation; never print secret values |
 | Git history rewrite / force-push / `--admin` merge | **No** | Machine ban |
 | SSH / artisan / phpunit / edit files on production hosts | **No** | Machine ban |
 | Enable a previously disabled self-dispatch autonomous-loop | **No** | Machine ban until product overlay says the probe is fixed |
 | Echo or commit secret values | **No** | Machine ban |
 
-## Founder-only risk classes (explicit)
+## Controlled R3 execution
 
-Keep Founder approval for:
-
-1. Production data mutation
-2. Irreversible migration
-3. Identity / permission / security policy
-4. Billing
-5. Major data repair
-6. Destructive operations
-7. Major product direction
-8. Production activation without a reliable rollback
-
-Everything else that is low-risk, reversible, scoped, and fully gated by
-required checks is Agent-owned end-to-end (PR → merge → deploy → verify).
+The Agent owns PR → merge → deploy → verify for R3 after required checks and
+an execution package records the exact target/SHA, affected data and users,
+backup or recovery point where applicable, compatibility and rollback or
+forward-repair steps, and post-action probes. Run only the committed product
+control plane. If any required control cannot be verified, stop and report
+the actual blocker; do not replace evidence with a human click. Jerry alone
+sets new business policy when the task does not already specify it.
 
 ## Founder decisions and GitHub execution
 
