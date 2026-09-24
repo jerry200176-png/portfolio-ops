@@ -64,21 +64,40 @@ class ArtifactGCTests(unittest.TestCase):
         user_file.write_text("untracked work")
         result = self._evaluate(terminal_signal=True)
         self.assertEqual(result["state"], "eligible")
-        self.assertEqual({a["kind"] for a in result["artifacts"]}, {"node_modules", ".next"})
+        self.assertEqual({a["kind"] for a in result["artifacts"]}, {"node_modules"})
         with mock.patch.object(GC, "process_snapshot", return_value=([], True)):
             collected = self._evaluate(terminal_signal=True, dry_run=False)
         self.assertTrue(collected["state"] == "eligible")
         self.assertFalse(modules.exists())
-        self.assertFalse(build.exists())
+        self.assertTrue(build.exists())
         self.assertEqual((self.worktree / "src.js").read_text(), "keep source")
         self.assertEqual(user_file.read_text(), "untracked work")
         self.assertTrue(self.worktree.exists())
+
+    def test_canary_policy_allows_only_node_modules(self):
+        self.assertEqual([target["name"] for target in self.policy["targets"]], ["node_modules"])
 
     def test_active_process_cwd_blocks_collection(self):
         self._artifacts()
         result = GC.evaluate(self.worktree, self.sessions, self.policy, [self.safe],
                              [{"pid": 42, "cwd": self.worktree}], True, terminal_signal=True)
         self.assertEqual((result["state"], result["reason"]), ("active", "process_uses_worktree"))
+
+    def test_open_file_in_worktree_blocks_collection(self):
+        self._artifacts()
+        result = GC.evaluate(self.worktree, self.sessions, self.policy, [self.safe],
+                             [{"pid": 44, "cwd": Path("/tmp"),
+                               "open_paths": [self.worktree / "src.js"]}], True,
+                             terminal_signal=True)
+        self.assertEqual((result["state"], result["reason"]),
+                         ("active", "process_open_worktree"))
+
+    def test_incomplete_process_scan_fails_closed(self):
+        self._artifacts()
+        result = GC.evaluate(self.worktree, self.sessions, self.policy, [self.safe],
+                             [], False, terminal_signal=True)
+        self.assertEqual((result["state"], result["reason"]),
+                         ("active", "process_scan_incomplete"))
 
     def test_active_session_identity_blocks_even_outside_worktree(self):
         self._artifacts()
@@ -96,13 +115,13 @@ class ArtifactGCTests(unittest.TestCase):
         result = self._evaluate(terminal_signal=True)
         self.assertEqual(result["reason"], "active_lease")
 
-    def test_tracked_next_output_is_never_removed(self):
+    def test_next_output_is_outside_node_modules_canary_scope(self):
         _, build = self._artifacts()
         (build / "tracked.js").write_text("deliverable")
         self._git("add", "-f", ".next/tracked.js")
         result = self._evaluate(terminal_signal=True)
         self.assertFalse(any(a["kind"] == ".next" for a in result["artifacts"]))
-        self.assertIn("tracked_content", [r["reason"] for r in result["skipped_artifacts"]])
+        self.assertTrue((build / "tracked.js").exists())
 
     def test_node_modules_without_a_lockfile_is_not_proven_regenerable(self):
         modules, _ = self._artifacts()
@@ -145,7 +164,7 @@ class ArtifactGCTests(unittest.TestCase):
         self.assertTrue(self.worktree.exists())
         self.assertFalse((self.worktree / "node_modules").exists())
 
-    def test_cli_shutdown_marks_session_idle_and_keeps_task_tree(self):
+    def test_cli_shutdown_marks_idle_but_does_not_reclaim_before_task_terminal(self):
         self.assertTrue((ROOT / "agent-control/bin/agent-finish").stat().st_mode & 0o111)
         modules, _ = self._artifacts()
         with mock.patch.object(GC, "process_snapshot", return_value=([], True)):
@@ -153,9 +172,10 @@ class ArtifactGCTests(unittest.TestCase):
         manifest = json.loads((self.sessions / "session-1.json").read_text())
         self.assertEqual(manifest["lifecycle_state"], "idle")
         self.assertTrue(manifest["lifecycle_updated_at"])
-        self.assertFalse(modules.exists())
+        self.assertTrue(modules.exists())
         self.assertTrue(self.worktree.exists())
-        self.assertEqual(result["state"], "eligible")
+        self.assertEqual((result["state"], result["reason"]),
+                         ("unknown", "task_not_terminal"))
 
     def test_capacity_limits_are_configured_not_duplicated(self):
         changed = {**self.policy, "capacity_gib": {"pressure_below": 70, "critical_below": 40}}

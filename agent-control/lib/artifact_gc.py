@@ -52,7 +52,24 @@ def process_snapshot(proc_root: Path = Path("/proc")) -> tuple[list[dict], bool]
             env = (proc / "environ").read_bytes().split(b"\0")
             session = next((v.split(b"=", 1)[1].decode(errors="replace") for v in env
                             if v.startswith(b"AGENT_SESSION_ID=")), "")
-            rows.append({"pid": int(proc.name), "cwd": cwd, "session_id": session})
+            open_paths = []
+            try:
+                for fd in (proc / "fd").iterdir():
+                    try:
+                        target = os.readlink(fd)
+                    except FileNotFoundError:
+                        continue
+                    except PermissionError:
+                        complete = False
+                        continue
+                    if target.startswith("/"):
+                        if target.endswith(" (deleted)"):
+                            target = target[:-10]
+                        open_paths.append(Path(target))
+            except PermissionError:
+                complete = False
+            rows.append({"pid": int(proc.name), "cwd": cwd, "session_id": session,
+                         "open_paths": open_paths})
         except FileNotFoundError:
             continue
         except PermissionError:
@@ -231,8 +248,11 @@ def evaluate(worktree: Path, session_dir: Path, policy: dict, allowed_roots: lis
                 "observed_artifacts": observed}
     for process in processes:
         cwd = Path(process.get("cwd", "/")).resolve()
-        if under(cwd, worktree) or cwd == worktree:
-            return {"path": str(worktree), "state": "active", "reason": "process_uses_worktree",
+        open_worktree = any(Path(path).resolve() == worktree or under(Path(path), worktree)
+                            for path in process.get("open_paths", []))
+        if under(cwd, worktree) or cwd == worktree or open_worktree:
+            reason = "process_open_worktree" if open_worktree else "process_uses_worktree"
+            return {"path": str(worktree), "state": "active", "reason": reason,
                     "pid": process.get("pid"), "observed_artifacts": observed}
     rows, error = session_rows(worktree, session_dir)
     ids = {str(row.get("session_id")) for _, row in rows if row.get("session_id")}
@@ -251,9 +271,11 @@ def evaluate(worktree: Path, session_dir: Path, policy: dict, allowed_roots: lis
     if terminal_signal:
         update_state(rows, lifecycle_state, dry_run)
     states = {row.get("lifecycle_state") for _, row in rows}
-    if not states or not states.issubset({"terminal", "idle"}):
+    if states != {"terminal"}:
         return {"path": str(worktree), "state": "active" if "active" in states else "unknown",
-                "reason": "not_confirmed_terminal", "observed_artifacts": observed}
+                "reason": "not_confirmed_terminal" if not states or states == {None}
+                else "task_not_terminal",
+                "observed_artifacts": observed}
     if quarantine:
         metadata = rows[0][1].get("quarantine", {})
         if not isinstance(metadata, dict) or any(not metadata.get(k) for k in
@@ -274,6 +296,8 @@ def evaluate(worktree: Path, session_dir: Path, policy: dict, allowed_roots: lis
         latest, complete = process_snapshot()
         if not complete or any(under(Path(p.get("cwd", "/")).resolve(), worktree)
                                or Path(p.get("cwd", "/")).resolve() == worktree
+                               or any(Path(fd).resolve() == worktree or under(Path(fd), worktree)
+                                      for fd in p.get("open_paths", []))
                                or p.get("session_id") in ids for p in latest):
             return {"path": str(worktree), "state": "active", "reason": "process_started_during_gc",
                     "observed_artifacts": observed}
