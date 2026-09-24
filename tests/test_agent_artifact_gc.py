@@ -146,6 +146,7 @@ class ArtifactGCTests(unittest.TestCase):
         self.assertFalse((self.worktree / "node_modules").exists())
 
     def test_cli_shutdown_marks_session_idle_and_keeps_task_tree(self):
+        self.assertTrue((ROOT / "agent-control/bin/agent-finish").stat().st_mode & 0o111)
         modules, _ = self._artifacts()
         with mock.patch.object(GC, "process_snapshot", return_value=([], True)):
             result = self._evaluate(terminal_signal=True, lifecycle_state="idle", dry_run=False)
