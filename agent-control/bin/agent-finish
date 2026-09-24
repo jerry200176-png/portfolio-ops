@@ -7,6 +7,31 @@ source "$ROOT/agent-control/lib/common.sh"
 GC="$ROOT/agent-control/lib/artifact_gc.py"
 CONFIG="$ROOT/agent-control/config/artifact-gc.json"
 
+if [[ "${1:-}" == "--runtime-version" ]]; then
+  python3 - "$AGENT_CONTROL_ROOT" <<'PY'
+import json
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+try:
+    provenance = json.loads((root / ".runtime-provenance.json").read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    provenance = {}
+version_file = root / "VERSION"
+result = {
+    "runtime_version": provenance.get("runtime_version") or
+        (version_file.read_text(encoding="utf-8").strip() if version_file.is_file() else None),
+    "source_commit_sha": provenance.get("source_commit_sha"),
+    "installed_at": provenance.get("installed_at"),
+}
+print(json.dumps(result, indent=2))
+if not all(result.values()):
+    print("provenance incomplete: install from a clean, committed source checkout", file=sys.stderr)
+    raise SystemExit(1)
+PY
+  exit $?
+fi
+
 workspace_dry_run() {
   local -a args=()
   local project
@@ -22,15 +47,19 @@ if [[ "${1:-}" == "--gc-dry-run" ]]; then
   workspace_dry_run
   exit
 fi
-[[ $# -ge 2 && $# -le 3 ]] || fail "usage: agent-finish <portfolio-ops|alltrue|sunrise> <task-id> [--dry-run|--idle]"
-PROJECT=$1; TASK_ID=$2; DRY=0; IDLE=0
-if [[ $# == 3 ]]; then
-  case "$3" in
+[[ $# -ge 2 ]] || fail "usage: agent-finish <portfolio-ops|alltrue|sunrise> <task-id> [--dry-run|--idle|--event-stdin]"
+PROJECT=$1; TASK_ID=$2; DRY=0; IDLE=0; EVENT_STDIN=0
+shift 2
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --dry-run) DRY=1 ;;
     --idle) IDLE=1 ;;
-    *) fail "unknown option: $3" ;;
+    --event-stdin) EVENT_STDIN=1 ;;
+    *) fail "unknown option: $1" ;;
   esac
-fi
+  shift
+done
+[[ $EVENT_STDIN == 0 || $IDLE == 0 ]] || fail "--event-stdin and --idle cannot be combined"
 assert_project "$PROJECT"
 assert_task_id "$TASK_ID"
 path="${PROJECT_TASK_ROOT[$PROJECT]}/$TASK_ID"
@@ -38,7 +67,14 @@ assert_task_path "$PROJECT" "$path"
 [[ -d "$path" ]] || fail "worktree missing: $path"
 args=(finish --config "$CONFIG" --session-dir "$SESSIONS_DIR" --worktree "$path" \
   --bare "${PROJECT_BARE[$PROJECT]}" --task-root "${PROJECT_TASK_ROOT[$PROJECT]}" \
-  --quarantine-root "/home/jerry/workspace/quarantine/$PROJECT")
+  --quarantine-root "/home/jerry/workspace/quarantine/$PROJECT" \
+  --task-id "$TASK_ID" --event-log "$LOGS_DIR/lifecycle-events.jsonl")
 [[ $DRY == 0 ]] || args+=(--dry-run)
 [[ $IDLE == 0 ]] || args+=(--idle)
+[[ $EVENT_STDIN == 0 ]] || args+=(--event-stdin)
+if [[ $EVENT_STDIN == 0 ]]; then
+  # A CLI/process exit is only idle. Only a validated canonical event from a
+  # producer (currently the Exo adapter) can assert terminal success.
+  args+=(--event-state idle --source agent-finish-cli)
+fi
 python3 "$GC" "${args[@]}"

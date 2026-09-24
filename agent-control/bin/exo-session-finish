@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Run Exo from outside its worktree, then send its confirmed result to agent-control.
+set -euo pipefail
+SOURCE="${BASH_SOURCE[0]}"
+ROOT="$(cd -P "$(dirname "$SOURCE")/../.." && pwd)"
+source "$ROOT/agent-control/lib/common.sh"
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  echo "usage: exo-session-finish <portfolio-ops|alltrue|sunrise> <task-id> -- --summary TEXT --set-status done|keep|review [Exo options]"
+  exit 0
+fi
+[[ $# -ge 2 ]] || fail "project and task-id required"
+PROJECT=$1; TASK_ID=$2; shift 2
+assert_project "$PROJECT"
+assert_task_id "$TASK_ID"
+WORKTREE="${PROJECT_TASK_ROOT[$PROJECT]}/$TASK_ID"
+assert_task_path "$PROJECT" "$WORKTREE"
+[[ -d "$WORKTREE" ]] || fail "worktree missing: $WORKTREE"
+[[ -x "${ROOT}/agent-control/bin/agent-finish" ]] || fail "agent-finish is unavailable"
+EXO_COMMAND="$(command -v exo || true)"
+[[ -n "$EXO_COMMAND" ]] || fail "exo executable not found"
+
+python3 "$ROOT/agent-control/lib/exo_completion.py" \
+  --project "$PROJECT" --task-id "$TASK_ID" --worktree "$WORKTREE" \
+  --agent-finish "${ROOT}/agent-control/bin/agent-finish" \
+  --exo-command "$EXO_COMMAND" -- "$@"
