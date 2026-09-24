@@ -29,6 +29,20 @@
     "production_mutation": { "type": "boolean", "const": false },
     "preflight_result": { "type": "string", "enum": ["pass"] },
     "provenance_type": { "type": "string", "enum": ["agent-session", "human-authored"] },
+    "lifecycle_state": { "type": "string", "enum": ["active", "idle", "terminal"] },
+    "lifecycle_updated_at": { "type": "string", "format": "date-time" },
+    "quarantine": {
+      "type": "object",
+      "required": ["owner", "task", "reason", "entered_at", "state"],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "task": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "entered_at": { "type": "string", "format": "date-time" },
+        "state": { "type": "string", "enum": ["active", "terminal"] }
+      },
+      "additionalProperties": false
+    },
     "agent_cli": { "type": ["string", "null"] },
     "gateway_version": { "type": "string" }
   },

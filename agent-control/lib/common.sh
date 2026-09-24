@@ -162,6 +162,20 @@ if manifest["preflight_result"]!="pass":
     raise SystemExit('preflight_result must be pass')
 if manifest["provenance_type"] not in ("agent-session","human-authored"):
     raise SystemExit('bad provenance_type')
+state=manifest.get("lifecycle_state")
+if state is not None and state not in ("active","idle","terminal"):
+    raise SystemExit('bad lifecycle_state')
+if state in ("idle","terminal") and not manifest.get("lifecycle_updated_at"):
+    raise SystemExit('idle/terminal manifest needs lifecycle_updated_at')
+if state == "active" and manifest.get("lifecycle_updated_at"):
+    raise SystemExit('active manifest cannot have lifecycle_updated_at')
+quarantine=manifest.get("quarantine")
+if quarantine is not None:
+    required_q=("owner","task","reason","entered_at","state")
+    if not isinstance(quarantine,dict) or any(not quarantine.get(k) for k in required_q):
+        raise SystemExit('incomplete quarantine metadata')
+    if quarantine["state"] not in ("active","terminal"):
+        raise SystemExit('bad quarantine state')
 # Reject secret-looking keys/values
 secret_re=re.compile(r'(api[_-]?key|token|password|secret|private[_-]?key)', re.I)
 blob=json.dumps(manifest)

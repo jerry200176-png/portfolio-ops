@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Finish a task by releasing verified generated artifacts; retain its worktree.
+set -euo pipefail
+SOURCE="${BASH_SOURCE[0]}"
+ROOT="$(cd -P "$(dirname "$SOURCE")/../.." && pwd)"
+source "$ROOT/agent-control/lib/common.sh"
+GC="$ROOT/agent-control/lib/artifact_gc.py"
+CONFIG="$ROOT/agent-control/config/artifact-gc.json"
+
+workspace_dry_run() {
+  local -a args=()
+  local project
+  for project in portfolio-ops alltrue sunrise; do
+    args+=(--project "$project" "${PROJECT_BARE[$project]}" "${PROJECT_TASK_ROOT[$project]}" \
+      "/home/jerry/workspace/quarantine/$project")
+  done
+  python3 "$GC" workspace --config "$CONFIG" --session-dir "$SESSIONS_DIR" "${args[@]}"
+}
+
+if [[ "${1:-}" == "--gc-dry-run" ]]; then
+  [[ $# == 1 ]] || fail "--gc-dry-run takes no other arguments"
+  workspace_dry_run
+  exit
+fi
+[[ $# -ge 2 && $# -le 3 ]] || fail "usage: agent-finish <portfolio-ops|alltrue|sunrise> <task-id> [--dry-run|--idle]"
+PROJECT=$1; TASK_ID=$2; DRY=0; IDLE=0
+if [[ $# == 3 ]]; then
+  case "$3" in
+    --dry-run) DRY=1 ;;
+    --idle) IDLE=1 ;;
+    *) fail "unknown option: $3" ;;
+  esac
+fi
+assert_project "$PROJECT"
+assert_task_id "$TASK_ID"
+path="${PROJECT_TASK_ROOT[$PROJECT]}/$TASK_ID"
+assert_task_path "$PROJECT" "$path"
+[[ -d "$path" ]] || fail "worktree missing: $path"
+args=(finish --config "$CONFIG" --session-dir "$SESSIONS_DIR" --worktree "$path" \
+  --bare "${PROJECT_BARE[$PROJECT]}" --task-root "${PROJECT_TASK_ROOT[$PROJECT]}" \
+  --quarantine-root "/home/jerry/workspace/quarantine/$PROJECT")
+[[ $DRY == 0 ]] || args+=(--dry-run)
+[[ $IDLE == 0 ]] || args+=(--idle)
+python3 "$GC" "${args[@]}"

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "targets": [
+    {"name": "node_modules", "proof": "locked_package"},
+    {"name": ".next", "proof": "next_build"}
+  ],
+  "capacity_gib": {"pressure_below": 50, "critical_below": 30}
+}
