@@ -20,13 +20,15 @@ scripts/install-agent-control.sh --apply
 ~/workspace/agent-control/bin/portfolio-agent-start --company <task-id> --claude
 ```
 
-When the launched CLI exits, `agent-start` marks its session idle and runs the
-same safe cleanup hook. `agent-finish <project> <task-id>` is the explicit
-task-terminal signal. Both keep the worktree and user files, and remove only ignored `node_modules`
-with a matching package manifest/lockfile and ignored `.next` with a locked
-Next.js build script. It skips live processes, live leases, unknown session
-state, tracked outputs, and quarantined worktrees without owner/reason/time
-metadata. Repeating it is safe.
+When the launched CLI exits, `agent-start` marks its session idle. Idle is not
+task completion and does not make artifacts eligible. `agent-finish
+<project> <task-id>` is the explicit task-terminal signal. The bounded canary
+removes only ignored `node_modules` backed by a package manifest and lockfile.
+It never removes `.next`, `dist`, `build`, coverage, quarantine contents, or
+unknown directories. It retains the worktree and user files, and skips active
+sessions/leases, processes whose working directory or open files use the
+worktree, incomplete process scans, tracked outputs, and quarantine. Repeating
+it is safe.
 
 Run `agent-finish --gc-dry-run` to inventory registered task worktrees. It
 reports Linux free space, C: free space, artifact usage, and eligible reclaim.
