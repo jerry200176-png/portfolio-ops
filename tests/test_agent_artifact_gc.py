@@ -83,6 +83,22 @@ class ArtifactGCTests(unittest.TestCase):
                              [{"pid": 42, "cwd": self.worktree}], True, terminal_signal=True)
         self.assertEqual((result["state"], result["reason"]), ("active", "process_uses_worktree"))
 
+    def test_open_file_in_worktree_blocks_collection(self):
+        self._artifacts()
+        result = GC.evaluate(self.worktree, self.sessions, self.policy, [self.safe],
+                             [{"pid": 44, "cwd": Path("/tmp"),
+                               "open_paths": [self.worktree / "src.js"]}], True,
+                             terminal_signal=True)
+        self.assertEqual((result["state"], result["reason"]),
+                         ("active", "process_open_worktree"))
+
+    def test_incomplete_process_scan_fails_closed(self):
+        self._artifacts()
+        result = GC.evaluate(self.worktree, self.sessions, self.policy, [self.safe],
+                             [], False, terminal_signal=True)
+        self.assertEqual((result["state"], result["reason"]),
+                         ("active", "process_scan_incomplete"))
+
     def test_active_session_identity_blocks_even_outside_worktree(self):
         self._artifacts()
         result = GC.evaluate(self.worktree, self.sessions, self.policy, [self.safe],
@@ -148,7 +164,7 @@ class ArtifactGCTests(unittest.TestCase):
         self.assertTrue(self.worktree.exists())
         self.assertFalse((self.worktree / "node_modules").exists())
 
-    def test_cli_shutdown_marks_session_idle_and_keeps_task_tree(self):
+    def test_cli_shutdown_marks_idle_but_does_not_reclaim_before_task_terminal(self):
         self.assertTrue((ROOT / "agent-control/bin/agent-finish").stat().st_mode & 0o111)
         modules, _ = self._artifacts()
         with mock.patch.object(GC, "process_snapshot", return_value=([], True)):
@@ -156,9 +172,10 @@ class ArtifactGCTests(unittest.TestCase):
         manifest = json.loads((self.sessions / "session-1.json").read_text())
         self.assertEqual(manifest["lifecycle_state"], "idle")
         self.assertTrue(manifest["lifecycle_updated_at"])
-        self.assertFalse(modules.exists())
+        self.assertTrue(modules.exists())
         self.assertTrue(self.worktree.exists())
-        self.assertEqual(result["state"], "eligible")
+        self.assertEqual((result["state"], result["reason"]),
+                         ("unknown", "task_not_terminal"))
 
     def test_capacity_limits_are_configured_not_duplicated(self):
         changed = {**self.policy, "capacity_gib": {"pressure_below": 70, "critical_below": 40}}
