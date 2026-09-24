@@ -133,6 +133,7 @@ obj={
   "branch": "${BRANCH}",
   "worktree_path": "${WORKTREE}",
   "started_at": "${STARTED_AT}",
+  "lifecycle_state": "active",
   "production_mutation": False,
   "preflight_result": "pass",
   "provenance_type": "agent-session",
@@ -164,12 +165,27 @@ export COMPANY_WORKSPACE_ROOT="${COMPANY_WORKSPACE_ROOT:-/home/jerry/workspace}"
 export COMPANY_CONTROL_PLANE_ROOT="${COMPANY_CONTROL_PLANE_ROOT:-/home/jerry/workspace/portfolio-ops}"
 export COMPANY_AGENT_CONTRACT="${COMPANY_AGENT_CONTRACT:-/home/jerry/workspace/portfolio-ops/governance/company-agent-contract.yaml}"
 export AGENT_SESSION_ID="$SESSION_ID" AGENT_TASK_ID="$TASK_ID" AGENT_SESSION_MANIFEST="$MANIFEST_PATH"
+set +e
 case "$CLI" in
   cursor)
-    if command -v cursor >/dev/null; then exec cursor .
-    elif command -v agent >/dev/null; then exec agent
-    else fail "cursor/agent not found"; fi ;;
-  codex) command -v codex >/dev/null || fail "codex missing"; exec codex ;;
-  claude) command -v claude >/dev/null || fail "claude missing"; exec claude ;;
-  *) fail "bad cli" ;;
+    if command -v cursor >/dev/null; then cursor .
+    elif command -v agent >/dev/null; then agent
+    else echo "agent-start: cursor/agent not found" >&2; false; fi ;;
+  codex)
+    if command -v codex >/dev/null; then codex
+    else echo "agent-start: codex missing" >&2; false; fi ;;
+  claude)
+    if command -v claude >/dev/null; then claude
+    else echo "agent-start: claude missing" >&2; false; fi ;;
+  *) echo "agent-start: bad cli" >&2; false ;;
 esac
+CLI_RC=$?
+set -e
+# The CLI ending makes the worktree idle, not deleted. Move out first so our
+# own shell is not mistaken for a live task process by the safety scan.
+unset AGENT_SESSION_ID AGENT_TASK_ID AGENT_SESSION_MANIFEST
+cd "$COMPANY_WORKSPACE_ROOT"
+if ! "$ROOT/agent-control/bin/agent-finish" "$PROJECT" "$TASK_ID" --idle; then
+  echo "agent-start: idle artifact cleanup failed; worktree retained" >&2
+fi
+exit "$CLI_RC"
