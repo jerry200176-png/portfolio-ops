@@ -30,22 +30,23 @@ These rules hold even under permissive (`bypassPermissions`) tool mode.
 
 ## Agent-owned (do not wait for a human click)
 
-- Squash-merge low-risk reversible PRs (R0–R2) after **required** GitHub
+- Squash-merge scoped PRs (R0–R3) after **required** GitHub
   checks (`docs/fleet-merge-policy.md` + `governance/AUTONOMY_POLICY.md`).
 - Deploy via the product path when the risk class allows it; verify
   health/version identity afterward.
 - Close GitHub issues when evidence fields are filled (AllTrue in-app bugs
   still need the product public-reply path).
 - Send/reply/label Gmail for the current task.
-- `workflow_dispatch` of **reversible** workflows already on the default
+- `workflow_dispatch` of approved workflows already on the default
   branch.
 
-## Founder-only before irreversible activation
+## Controlled R3 activation
 
-- Production data mutation, irreversible migration, identity/permission/
-  security policy, billing rule changes, major data repair, destructive
-  operations, major product direction, or activation without reliable
-  rollback. Credential rotation stays Founder-directed.
+- Production mutation, migration, permission/security, billing, repair and
+  credential rotation require the execution package in
+  `governance/AUTONOMY_POLICY.md` and the committed product control plane.
+  Stop when an essential recovery or verification control is unavailable.
+- Jerry decides new major product direction when the task does not specify it.
 
 ## Git rules (every repository)
 
