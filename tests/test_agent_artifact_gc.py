@@ -36,7 +36,7 @@ class ArtifactGCTests(unittest.TestCase):
         self._git("init", "-q")
         self._git("config", "user.email", "test@example.invalid")
         self._git("config", "user.name", "Test")
-        (self.worktree / ".gitignore").write_text("node_modules/\n.next/\n.agent-session/\n")
+        (self.worktree / ".gitignore").write_text("node_modules/\n.next/\n.agent-session/manifest.json\n")
         (self.worktree / "package.json").write_text(json.dumps({
             "scripts": {"build": "next build"}, "dependencies": {"next": "1.0.0"}
         }))
@@ -44,7 +44,8 @@ class ArtifactGCTests(unittest.TestCase):
         (self.worktree / "src.js").write_text("keep source")
         self._git("add", ".gitignore", "package.json", "package-lock.json", "src.js")
         self._git("commit", "-qm", "fixture")
-        self.manifest = {"session_id": "session-1", "task_id": "sample",
+        self.manifest = {"session_id": "session-1", "project": "portfolio-ops",
+                         "task_id": "sample", "provenance_type": "agent-session",
                          "worktree_path": str(self.worktree)}
         (self.sessions / "session-1.json").write_text(json.dumps(self.manifest))
         (self.worktree / ".agent-session").mkdir()
@@ -182,6 +183,7 @@ class ArtifactGCTests(unittest.TestCase):
         (qwork / "node_modules/generated.bin").write_bytes(b"x" * 4096)
         self.manifest["worktree_path"] = str(qwork)
         (self.sessions / "session-1.json").write_text(json.dumps(self.manifest))
+        (qwork / ".agent-session/manifest.json").write_text(json.dumps(self.manifest))
         result = GC.evaluate(qwork, self.sessions, self.policy, [qroot], [], True,
                              terminal_signal=True)
         self.assertEqual(result["reason"], "quarantine_metadata_incomplete")
@@ -299,6 +301,50 @@ class ArtifactGCTests(unittest.TestCase):
         self.assertFalse(modules.exists())
         self.assertEqual(len(log.read_text().splitlines()), 1)
 
+    def test_cleanup_failure_does_not_claim_terminal_and_retry_succeeds(self):
+        modules, _ = self._artifacts()
+        event = make_event("sample", self.worktree, "terminal_success", "exo",
+                           "2026-09-24T10:35:30Z")
+        with mock.patch.object(GC.shutil, "rmtree", side_effect=PermissionError("blocked")):
+            failed, log = self._receive_event(event)
+        claim = log.with_name("lifecycle-terminal-claims.jsonl")
+        self.assertEqual((failed["state"], failed["reason"]),
+                         ("unsafe", "cleanup_or_claim_failed"))
+        self.assertTrue(modules.exists())
+        self.assertFalse(claim.exists())
+
+        retried, _ = self._receive_event(event)
+        self.assertEqual(retried["state"], "eligible")
+        self.assertFalse(modules.exists())
+        self.assertTrue(claim.exists())
+
+    def test_unmanaged_or_human_authored_session_cannot_be_collected(self):
+        modules, _ = self._artifacts()
+        for provenance in (None, "human-authored"):
+            current = dict(self.manifest)
+            if provenance is None:
+                current.pop("provenance_type")
+            else:
+                current["provenance_type"] = provenance
+            (self.sessions / "session-1.json").write_text(json.dumps(current))
+            (self.worktree / ".agent-session/manifest.json").write_text(json.dumps(current))
+            event = make_event("sample", self.worktree, "terminal_success", "exo",
+                               "2026-09-24T10:35:45Z")
+            result, _ = self._receive_event(event)
+            self.assertNotEqual(result["state"], "eligible")
+            self.assertTrue(modules.exists())
+
+    def test_inconsistent_session_metadata_cannot_be_collected(self):
+        modules, _ = self._artifacts()
+        current = {**self.manifest, "task_id": "different-task"}
+        (self.worktree / ".agent-session/manifest.json").write_text(json.dumps(current))
+        event = make_event("sample", self.worktree, "terminal_success", "exo",
+                           "2026-09-24T10:35:50Z")
+        result, _ = self._receive_event(event)
+        self.assertEqual((result["state"], result["reason"]),
+                         ("unknown", "session_metadata_mismatch"))
+        self.assertTrue(modules.exists())
+
     def test_terminal_replay_with_new_timestamp_cannot_clean_regenerated_dependencies(self):
         modules, _ = self._artifacts()
         first_event = make_event("sample", self.worktree, "terminal_success", "exo",
@@ -332,13 +378,15 @@ class ArtifactGCTests(unittest.TestCase):
                          ("skipped", "terminal_already_claimed"))
         self.assertTrue((modules / "rebuilt.bin").exists())
 
-    def test_real_process_scan_does_not_count_gc_lock_as_external_worktree_use(self):
+    def test_real_process_scan_keeps_lifecycle_lock_outside_worktree(self):
         modules, _ = self._artifacts()
         event = make_event("sample", self.worktree, "terminal_success", "exo",
                            "2026-09-24T10:42:00Z")
         result, _ = self._receive_event(event, real_process_scan=True)
         self.assertEqual(result["state"], "eligible", result)
         self.assertFalse(modules.exists())
+        self.assertEqual(list((self.worktree / ".agent-session").glob("gc.lock")), [])
+        self.assertEqual(len(list((self.sessions / ".locks").glob("*.lock"))), 1)
 
     def test_old_terminal_event_cannot_finish_a_reopened_session(self):
         modules, _ = self._artifacts()

@@ -6,6 +6,7 @@ import argparse
 from contextlib import contextmanager
 import datetime as dt
 import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -176,6 +177,11 @@ def session_rows(worktree: Path, session_dir: Path) -> tuple[list[tuple[Path, di
         for file in session_dir.glob("*.json"):
             data = load_json(file)
             if data.get("worktree_path") and Path(data["worktree_path"]).resolve() == worktree.resolve():
+                if data.get("provenance_type") != "agent-session":
+                    return [], "session_provenance_unmanaged"
+                if (not isinstance(data.get("task_id"), str) or not data["task_id"]
+                        or data.get("project") not in {"portfolio-ops", "alltrue", "sunrise"}):
+                    return [], "session_metadata_incomplete"
                 state = data.get("lifecycle_state")
                 if state is not None and state not in {"active", "idle", "terminal"}:
                     return [], "session_lifecycle_invalid"
@@ -199,10 +205,32 @@ def current_session_id(worktree: Path) -> str:
     return str(data.get("session_id", "")) if isinstance(data, dict) else ""
 
 
+def current_session_manifest(worktree: Path) -> dict | None:
+    manifest = worktree / ".agent-session" / "manifest.json"
+    if manifest.is_symlink() or not manifest.is_file():
+        return None
+    data = load_json(manifest)
+    if (data.get("provenance_type") != "agent-session"
+            or data.get("project") not in {"portfolio-ops", "alltrue", "sunrise"}
+            or not isinstance(data.get("task_id"), str) or not data["task_id"]
+            or not isinstance(data.get("session_id"), str) or not data["session_id"]
+            or not isinstance(data.get("worktree_path"), str)):
+        return None
+    try:
+        if Path(data["worktree_path"]).resolve() != worktree.resolve():
+            return None
+    except OSError:
+        return None
+    return data
+
+
 @contextmanager
-def lifecycle_lock(worktree: Path):
+def lifecycle_lock(worktree: Path, session_dir: Path):
     """Serialize final cleanup with agent-start's session creation."""
-    lock_path = worktree / ".agent-session" / "gc.lock"
+    lock_dir = session_dir / ".locks"
+    lock_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    identity = str(worktree.resolve()).encode()
+    lock_path = lock_dir / f"{hashlib.sha256(identity).hexdigest()}.lock"
     if lock_path.is_symlink():
         raise OSError(f"refusing symlink lifecycle lock: {lock_path}")
     fd = os.open(lock_path, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
@@ -347,6 +375,14 @@ def evaluate(worktree: Path, session_dir: Path, policy: dict, allowed_roots: lis
             return {"path": str(worktree), "state": "active", "reason": reason,
                     "pid": process.get("pid"), "observed_artifacts": observed}
     rows, error = session_rows(worktree, session_dir)
+    current = current_session_manifest(worktree)
+    if not current:
+        return {"path": str(worktree), "state": "unknown", "reason": "current_session_unmanaged",
+                "observed_artifacts": observed}
+    if any(row.get("task_id") != current["task_id"] or row.get("project") != current["project"]
+           or row.get("worktree_path") != current["worktree_path"] for _, row in rows):
+        return {"path": str(worktree), "state": "unknown", "reason": "session_metadata_mismatch",
+                "observed_artifacts": observed}
     if expected_task_id and any(row.get("task_id") != expected_task_id for _, row in rows):
         return {"path": str(worktree), "state": "unknown", "reason": "session_task_mismatch",
                 "observed_artifacts": observed}
@@ -393,17 +429,13 @@ def evaluate(worktree: Path, session_dir: Path, policy: dict, allowed_roots: lis
             candidates.append({"path": str(path), "bytes": allocated_size(path), "kind": path.name})
     if terminal_signal and not dry_run:
         try:
-            with lifecycle_lock(worktree):
+            with lifecycle_lock(worktree, session_dir):
                 fresh_processes, fresh_complete = process_snapshot()
-                lock_file = str((worktree / ".agent-session" / "gc.lock").resolve())
-                for process in fresh_processes:
-                    if process.get("pid") == os.getpid():
-                        process["open_paths"] = [path for path in process.get("open_paths", [])
-                                                  if Path(path).resolve() != Path(lock_file)]
                 fresh_rows, fresh_error = session_rows(worktree, session_dir)
                 fresh_lease = active_lease(worktree, fresh_rows, dt.datetime.now(dt.timezone.utc))
                 fresh_ids = {str(row.get("session_id")) for _, row in fresh_rows if row.get("session_id")}
                 if (not fresh_complete or fresh_error or fresh_lease
+                        or not current_session_manifest(worktree)
                         or (expected_session_id and (current_session_id(worktree) != expected_session_id
                                                      or expected_session_id not in fresh_ids))
                         or (expected_task_id and any(row.get("task_id") != expected_task_id
@@ -417,7 +449,7 @@ def evaluate(worktree: Path, session_dir: Path, policy: dict, allowed_roots: lis
                     return {"path": str(worktree), "state": "active",
                             "reason": "activity_changed_during_gc", "observed_artifacts": observed}
                 if terminal_claim_path and completion_event and \
-                        not record_terminal_claim(terminal_claim_path, completion_event):
+                        terminal_claimed(terminal_claim_path, completion_event):
                     return {"path": str(worktree), "state": "skipped",
                             "reason": "terminal_already_claimed", "observed_artifacts": observed}
                 for item in candidates:
@@ -426,9 +458,17 @@ def evaluate(worktree: Path, session_dir: Path, policy: dict, allowed_roots: lis
                     if artifact_safety(repo, target, proof):
                         return {"path": str(worktree), "state": "unsafe",
                                 "reason": "artifact_changed_during_gc", "observed_artifacts": observed}
-                    shutil.rmtree(target)
+                    try:
+                        shutil.rmtree(target)
+                    except FileNotFoundError:
+                        if target.exists() or target.is_symlink():
+                            raise
+                if terminal_claim_path and completion_event:
+                    if not record_terminal_claim(terminal_claim_path, completion_event):
+                        return {"path": str(worktree), "state": "skipped",
+                                "reason": "terminal_already_claimed", "observed_artifacts": observed}
         except OSError as exc:
-            return {"path": str(worktree), "state": "unsafe", "reason": "lifecycle_lock_failed",
+            return {"path": str(worktree), "state": "unsafe", "reason": "cleanup_or_claim_failed",
                     "error": str(exc), "observed_artifacts": observed}
     return {"path": str(worktree), "state": "eligible", "reason": "terminal_and_safe",
             "artifacts": candidates, "observed_artifacts": observed, "skipped_artifacts": skipped}
