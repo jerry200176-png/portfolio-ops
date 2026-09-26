@@ -4,5 +4,7 @@ set -euo pipefail
 HERE="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$HERE/lib/common.sh"
 python3 "$HERE/lib/artifact_maintenance.py" \
-  --bare "${PROJECT_BARE[alltrue]}" --task-root "${PROJECT_TASK_ROOT[alltrue]}" \
+  --bare "${PROJECT_BARE[alltrue]}" \
+  --peer-bare "${PROJECT_BARE[portfolio-ops]}" --peer-bare "${PROJECT_BARE[sunrise]}" \
+  --task-root "${PROJECT_TASK_ROOT[alltrue]}" \
   --session-dir "$SESSIONS_DIR" "$@"

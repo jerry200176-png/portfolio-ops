@@ -55,8 +55,9 @@ class MaintenanceTests(unittest.TestCase):
                          rebuild_command='composer install --no-scripts', rebuild_evidence=[record], retained_evidence=[record])
 
     def verify(self, processes=None, complete=True):
-        return m.verify(self.plan, self.root / 'bare', self.tasks, self.sessions,
-                        processes or [], complete, [self.wt])
+        with patch.object(m, 'registered', return_value=[self.wt]):
+            return m.verify(self.plan, self.root / 'bare', self.tasks, self.sessions,
+                            processes or [], complete, [self.wt])
 
     def test_eligible_idle_never_updates_metadata(self):
         before = self.registry.read_bytes()
@@ -316,3 +317,25 @@ class MaintenanceTests(unittest.TestCase):
         peer.mkdir()
         (peer / 'metadata').symlink_to(self.target / 'package.php')
         m.references([self.wt, peer], [package], owner=self.wt)
+
+    def test_peer_bare_shared_reference_blocks_primary_target(self):
+        package = self.package_plan()
+        peer = self.root / 'portfolio-task'
+        peer.mkdir()
+        (peer / 'shared').symlink_to(package)
+        plan = self.root / 'plan.json'
+        plan.write_text(json.dumps(self.plan))
+        primary = self.root / 'alltrue.git'
+        peer_bare = self.root / 'portfolio.git'
+        args = ['maintenance', '--plan', str(plan), '--bare', str(primary),
+                '--peer-bare', str(peer_bare), '--task-root', str(self.tasks),
+                '--session-dir', str(self.sessions), '--dry-run-receipt', str(self.root / 'receipt.json')]
+        with patch.object(m, 'registered', side_effect=lambda bare: [self.wt] if bare == primary else [peer]), patch.object(m.gc, 'process_snapshot', return_value=([], True)):
+            with patch.object(sys, 'argv', args):
+                self.assertEqual(m.main(), 1)
+        self.assertTrue(package.exists())
+
+    def test_peer_inventory_never_grants_target_eligibility(self):
+        with patch.object(m, 'registered', return_value=[]):
+            with self.assertRaisesRegex(ValueError, 'target_not_in_primary_alltrue_inventory'):
+                m.verify(self.plan, self.root / 'bare', self.tasks, self.sessions, [], True, [self.wt])

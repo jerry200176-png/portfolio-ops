@@ -139,3 +139,13 @@ removal, but a peer alias only to retained metadata does not. Own-worktree bin
 and source aliases remain intact and do not imply sharing with another
 worktree; complete process gates still prohibit active use. Target-path aliases
 and aliases inside a removed package remain forbidden by pristine verification.
+
+The canonical wrapper obtains peer inventories from the existing common
+project configuration for portfolio-ops and sunrise as well as AllTrue. Their
+registered worktrees participate in locks and shared-reference checks, but
+never gain target eligibility: the target must also be registered in the
+primary AllTrue bare repository under the managed AllTrue task root. A missing
+or unreadable peer inventory fails closed. Direct library callers must supply
+all canonical peer repositories using `--peer-bare`. Unregistered/unknown
+sharing cannot be inferred safe; retain potentially shared work until ownership
+and reference boundaries are proven.

@@ -109,6 +109,8 @@ def activity_gate(plan, task_root, sessions, processes, complete, worktrees):
 
 def verify(plan, bare, task_root, sessions, processes, complete, worktrees):
     wt = activity_gate(plan, task_root, sessions, processes, complete, worktrees)
+    if wt not in registered(bare):
+        raise ValueError('target_not_in_primary_alltrue_inventory')
     rel = plan['target']
     if rel not in TARGETS.get(plan['category'], set()):
         raise ValueError('target_outside_scope')
@@ -181,6 +183,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--plan', type=Path, required=True)
     parser.add_argument('--bare', type=Path, required=True)
+    parser.add_argument('--peer-bare', type=Path, action='append', default=[])
     parser.add_argument('--task-root', type=Path, required=True)
     parser.add_argument('--session-dir', type=Path, required=True)
     parser.add_argument('--apply', action='store_true')
@@ -190,14 +193,16 @@ def main():
     plan_hash = hashlib.sha256(raw).hexdigest()
     plan = json.loads(raw)
     result = {'plan_sha256': plan_hash, 'worktree': plan.get('worktree'), 'target': plan.get('target'), 'deleted_bytes': 0}
+    def inventory():
+        return sorted({wt for bare in [args.bare] + args.peer_bare for wt in registered(bare)})
     try:
-        worktrees = registered(args.bare)
+        worktrees = inventory()
         with ExitStack() as stack:
             # Same locks used by canonical agent-start; this does not control
             # ungoverned external writers. Any observed use fails closed.
             for wt in worktrees:
                 stack.enter_context(gc.lifecycle_lock(wt, args.session_dir))
-            if registered(args.bare) != worktrees:
+            if inventory() != worktrees:
                 raise ValueError('worktree_inventory_changed')
             processes, complete = gc.process_snapshot()
             target = verify(plan, args.bare, args.task_root, args.session_dir, processes, complete, worktrees)
@@ -215,7 +220,7 @@ def main():
                 fresh_processes, fresh_complete = gc.process_snapshot()
                 verify(plan, args.bare, args.task_root, args.session_dir,
                        fresh_processes, fresh_complete, worktrees)
-                if registered(args.bare) != worktrees:
+                if inventory() != worktrees:
                     raise ValueError('worktree_inventory_changed')
                 # The final cheap gate follows all hashing/reference work.
                 # Repeat for each exact package: no ongoing worker may be
