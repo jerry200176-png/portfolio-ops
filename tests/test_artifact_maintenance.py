@@ -292,3 +292,27 @@ class MaintenanceTests(unittest.TestCase):
             self.plan['package_digests'] = {name: 'not-a-package'}
             with self.assertRaisesRegex(ValueError, 'package_not_locked_or_unsafe'):
                 self.verify()
+
+    def test_same_worktree_retained_bin_links_do_not_mean_cross_worktree_sharing(self):
+        package = self.package_plan()
+        bins = self.target / 'bin'
+        bins.mkdir()
+        (bins / 'tool').symlink_to(package / 'lib.php')
+        (bins / 'unrelated').symlink_to(self.root / 'unrelated')
+        self.assertEqual(self.verify(), self.target)
+        self.assertTrue((bins / 'tool').is_symlink())
+
+    def test_other_worktree_parent_alias_blocks_exact_package(self):
+        package = self.package_plan()
+        peer = self.tasks / 'peer'
+        peer.mkdir()
+        (peer / 'alias').symlink_to(self.target, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'shared_reference'):
+            m.references([self.wt, peer], [package], owner=self.wt)
+
+    def test_other_worktree_unrelated_vendor_metadata_link_does_not_block_packages(self):
+        package = self.package_plan()
+        peer = self.tasks / 'peer'
+        peer.mkdir()
+        (peer / 'metadata').symlink_to(self.target / 'package.php')
+        m.references([self.wt, peer], [package], owner=self.wt)

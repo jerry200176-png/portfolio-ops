@@ -132,3 +132,10 @@ Thus a worker or lease that appears during hashing prevents removal. Locks
 serialize only canonical agent-start; they do not guarantee control of unknown
 or unmanaged writers. Observed activity skips the target; if an unmanaged writer
 cannot be excluded, the operator must not activate maintenance.
+
+Shared-reference checks compare other registered worktrees against the exact
+removal paths. In package mode, a peer alias to the vendor parent still blocks
+removal, but a peer alias only to retained metadata does not. Own-worktree bin
+and source aliases remain intact and do not imply sharing with another
+worktree; complete process gates still prohibit active use. Target-path aliases
+and aliases inside a removed package remain forbidden by pristine verification.

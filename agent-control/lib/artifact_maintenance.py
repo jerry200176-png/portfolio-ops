@@ -59,18 +59,22 @@ def registered(bare):
                    if line.startswith('worktree ') and Path(line[9:]).resolve() != bare.resolve()})
 
 
-def references(worktrees, target):
+def references(worktrees, targets, owner=None):
     """Never follow directory links; reject aliases into target or its parents."""
+    targets = [targets] if isinstance(targets, Path) else targets
     def failure(error):
         raise error
     for worktree in worktrees:
+        if owner is not None and worktree == owner:
+            continue
         for root, dirs, files in os.walk(worktree, followlinks=False, onerror=failure):
             dirs[:] = [name for name in dirs if name != '.git']
             for name in dirs + files:
                 path = Path(root) / name
                 if path.is_symlink():
                     dest = path.resolve(strict=False)
-                    if dest == target or gc.under(dest, target) or gc.under(target, dest):
+                    if any(dest == target or gc.under(dest, target) or gc.under(target, dest)
+                           for target in targets):
                         raise ValueError('shared_reference:' + str(path))
 
 
@@ -168,7 +172,8 @@ def verify(plan, bare, task_root, sessions, processes, complete, worktrees):
         expected = plan['pristine_digest']
         if digest(pristine) != expected or digest(target) != expected:
             raise ValueError('artifact_not_pristine')
-    references(worktrees, target)
+    exact_targets = [target / name for name in packages] if packages is not None else [target]
+    references(worktrees, exact_targets, owner=wt)
     return target
 
 
