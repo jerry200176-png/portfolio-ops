@@ -214,3 +214,26 @@ class MaintenanceTests(unittest.TestCase):
         namespace.symlink_to(outside, target_is_directory=True)
         with self.assertRaisesRegex(ValueError, 'package_alias'):
             self.verify()
+
+    def test_partial_cleanup_reports_deleted_file_blocks(self):
+        import contextlib
+        import io
+        package = self.package_plan()
+        plan = self.root / 'plan.json'
+        plan.write_text(json.dumps(self.plan))
+        args = ['maintenance', '--plan', str(plan), '--bare', str(self.root / 'bare'),
+                '--task-root', str(self.tasks), '--session-dir', str(self.sessions),
+                '--dry-run-receipt', str(self.root / 'receipt.json')]
+        def partial(path):
+            (path / 'lib.php').unlink()
+            raise OSError('simulated partial failure')
+        with patch.object(m, 'registered', return_value=[self.wt]), patch.object(m.gc, 'process_snapshot', return_value=([], True)):
+            with patch.object(sys, 'argv', args):
+                self.assertEqual(m.main(), 0)
+            output = io.StringIO()
+            with patch.object(sys, 'argv', args + ['--apply']), patch.object(m.shutil, 'rmtree', side_effect=partial), contextlib.redirect_stdout(output):
+                self.assertEqual(m.main(), 1)
+            result = json.loads(output.getvalue())
+            self.assertEqual(result['state'], 'skipped')
+            self.assertGreater(result['deleted_bytes'], 0)
+            self.assertTrue(package.exists())
