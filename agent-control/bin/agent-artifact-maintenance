@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Exact scoped AllTrue cleanup; no lifecycle state changes.
+set -euo pipefail
+HERE="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$HERE/lib/common.sh"
+python3 "$HERE/lib/artifact_maintenance.py" \
+  --bare "${PROJECT_BARE[alltrue]}" --task-root "${PROJECT_TASK_ROOT[alltrue]}" \
+  --session-dir "$SESSIONS_DIR" "$@"

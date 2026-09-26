@@ -74,3 +74,52 @@ The installer records `.runtime-provenance.json` with version, source commit,
 and UTC install time. `agent-control/bin/agent-finish --runtime-version` prints
 those fields. The installer refuses modified agent-control source so that the SHA
 names the code that was actually installed.
+
+### Exact scoped artifact maintenance
+
+`bin/agent-artifact-maintenance --plan PLAN.json --dry-run-receipt RECEIPT.json`
+checks one explicitly named AllTrue artifact. Repeat with `--apply` only after
+reviewing the successful receipt. The ordinary node_modules canary and terminal
+completion claims are unchanged. This entry point never changes session states.
+
+The plan binds `worktree`, `task_id`, `session_id`, `category`, `target`,
+`source_tree` (the committed backend/frontend tree object), `source_files`
+(path → SHA256 for the tracked package manifest and lockfiles), `pristine`
+(an isolated rebuilt directory outside task roots), `pristine_digest`,
+`rebuild_command`, `rebuild_evidence`, and `retained_evidence`. Evidence arrays
+contain `{ "path": "/absolute/file", "sha256": "…" }` records. The operator
+must retain the actual successful rebuild log and needed acceptance evidence;
+this tool does not execute arbitrary rebuild commands or infer acceptance.
+
+Supported exact paths are backend/vendor (composer_vendor), frontend/dist_build
+(build_output), and frontend/node_modules/.vite or .vite-temp (tool_cache).
+Other paths are rejected. Pristine must match every regular file, directory and
+mode; links, special files and multiply linked files are rejected. Differing
+Composer generated files are not silently exempted. Proving only package names
+or a lockfile is insufficient. Cache content which cannot be independently
+reproduced remains untouched.
+
+Identity must match canonical registry and worktree manifests. Registry state
+must be idle or terminal, with no active lease or process; idle alone provides
+no eligibility. Full process visibility, exact proof, ignored/untracked target,
+unchanged tracked source, retained evidence and no registered-worktree symlink
+references are required. Existing lifecycle locks serialize the check/removal
+with agent-start for the target and registered peers. Worktree inventory is
+rechecked before removal. The successful dry-run receipt binds the exact plan;
+apply repeats all checks. The report counts file allocated blocks using the
+same existing GC helper; whole-root net change must be measured separately.
+
+This mechanism cannot arbitrate ungoverned external writers; such activity must
+be excluded by the operator. It never deletes source, Git, backend storage,
+whole worktrees, or lifecycle metadata. Permission/read failures skip the target.
+
+For Composer only, `package_digests` may map exact locked `namespace/package`
+names to pristine digests instead of matching the whole vendor directory.
+Each requested name must occur in composer.lock and each package directory
+must independently match the rebuilt package. All checks execute once under
+the same locks, before any package is removed. The receipt enumerates exact
+package targets. Generated vendor/composer metadata, bins, root files and
+unrequested packages remain intact; differing generated metadata is therefore
+never deleted or rewritten to manufacture an exact match. A later locked
+Composer install rebuilds removed packages. Invalid names, traversal,
+unlocked names, shared links and modified package files reject the batch.
