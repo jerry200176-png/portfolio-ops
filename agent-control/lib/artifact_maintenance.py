@@ -74,7 +74,7 @@ def references(worktrees, target):
                         raise ValueError('shared_reference:' + str(path))
 
 
-def verify(plan, bare, task_root, sessions, processes, complete, worktrees):
+def activity_gate(plan, task_root, sessions, processes, complete, worktrees):
     wt = Path(plan['worktree']).resolve()
     if not complete:
         raise ValueError('process_scan_incomplete')
@@ -100,6 +100,11 @@ def verify(plan, bare, task_root, sessions, processes, complete, worktrees):
         if proc.get('session_id') == manifest['session_id'] or any(
                 p.resolve() == wt or gc.under(p, wt) for p in paths):
             raise ValueError('process_uses_worktree')
+    return wt
+
+
+def verify(plan, bare, task_root, sessions, processes, complete, worktrees):
+    wt = activity_gate(plan, task_root, sessions, processes, complete, worktrees)
     rel = plan['target']
     if rel not in TARGETS.get(plan['category'], set()):
         raise ValueError('target_outside_scope')
@@ -152,7 +157,7 @@ def verify(plan, bare, task_root, sessions, processes, complete, worktrees):
             # Locked two-segment Composer packages only. Keep generated
             # vendor/composer, bins, installed manifests and unknown files.
             parts = name.split('/')
-            if (name not in locked or len(parts) != 2 or any(part in {'', '.', '..', 'composer', 'bin'} for part in parts)
+            if (name not in locked or len(parts) != 2 or any(part in {'', '.', '..', 'bin'} for part in parts)
                     or any(not all(c.isalnum() or c in '-_.' for c in part) for part in parts)):
                 raise ValueError('package_not_locked_or_unsafe')
             if (target / name).resolve() != target / name or (pristine / name).resolve() != pristine / name:
@@ -183,8 +188,8 @@ def main():
     try:
         worktrees = registered(args.bare)
         with ExitStack() as stack:
-            # Same locks used by agent-start; all existing peers cannot restart
-            # while references are checked and the exact target is removed.
+            # Same locks used by canonical agent-start; this does not control
+            # ungoverned external writers. Any observed use fails closed.
             for wt in worktrees:
                 stack.enter_context(gc.lifecycle_lock(wt, args.session_dir))
             if registered(args.bare) != worktrees:
@@ -200,9 +205,22 @@ def main():
                 receipt = gc.load_json(args.dry_run_receipt)
                 if receipt.get('state') != 'eligible' or receipt.get('plan_sha256') != plan_hash:
                     raise ValueError('matching_dry_run_required')
+                # Full revalidation uses a new process snapshot, not the earlier
+                # observation preceding potentially expensive proof hashing.
+                fresh_processes, fresh_complete = gc.process_snapshot()
+                verify(plan, args.bare, args.task_root, args.session_dir,
+                       fresh_processes, fresh_complete, worktrees)
                 if registered(args.bare) != worktrees:
                     raise ValueError('worktree_inventory_changed')
+                # The final cheap gate follows all hashing/reference work.
+                # Repeat for each exact package: no ongoing worker may be
+                # missed because it appeared during earlier package removal.
                 for path in targets:
+                    final_processes, final_complete = gc.process_snapshot()
+                    activity_gate(plan, args.task_root, args.session_dir,
+                                  final_processes, final_complete, worktrees)
+                    if path.resolve() != path or path.is_symlink():
+                        raise ValueError('artifact_alias_before_removal')
                     shutil.rmtree(path)
                 result.update(state='deleted', deleted_bytes=result['bytes'])
             else:

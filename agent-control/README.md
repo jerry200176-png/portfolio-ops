@@ -123,3 +123,12 @@ unrequested packages remain intact; differing generated metadata is therefore
 never deleted or rewritten to manufacture an exact match. A later locked
 Composer install rebuilds removed packages. Invalid names, traversal,
 unlocked names, shared links and modified package files reject the batch.
+
+Apply takes another complete process snapshot and repeats the complete
+identity/lease/source/lock/evidence/pristine/shared-reference verification.
+After that potentially slow proof work, it takes a final fresh process snapshot
+and rechecks identity/lifecycle/lease immediately before each exact deletion.
+Thus a worker or lease that appears during hashing prevents removal. Locks
+serialize only canonical agent-start; they do not guarantee control of unknown
+or unmanaged writers. Observed activity skips the target; if an unmanaged writer
+cannot be excluded, the operator must not activate maintenance.

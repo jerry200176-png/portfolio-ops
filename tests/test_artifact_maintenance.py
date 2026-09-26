@@ -143,20 +143,20 @@ class MaintenanceTests(unittest.TestCase):
             self.assertTrue((self.wt / 'backend/composer.lock').exists())
             self.assertTrue(self.pristine.exists())
 
-    def package_plan(self):
-        package = self.target / 'acme/package'
+    def package_plan(self, name="acme/package"):
+        package = self.target / name
         package.mkdir(parents=True)
         (package / 'lib.php').write_text('reproducible package')
-        pristine_package = self.pristine / 'acme/package'
+        pristine_package = self.pristine / name
         pristine_package.mkdir(parents=True)
         (pristine_package / 'lib.php').write_text('reproducible package')
         lock = self.wt / 'backend/composer.lock'
-        lock.write_text(json.dumps(dict(packages=[dict(name='acme/package')])))
+        lock.write_text(json.dumps(dict(packages=[dict(name=name)])))
         subprocess.run(['git', '-C', str(self.wt), 'add', 'backend/composer.lock'], check=True)
         subprocess.run(['git', '-C', str(self.wt), 'commit', '-qm', 'locked package'], check=True)
         self.plan['source_tree'] = m.gc.run('git', '-C', str(self.wt), 'rev-parse', 'HEAD:backend').stdout.strip()
         self.plan['source_files']['backend/composer.lock'] = m.file_hash(lock)
-        self.plan['package_digests'] = {'acme/package': m.digest(pristine_package)}
+        self.plan['package_digests'] = {name: m.digest(pristine_package)}
         return package
 
     def test_locked_packages_allow_generated_metadata_difference(self):
@@ -237,3 +237,58 @@ class MaintenanceTests(unittest.TestCase):
             self.assertEqual(result['state'], 'skipped')
             self.assertGreater(result['deleted_bytes'], 0)
             self.assertTrue(package.exists())
+
+    def activity_change_during_proof(self, change):
+        plan = self.root / 'plan.json'
+        plan.write_text(json.dumps(self.plan))
+        args = ['maintenance', '--plan', str(plan), '--bare', str(self.root / 'bare'),
+                '--task-root', str(self.tasks), '--session-dir', str(self.sessions),
+                '--dry-run-receipt', str(self.root / 'receipt.json')]
+        with patch.object(m, 'registered', return_value=[self.wt]), patch.object(m.gc, 'process_snapshot', return_value=([], True)):
+            with patch.object(sys, 'argv', args):
+                self.assertEqual(m.main(), 0)
+        actual_digest = m.digest
+        snapshots = [([], True)]
+        def proof(path):
+            result = actual_digest(path)
+            change(snapshots)
+            return result
+        with patch.object(m, 'registered', return_value=[self.wt]), patch.object(m.gc, 'process_snapshot', side_effect=lambda: snapshots[-1]), patch.object(m, 'digest', side_effect=proof), patch.object(m.shutil, 'rmtree') as remove:
+            with patch.object(sys, 'argv', args + ['--apply']):
+                self.assertEqual(m.main(), 1)
+            remove.assert_not_called()
+        self.assertTrue(self.target.exists())
+
+    def test_new_process_during_proof_prevents_removal(self):
+        self.activity_change_during_proof(lambda snapshots: snapshots.append(
+            ([dict(cwd=str(self.target), pid=999)], True)))
+
+    def test_new_lease_during_proof_prevents_removal(self):
+        def lease(_):
+            row = json.loads(self.registry.read_text())
+            row['lease_expires_at'] = '2999-01-01T00:00:00Z'
+            self.registry.write_text(json.dumps(row))
+        self.activity_change_during_proof(lease)
+
+    def test_process_appears_during_final_proof_blocks_cheap_gate(self):
+        plan = self.root / 'plan.json'
+        plan.write_text(json.dumps(self.plan))
+        args = ['maintenance', '--plan', str(plan), '--bare', str(self.root / 'bare'),
+                '--task-root', str(self.tasks), '--session-dir', str(self.sessions),
+                '--dry-run-receipt', str(self.root / 'receipt.json')]
+        with patch.object(m, 'registered', return_value=[self.wt]), patch.object(m.gc, 'process_snapshot', return_value=([], True)):
+            with patch.object(sys, 'argv', args):
+                self.assertEqual(m.main(), 0)
+        snapshots = [([], True), ([], True), ([dict(cwd=str(self.target), pid=999)], True)]
+        with patch.object(m, 'registered', return_value=[self.wt]), patch.object(m.gc, 'process_snapshot', side_effect=snapshots), patch.object(m.shutil, 'rmtree') as remove:
+            with patch.object(sys, 'argv', args + ['--apply']):
+                self.assertEqual(m.main(), 1)
+            remove.assert_not_called()
+
+    def test_locked_composer_namespace_package_is_allowed(self):
+        self.package_plan('composer/semver')
+        self.assertEqual(self.verify(), self.target)
+        for name in ['composer/installed.php', 'composer/autoload_static.php', 'composer']:
+            self.plan['package_digests'] = {name: 'not-a-package'}
+            with self.assertRaisesRegex(ValueError, 'package_not_locked_or_unsafe'):
+                self.verify()
