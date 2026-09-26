@@ -36,7 +36,8 @@ def digest(path):
             if stat.S_ISREG(info.st_mode) and info.st_nlink != 1:
                 raise ValueError('shared_inode')
             result.update(json.dumps([item.relative_to(path).as_posix(),
-                                      stat.S_IMODE(info.st_mode), stat.S_ISDIR(info.st_mode)]).encode())
+                                      stat.S_IMODE(info.st_mode), stat.S_ISDIR(info.st_mode),
+                                      info.st_size if stat.S_ISREG(info.st_mode) else None]).encode())
             if item.is_file():
                 with item.open('rb') as stream:
                     for chunk in iter(lambda: stream.read(1024 * 1024), b''):
@@ -211,6 +212,8 @@ def main():
                 with args.dry_run_receipt.open('x') as stream:
                     json.dump(result, stream, indent=2)
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+        if args.apply and 'targets' in locals() and 'bytes' in result:
+            result['deleted_bytes'] = result['bytes'] - sum(gc.allocated_size(path) for path in targets if path.exists())
         result.update(state='skipped', reason=str(exc))
     print(json.dumps(result))
     return 0 if result['state'] in {'eligible', 'deleted'} else 1
