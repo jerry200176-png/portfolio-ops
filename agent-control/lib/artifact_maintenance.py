@@ -73,7 +73,7 @@ def references(worktrees, targets, owner=None):
                 path = Path(root) / name
                 if path.is_symlink():
                     dest = path.resolve(strict=False)
-                    if any(dest == target or gc.under(dest, target) or gc.under(target, dest)
+                    if any(dest == target or dest.is_relative_to(target) or target.is_relative_to(dest)
                            for target in targets):
                         raise ValueError('shared_reference:' + str(path))
 
