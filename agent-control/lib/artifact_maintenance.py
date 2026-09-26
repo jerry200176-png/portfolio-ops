@@ -62,20 +62,26 @@ def registered(bare):
 def references(worktrees, targets, owner=None):
     """Never follow directory links; reject aliases into target or its parents."""
     targets = [targets] if isinstance(targets, Path) else targets
-    def failure(error):
-        raise error
     for worktree in worktrees:
         if owner is not None and worktree == owner:
             continue
-        for root, dirs, files in os.walk(worktree, followlinks=False, onerror=failure):
-            dirs[:] = [name for name in dirs if name != '.git']
-            for name in dirs + files:
-                path = Path(root) / name
-                if path.is_symlink():
-                    dest = path.resolve(strict=False)
-                    if any(dest == target or dest.is_relative_to(target) or target.is_relative_to(dest)
-                           for target in targets):
-                        raise ValueError('shared_reference:' + str(path))
+        pending = [worktree]
+        while pending:
+            # DirEntry uses filesystem d_type where available. Unlike a Path
+            # lstat for every regular file, only actual aliases need resolving.
+            # Scandir/DirEntry errors propagate: no unreadable subtree is safe.
+            with os.scandir(pending.pop()) as entries:
+                for entry in entries:
+                    if entry.name == '.git':
+                        continue
+                    if entry.is_symlink():
+                        path = Path(entry.path)
+                        dest = path.resolve(strict=False)
+                        if any(dest == target or dest.is_relative_to(target) or target.is_relative_to(dest)
+                               for target in targets):
+                            raise ValueError('shared_reference:' + str(path))
+                    elif entry.is_dir(follow_symlinks=False):
+                        pending.append(Path(entry.path))
 
 
 def activity_gate(plan, task_root, sessions, processes, complete, worktrees):

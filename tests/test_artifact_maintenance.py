@@ -339,3 +339,27 @@ class MaintenanceTests(unittest.TestCase):
         with patch.object(m, 'registered', return_value=[]):
             with self.assertRaisesRegex(ValueError, 'target_not_in_primary_alltrue_inventory'):
                 m.verify(self.plan, self.root / 'bare', self.tasks, self.sessions, [], True, [self.wt])
+
+    def test_reference_scan_permission_failure_is_not_ignored(self):
+        peer = self.tasks / 'peer'
+        peer.mkdir()
+        with patch.object(m.os, 'scandir', side_effect=PermissionError('unreadable peer subtree')):
+            with self.assertRaisesRegex(PermissionError, 'unreadable peer subtree'):
+                m.references([peer], [self.target], owner=self.wt)
+
+    def test_reference_scan_never_follows_directory_symlink(self):
+        peer = self.tasks / 'peer'
+        peer.mkdir()
+        external = self.root / 'external'
+        external.mkdir()
+        (external / 'backlink').symlink_to(self.target)
+        (peer / 'external-alias').symlink_to(external, target_is_directory=True)
+        # Alias itself is unrelated; traversing its destination would wrongly
+        # attribute external content to a registered worktree.
+        m.references([peer], [self.target], owner=self.wt)
+
+    def test_reference_scan_skips_git_metadata(self):
+        peer = self.tasks / 'peer'
+        (peer / '.git').mkdir(parents=True)
+        (peer / '.git/shared').symlink_to(self.target)
+        m.references([peer], [self.target], owner=self.wt)
