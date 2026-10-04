@@ -15,9 +15,14 @@ Run `python3 scripts/check-production-identity.py --json-out production-identity
 for a fresh read-only observation. The weekly governance workflow also stores
 `production-identity.json` beside `portfolio-freshness.json` in its Actions
 artifact, even when the inventory freshness gate fails. The probe reports the
-serving SHA, health, inventory match, and observation time. Its `VERIFIED`
-state covers runtime identity and health only; product acceptance and merge
-state remain unknown until product-specific evidence is attached.
+serving SHA, health, inventory match, and observation time. Its
+`RUNTIME_VERIFIED` state covers runtime identity and health only. It also reads
+GitHub deployments for a pending candidate; a protected blocker is shown only
+when GitHub's pending-deployments API confirms required reviewers. Private
+product evidence may be `UNKNOWN` in the repository-scoped weekly Action.
+Product acceptance and merge state remain unknown until product-specific
+evidence is attached. Deployment frequency and change failure rate are not
+derived from PR counts or PR titles in this report.
 
 ## Product-owned controls (keep in product repos)
 

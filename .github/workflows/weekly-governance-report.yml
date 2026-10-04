@@ -23,6 +23,10 @@ jobs:
         run: python scripts/portfolio-freshness.py --fail-on-stale --github-summary --json-out "$RUNNER_TEMP/portfolio-freshness.json"
       - name: Probe production identity
         if: always()
+        env:
+          # Repository-scoped token; private product evidence stays UNKNOWN
+          # unless this workflow already has read access. No cross-repo secret.
+          GH_TOKEN: ${{ github.token }}
         run: python scripts/check-production-identity.py --fail-on-unhealthy --github-summary --json-out "$RUNNER_TEMP/production-identity.json"
       - name: Upload freshness evidence
         if: always()
