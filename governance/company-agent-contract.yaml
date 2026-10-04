@@ -170,14 +170,26 @@ irreversible_actions:
     - enable_disabled_self_dispatch_loop
     - weaken_tests_assertions_allowlists_or_security_controls
   agent_owns_with_evidence:
-    - low_risk_reversible_squash_merge
-    - r0_r1_r2_squash_merge
+    - eligible_low_risk_reversible_squash_merge
+    - routine_reversible_deploy_via_authorized_product_path
+    - migration_file_authoring
+    - local_or_authorized_isolated_migration_testing
     - close_github_issue
     - gmail_send_reply_label
-    - product_workflow_dispatch_reversible
-    - deploy_via_product_path_when_risk_allows
+    - product_workflow_dispatch_authorized_reversible
     - production_readonly_verify
-    - controlled_r3_execution_via_product_path
-    - credential_rotation_via_committed_workflow
   founder_approval_required:
+    - production_data_mutation
+    - production_migration_execution
+    - protected_production_activation
+    - destructive_or_irreversible_migration_design_locking_product_direction
+    - breaking_schema_contract_material_blast_radius
+    - identity_authentication_permission_privacy_security_policy
+    - billing_payment_semantics
+    - material_reservation_product_policy
+    - major_data_repair
+    - destructive_operations
     - major_product_direction
+    - major_architecture_expansion
+    - unresolved_material_risk_tradeoff
+    - credential_rotation

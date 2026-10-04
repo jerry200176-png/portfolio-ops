@@ -7,18 +7,21 @@ always-loaded summary.
 ## Why the operator is the Agent
 
 Until 2026-07-25, agents had a broad grant including merge and deploy. That
-was revoked. On 2026-08-15 merge after required checks was restored. The
-same day the owner said remaining “Founder” clicks were also not a control:
-he does not re-derive CI, Repair Manifests, or mail. Waiting for him is
-delay, not safety.
+was revoked. On 2026-08-15 merge after required checks was restored for
+eligible work. Routine Founder clicks that merely repeat CI, evidence, or
+already-authorized reversible operations are not controls; waiting for them
+is delay, not safety. The Founder retains the product, policy, and production
+side-effect decisions listed in `governance/AUTONOMY_POLICY.md`.
 
 Safety is **machine bans** (rulesets, hooks, product P0, secret non-echo)
 plus **evidence the Agent must write**. It is not a second human.
 
-Merging AllTrue **code** to `main` starts `deploy.yml`. That is accepted:
-it is the product control plane. Docs-only merges still skip that workflow.
-Committed `workflow_dispatch` is the Agent's extra-mutation path. SSH to
-the Pi is not.
+Merging AllTrue **code** to `main` can start `deploy.yml`; classify the full
+production-to-candidate change and product tier before merging. Authorized
+routine reversible releases may proceed through that product path; protected
+activation or production mutation requires the Founder decision first.
+`workflow_dispatch` is Agent-owned only for committed reversible workflows
+whose exact effects are already authorized. SSH to the Pi is not.
 
 GitHub ruleset **emergency bypass** is a platform capability of the account
 owner. Agents never `--admin`. That is identity, not an approval SOP.

@@ -1,8 +1,12 @@
 # PR description — template
 
 Every agent PR uses this shape. After required GitHub checks are green,
-squash-merge R0–R3 (`docs/fleet-merge-policy.md`). Do not `--admin`. The
-Agent is the operator; do not wait for a Founder click.
+squash-merge eligible changes only when the merge will not trigger unapproved
+production activation (`docs/fleet-merge-policy.md`). Production migration
+execution and product-defined protected activation require explicit Founder
+approval before the triggering action. Routine reversible deployment follows
+existing product authorization and full release-risk review. Do not `--admin`; do not wait for implementation-detail
+approval.
 
 ```markdown
 ## Risk-Class
