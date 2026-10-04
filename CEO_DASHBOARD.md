@@ -1,5 +1,27 @@
 # CEO Dashboard
 
+## Current portfolio state — 2026-10-04
+
+The current public runtime snapshot is in
+[production-identity-public.md](reports/2026-10-04/production-identity-public.md)
+(machine-readable companion:
+[JSON](reports/2026-10-04/production-identity-public.json), generated at
+`2026-10-04T08:14:55Z`). Both services returned healthy runtime
+identity endpoints, but both differ from the recorded inventory SHAs. Sunrise
+also reports a degraded per-isolate rate limit. Artifact digests, pending
+candidates, protected blockers, and product acceptance remain `UNKNOWN` in
+the public view.
+
+The latest automated probe is
+[weekly governance run 37174146031](https://github.com/jerry200176-png/portfolio-ops/actions/runs/37174146031).
+The workflow failed in both freshness generation and production identity
+verification. Public health endpoints returned healthy responses, but the
+identity gate failed because both runtime SHAs differ from the recorded
+inventory SHAs. The portfolio inventory and issue-count snapshot below was last refreshed on
+2026-09-04; treat its historical priorities and counts as stale until full
+triage refreshes them. A runtime health response does not establish release
+acceptance.
+
 ## 2026-08-29 — Teacher daily queue trust state live
 
 - AllTrue PR [#2174](https://github.com/jerry200176-png/AllTrue_System/pull/2174)

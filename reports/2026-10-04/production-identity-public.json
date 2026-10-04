@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-10-04T08:14:55.422760+00:00",
+  "projects": [
+    {
+      "id": "alltrue",
+      "observed_at": "2026-10-04T08:14:55.422760+00:00",
+      "inventory_source_commit": "e17d36ba838d36e6598af9f9b1d27a1f2134c204",
+      "serving_sha": "e483c1dc43975cfa173b12e75376fa51dc107a30",
+      "health": "HEALTHY",
+      "delivery_state": "RUNTIME_VERIFIED",
+      "verification_scope": "runtime_identity_and_health_only",
+      "product_acceptance": "UNKNOWN",
+      "inventory_match": false,
+      "inventory_age_hours": 718,
+      "errors": [],
+      "candidate_sha": null,
+      "candidate_state": "UNKNOWN",
+      "candidate_age_hours": null,
+      "protected_blocker": "UNKNOWN",
+      "candidate_evidence": null,
+      "blocker_evidence": null
+    },
+    {
+      "id": "sunrise",
+      "observed_at": "2026-10-04T08:14:55.422760+00:00",
+      "inventory_source_commit": "6630b9eb003e2d5459c84c9452f2413cc93ba8ab",
+      "serving_sha": "fec9e458767bd5b4a0e51cb440d4145440591ecc",
+      "health": "HEALTHY",
+      "delivery_state": "RUNTIME_VERIFIED",
+      "verification_scope": "runtime_identity_and_health_only",
+      "product_acceptance": "UNKNOWN",
+      "inventory_match": false,
+      "inventory_age_hours": 718,
+      "errors": [],
+      "candidate_sha": null,
+      "candidate_state": "UNKNOWN",
+      "candidate_age_hours": null,
+      "protected_blocker": "UNKNOWN",
+      "candidate_evidence": null,
+      "blocker_evidence": null
+    }
+  ]
+}
