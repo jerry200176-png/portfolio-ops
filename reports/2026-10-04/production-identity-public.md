@@ -71,4 +71,3 @@ Evidence:
   `ui-smoke-${{ github.event.pull_request.number || github.run_id }}` and
   cancels in progress only for `pull_request` events. The PR's exact-head
   required checks, including UI Smoke, passed.
-
