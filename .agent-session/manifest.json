@@ -1,16 +1,17 @@
 {
   "schema_version": "1.0",
-  "session_id": "49e0dfacadfe407cb06d71211987c959",
+  "session_id": "efe59dd5c64c4e2490a3ebbc8b48be75",
   "project": "portfolio-ops",
-  "task_id": "pr-hygiene-remediation-20260919",
+  "task_id": "GOV-20261004-AUTH-RECONCILE",
   "repo_remote": "https://github.com/jerry200176-png/portfolio-ops.git",
-  "base_sha": "8aab809554aa26a002652f3198e2b3074a9d39b2",
-  "branch": "chore/task-pr-hygiene-remediation-20260919",
-  "worktree_path": "/home/jerry/workspace/tasks/portfolio-ops/pr-hygiene-remediation-20260919",
-  "started_at": "2026-09-19T10:38:21Z",
+  "base_sha": "2a8360921a832a785736d49a2f114ef9bea9a3c0",
+  "branch": "chore/task-GOV-20261004-AUTH-RECONCILE",
+  "worktree_path": "/home/jerry/workspace/tasks/portfolio-ops/GOV-20261004-AUTH-RECONCILE",
+  "started_at": "2026-10-04T03:01:28Z",
+  "lifecycle_state": "active",
   "production_mutation": false,
   "preflight_result": "pass",
   "provenance_type": "agent-session",
-  "agent_cli": "codex",
-  "gateway_version": "0.5.1"
+  "agent_cli": null,
+  "gateway_version": "0.6.0"
 }
