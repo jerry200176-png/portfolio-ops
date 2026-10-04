@@ -105,6 +105,47 @@ class GovernanceBaselineTests(unittest.TestCase):
         policy = (ROOT / "governance" / "repository-governance.yaml").read_text(encoding="utf-8")
         self.assertIn("require_human_review: false", policy)
 
+    def test_agent_entrypoints_follow_company_authority_and_gateway(self):
+        bootstrap = (ROOT / "governance" / "AGENT_BOOTSTRAP.md").read_text(encoding="utf-8")
+        self.assertIn("**Canonical:** `agent-control`", bootstrap)
+        self.assertIn("**Experiment only:** ExoProtocol", bootstrap)
+        for name in ("AGENTS.md", "CLAUDE.md", "codex.md"):
+            entrypoint = (ROOT / name).read_text(encoding="utf-8")
+            with self.subTest(entrypoint=name):
+                self.assertIn("governance/AGENT_BOOTSTRAP.md", entrypoint)
+                self.assertIn("governance/COMPANY_CONSTITUTION.md", entrypoint)
+                self.assertIn("governance/AUTONOMY_POLICY.md", entrypoint)
+                self.assertIn("agent-control/bin/agent-start", entrypoint)
+                self.assertNotIn("<!-- exo:governance:begin -->", entrypoint)
+                self.assertNotRegex(entrypoint, r"(?i)exo session-start|exo session-finish|exo push")
+                self.assertIn("ExoProtocol is optional", entrypoint)
+
+    def test_portable_overlay_does_not_add_a_founder_gate(self):
+        overlay = (ROOT / "governance" / "PORTFOLIO_AGENT_CONTRACT.md").read_text(encoding="utf-8")
+        self.assertIn("governance/AUTONOMY_POLICY.md", overlay)
+        self.assertIn("Agents own reversible engineering work", overlay)
+        self.assertNotIn("independent human approval", overlay)
+        self.assertNotIn("Merge, deploy", overlay)
+        self.assertNotIn("eligible merges require Founder approval", overlay)
+
+    def test_exo_governance_is_manual_experiment_only(self):
+        workflow = (ROOT / ".github/workflows/exo-governance.yml").read_text(encoding="utf-8")
+        onboarding = (ROOT / "scripts/onboard-repository.sh").read_text(encoding="utf-8")
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertNotIn("pull_request:", workflow)
+        self.assertIn("Manual-only experiment workflow", workflow)
+        self.assertIn("base_sha:", workflow)
+        self.assertIn("head_sha:", workflow)
+        self.assertIn("ref: ${{ inputs.head_sha }}", workflow)
+        self.assertIn("persist-credentials: false", workflow)
+        self.assertIn('test "$(git rev-parse HEAD)" = "$EXO_HEAD_SHA"', workflow)
+        self.assertNotIn("github.event.pull_request", workflow)
+        self.assertIn("workflow-only change may be proposed", onboarding)
+        self.assertIn("never as a required fleet check", onboarding)
+        self.assertNotIn("require ExoProtocol Governance", onboarding)
+        self.assertIn('EXO_WORKFLOW_TEMPLATE="${SCRIPT_DIR}/../.github/workflows/exo-governance.yml"', onboarding)
+        self.assertNotIn("adapter-generate --target ci", onboarding)
+
 
 if __name__ == "__main__":
     unittest.main()
