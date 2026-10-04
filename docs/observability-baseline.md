@@ -6,12 +6,18 @@
 
 ## Required endpoints (live)
 
-| Product | Health | Version / deploy identity | Status 2026-09-04 |
+| Product | Health | Version / deploy identity | Historical status 2026-09-04 (stale) |
 |---|---|---|---|
 | AllTrue | `GET https://daan.lifenet.com.tw/api/v1/health` → `status=ok` | `GET https://daan.lifenet.com.tw/version.json` → `build_sha` | **已存在** — verified `e17d36ba…` / ok |
 | Sunrise | `GET https://sunrise-cafe-six.vercel.app/api/booking-health` → `ok=true` | `GET …/api/version` → `commit` | **已存在** — verified `6630b9eb…`; rate_limit **degraded_per_isolate** |
 
-Run: `python scripts/check-production-identity.py`
+Run `python3 scripts/check-production-identity.py --json-out production-identity.json`
+for a fresh read-only observation. The weekly governance workflow also stores
+`production-identity.json` beside `portfolio-freshness.json` in its Actions
+artifact, even when the inventory freshness gate fails. The probe reports the
+serving SHA, health, inventory match, and observation time. Its `VERIFIED`
+state covers runtime identity and health only; product acceptance and merge
+state remain unknown until product-specific evidence is attached.
 
 ## Product-owned controls (keep in product repos)
 

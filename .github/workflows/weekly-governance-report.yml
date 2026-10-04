@@ -21,8 +21,15 @@ jobs:
       - name: Generate freshness report
         # Scheduled/manual monitor remains fail-closed on stale inventory/evidence.
         run: python scripts/portfolio-freshness.py --fail-on-stale --github-summary --json-out "$RUNNER_TEMP/portfolio-freshness.json"
+      - name: Probe production identity
+        if: always()
+        run: python scripts/check-production-identity.py --fail-on-unhealthy --github-summary --json-out "$RUNNER_TEMP/production-identity.json"
       - name: Upload freshness evidence
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: portfolio-freshness
-          path: ${{ runner.temp }}/portfolio-freshness.json
+          path: |
+            ${{ runner.temp }}/portfolio-freshness.json
+            ${{ runner.temp }}/production-identity.json
+          if-no-files-found: error
