@@ -54,12 +54,30 @@ class ProductionIdentityTests(unittest.TestCase):
         self.assertFalse(row["inventory_match"])
         self.assertIn("NO", MODULE.render_markdown({"generated_at": NOW.isoformat(), "projects": [row]}))
 
-    def test_unhealthy_runtime_is_only_deployed(self) -> None:
+    def test_unhealthy_runtime_is_not_runtime_verified(self) -> None:
         responses = {"https://example.test/health": {"ok": False},
                      "https://example.test/version": {"commit": SHA_A}}
         row = MODULE.probe(portfolio(), responses.__getitem__, NOW)["projects"][0]
-        self.assertEqual(row["delivery_state"], "DEPLOYED")
+        self.assertEqual(row["delivery_state"], "RUNTIME_UNHEALTHY")
         self.assertEqual(row["health"], "UNHEALTHY")
+
+    def test_healthy_endpoint_with_degraded_rate_limit_is_not_healthy(self) -> None:
+        responses = {"https://example.test/health": {
+                         "ok": True,
+                         "rate_limit_mode": "memory",
+                         "rate_limit_grade": "degraded_per_isolate",
+                     },
+                     "https://example.test/version": {"commit": SHA_A}}
+        row = MODULE.probe(portfolio(), responses.__getitem__, NOW)["projects"][0]
+        self.assertEqual(row["delivery_state"], "RUNTIME_DEGRADED")
+        self.assertEqual(row["health"], "DEGRADED")
+        self.assertEqual(row["health_details"], {
+            "rate_limit_mode": "memory",
+            "rate_limit_grade": "degraded_per_isolate",
+        })
+        markdown = MODULE.render_markdown({"generated_at": NOW.isoformat(), "projects": [row]})
+        self.assertIn("RUNTIME_DEGRADED", markdown)
+        self.assertIn("degraded_per_isolate", markdown)
 
     def test_ambiguous_health_is_unknown_and_cannot_verify(self) -> None:
         responses = {"https://example.test/health": {"message": "alive"},
