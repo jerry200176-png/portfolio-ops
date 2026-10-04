@@ -14,23 +14,23 @@ minimum that travels with each governed repository.
   constitution/lock when present. Do not edit governance files to make a task
   pass or to bypass a lock, ticket, session, CI check, or review.
 - Migration authoring and local or authorized isolated migration testing are
-  Agent-owned engineering work. Production migration execution and production
-  deployment/activation require explicit Founder approval before the side
-  effect; a merge or workflow that triggers them is part of that boundary.
+  Agent-owned engineering work. Production migration execution and product-defined protected
+  activation require explicit Founder approval before the side effect; a
+  merge or workflow that triggers them is part of that boundary.
   Destructive migration design, material schema-contract risk, identity/
   permission/security policy, billing/payment semantics, and material product
   policy remain Founder decisions. Continue separable containment and ask only
   when an unresolved policy blocks the next safe step.
 - Every change goes through a pull request. **Required GitHub checks are the
   acceptance.** After they are green, agents squash-merge eligible changes
-  only when the merge will not trigger unapproved production activation, per
+  only when any triggered release is authorized under the full production-to-candidate risk, per
   `jerry200176-png/portfolio-ops` `governance/AUTONOMY_POLICY.md` and
   `docs/fleet-merge-policy.md`. Founder-risk code may be prepared and reviewed
   as a PR; R3 needs a Repair Manifest where applicable. Branch prefixes never
   grant a bypass of required checks. Do not `--admin` merge.
 - The Agent also closes issues (when evidence is filled), sends/replies on
-  Gmail for the task, and dispatches only committed reversible,
-  non-production workflows. Production side effects still require the Founder
+  Gmail for the task, and dispatches only committed reversible workflows whose exact effects are
+  authorized. Protected production effects still require the Founder
   decision above. Machine bans: secret print, force-push, production SSH,
   Gmail trash/delete.
 - Prefer mature open-source tools for generic lint, security, workflow, and

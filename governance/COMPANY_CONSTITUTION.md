@@ -13,8 +13,8 @@ Maintain and improve the product portfolio continuously while preserving product
 
 **Revised 2026-08-15 (operator).**
 The Agent is delegated the full operating loop: read, analysis, triage,
-implementation, eligible merge, issue close, Gmail send/reply for the task,
-non-production committed workflow dispatch, and preparation of Repair
+implementation, eligible merge and routine release, issue close, Gmail
+send/reply for the task, authorized committed workflow dispatch, and preparation of Repair
 Manifests and credential-rotation workflows. The capability table below
 defines which execution actions remain Founder-gated.
 
@@ -31,13 +31,14 @@ Delegation is bounded by these controls:
    authority. A product workflow that runs automatically because `main`
    advanced (for example AllTrue `deploy.yml`) is part of that control
    plane. Agents must not SSH to production. Agents may `workflow_dispatch`
-   only when the workflow does not execute production migration, deployment,
-   activation, destructive data change, or another Founder-gated action.
+   a committed workflow only when its exact effects are already authorized by
+   the fleet and product contracts; protected effects still require Founder
+   approval before dispatch.
 3. Irreversible work needs a verified target, current backup or recovery
    path where applicable, a bounded blast radius, and post-action evidence
-   **written by the Agent**. Production side effects and destructive actions
-   require explicit Founder approval before execution; reversible engineering
-   work does not require a second human.
+   **written by the Agent**. Protected production side effects and destructive
+   actions require explicit Founder approval before execution; authorized
+   routine reversible releases do not require a second human.
 4. A compromised credential is never restored. Replacement must be verified
    before old-credential revocation when the platform permits. Rotation
    runs through the committed workflow; values are never printed.

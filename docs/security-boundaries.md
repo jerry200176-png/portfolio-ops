@@ -16,11 +16,12 @@ side-effect decisions listed in `governance/AUTONOMY_POLICY.md`.
 Safety is **machine bans** (rulesets, hooks, product P0, secret non-echo)
 plus **evidence the Agent must write**. It is not a second human.
 
-Merging AllTrue **code** to `main` can start `deploy.yml`; treat that merge as
-production activation and require the Founder decision before it runs.
-Docs-only merges that provably skip production workflows remain eligible for
-autonomous merge after checks. `workflow_dispatch` is Agent-owned only for
-committed, reversible, non-production workflows. SSH to the Pi is not.
+Merging AllTrue **code** to `main` can start `deploy.yml`; classify the full
+production-to-candidate change and product tier before merging. Authorized
+routine reversible releases may proceed through that product path; protected
+activation or production mutation requires the Founder decision first.
+`workflow_dispatch` is Agent-owned only for committed reversible workflows
+whose exact effects are already authorized. SSH to the Pi is not.
 
 GitHub ruleset **emergency bypass** is a platform capability of the account
 owner. Agents never `--admin`. That is identity, not an approval SOP.

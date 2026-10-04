@@ -53,9 +53,10 @@ evidence review re-derives the claims. After **required** GitHub checks are
 green, merge eligible changes per `docs/fleet-merge-policy.md` only when the
 merge will not trigger an unapproved production side effect. Author and test
 migrations locally or in authorized isolated environments; production
-migration execution and production deployment/activation require explicit
-Founder approval before the triggering action. Then close the issue, send task
-mail, and dispatch only committed workflows that do not cross that boundary.
+migration execution and protected activation require explicit Founder
+approval before the triggering action. Routine reversible deployment follows
+existing product authorization after full release-risk review. Then close the issue, send task
+mail, and dispatch committed workflows only when their exact effects are authorized.
 Machine bans (secrets, force-push, production SSH, Gmail delete) stay. Do not
 wait for a human click on reversible engineering work.
 

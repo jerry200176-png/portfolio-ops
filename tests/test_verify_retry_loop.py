@@ -33,7 +33,7 @@ class VerifyRetryLoopTests(unittest.TestCase):
             r"(?i)autonomous deploy",
         )
         self.assertIn(
-            "Production migration execution and deployment/activation remain Founder-gated",
+            "Production migration execution and protected activation remain Founder-gated",
             " ".join(sop.split()),
         )
         self.assertIn(

@@ -32,8 +32,9 @@ Requires a reasonably fresh `triage` pass first — if
   branch/PR.
 - Author migration files and test them locally or in authorized isolated
   environments without Founder approval. Production migration execution,
-  deployment, activation, or a merge/workflow that triggers them requires
-  explicit Founder approval before the side effect.
+  protected activation, or a merge/workflow that triggers either requires
+  explicit Founder approval before the side effect. Routine reversible
+  deployment follows existing product authorization and full release-risk review.
 - Founder-risk changes may be investigated, implemented, tested, and prepared
   as PRs. Ask about material product-policy decisions only when the open
   decision blocks the next safe step; continue separable containment.

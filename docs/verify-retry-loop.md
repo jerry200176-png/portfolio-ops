@@ -5,7 +5,8 @@ not replace `docs/agent-operating-loop.md`, ExoProtocol, or
 `governance/AUTONOMY_POLICY.md`. Merge eligible changes only when required
 GitHub checks pass and the merge will not trigger unapproved production
 activation (`docs/fleet-merge-policy.md`). Production migration execution and
-deployment/activation remain Founder-gated. A green inner loop is not by
+protected activation remain Founder-gated; routine reversible deployment
+requires existing product authorization and release-level evidence. A green inner loop is not by
 itself a merge; GitHub required checks are. History rewrite, `--admin`, secret
 print, and production SSH stay machine-banned even when this loop is green.
 

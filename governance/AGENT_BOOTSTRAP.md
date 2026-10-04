@@ -34,9 +34,9 @@ target product repository's own `AGENTS.md`/`CLAUDE.md`.
    engineering work: investigate, plan, change application code, author
    migrations, test locally or in authorized isolated environments, and
    prepare PRs without implementation-detail approval. Merge only when
-   required checks pass and the merge will not trigger unapproved production
-   side effects. Production migration execution and production deployment or
-   activation require explicit Founder approval before the side effect; a
+   required checks pass and any triggered release is authorized for the full
+   production-to-candidate difference. Production migration execution and
+   product-defined protected activation require Founder approval before the side effect; a
    destructive design that locks in product direction requires a decision
    before implementation commits to it. If a repair exposes a material
    product-policy question, continue separable containment and ask only when

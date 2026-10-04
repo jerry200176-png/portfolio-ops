@@ -35,19 +35,19 @@ These rules hold even under permissive (`bypassPermissions`) tool mode.
   environment. Verify the target is not production and do not use production
   credentials.
 - Squash-merge eligible PRs after **required** GitHub checks only when the
-  merge will not itself trigger a production deployment, migration, or other
-  activation (`docs/fleet-merge-policy.md` + `governance/AUTONOMY_POLICY.md`).
-- Prepare and verify a production release plan; production deployment or
-  activation requires the Founder decision below.
+  merge and any triggered release are authorized after full production-to-candidate risk review (`docs/fleet-merge-policy.md` + `governance/AUTONOMY_POLICY.md`).
+- Prepare and verify an exact-version release plan; routine reversible deployment
+  follows existing product authorization, while protected activation requires
+  the Founder decision below.
 - Close GitHub issues when evidence fields are filled (AllTrue in-app bugs
   still need the product public-reply path).
 - Send/reply/label Gmail for the current task.
-- `workflow_dispatch` of **reversible, non-production** workflows already on
-  the default branch.
+- `workflow_dispatch` of committed reversible workflows already on the
+  default branch when the exact effect is authorized.
 
 ## Founder-only production and policy decisions
 
-- Production migration execution, production deployment or activation, and
+- Production migration execution, product-defined protected activation, and
   production data mutation or repair.
 - Destructive or difficult-to-reverse migration design when choosing it would
   lock in an irreversible product direction; identity/permission/security
@@ -70,7 +70,7 @@ These rules hold even under permissive (`bypassPermissions`) tool mode.
 5. Every PR states: evidence, root cause, what changed, tests run, risk
    class, rollback, and what remains unverified. After required checks are
    green, squash-merge only eligible changes under
-   `docs/fleet-merge-policy.md`; a merge that triggers production activation
+   `docs/fleet-merge-policy.md`; a merge that triggers a protected action
    requires the Founder decision first.
 6. A repo-maintaining agent works on exactly one repository per invocation.
 

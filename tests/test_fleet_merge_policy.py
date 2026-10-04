@@ -17,11 +17,13 @@ class FleetMergePolicyTests(unittest.TestCase):
         )
         self.assertIn("docs/fleet-merge-policy.md", policy)
         self.assertIn("Authoring a migration is engineering work", policy)
-        self.assertIn("Production deployment/activation is a Founder gate", policy)
+        self.assertIn("A routine reversible", policy)
+        self.assertIn("product T0–T3 classes", policy)
+        self.assertIn("complete difference from the actual production", policy)
         self.assertIn("Author migration files, database functions, and constraints", policy)
         self.assertIn("Run migrations locally / in authorized isolated test or staging", policy)
-        self.assertIn("Production migration execution or production deployment/activation", policy)
-        self.assertIn("merge must not trigger unapproved production activation", policy)
+        self.assertIn("Production migration execution or protected activation", policy)
+        self.assertIn("classify any push-triggered release", policy)
         self.assertNotIn("Deploy itself is not a Founder gate", policy)
         self.assertIn("continue separable containment", policy)
         self.assertIn("Do not invent deadlines, payment states", normalized_policy)
@@ -36,7 +38,7 @@ class FleetMergePolicyTests(unittest.TestCase):
         self.assertIn("gh pr merge --squash --delete-branch", fleet)
         self.assertIn("Do not `--admin`", fleet)
         self.assertIn(
-            "eligible_low_risk_reversible_squash_merge_without_production_activation",
+            "eligible_low_risk_reversible_squash_merge",
             contract,
         )
         self.assertIn("founder_approval_required", contract)
@@ -50,20 +52,21 @@ class FleetMergePolicyTests(unittest.TestCase):
         self.assertIn("migration_file_authoring", agent_owned)
         self.assertIn("local_or_authorized_isolated_migration_testing", agent_owned)
         self.assertNotIn("deploy_via_product_path_when_risk_allows", agent_owned)
+        self.assertIn("routine_reversible_deploy_via_authorized_product_path", agent_owned)
         self.assertNotIn("controlled_r3_execution_via_product_path", agent_owned)
         self.assertNotIn("credential_rotation_via_committed_workflow", agent_owned)
         self.assertIn("production_migration_execution", founder_gated)
-        self.assertIn("production_deployment_or_activation", founder_gated)
+        self.assertIn("protected_production_activation", founder_gated)
         self.assertIn("breaking_schema_contract_material_blast_radius", founder_gated)
         self.assertIn("billing_payment_semantics", founder_gated)
         self.assertIn("material_reservation_product_policy", founder_gated)
         security = (ROOT / "docs/security-boundaries.md").read_text(encoding="utf-8")
-        self.assertIn("treat that merge as", security)
-        self.assertIn("non-production workflows", security)
+        self.assertIn("classify the full", security)
+        self.assertIn("exact effects are already authorized", security)
         constitution = (ROOT / "governance/COMPANY_CONSTITUTION.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("only when the workflow does not execute production migration", constitution)
+        self.assertIn("exact effects are already authorized", constitution)
         self.assertIn("require explicit Founder approval before execution", constitution)
         self.assertIn("Founder approves production execution", constitution)
         skill = (ROOT / ".claude/skills/portfolio-maintain/SKILL.md").read_text(
@@ -83,15 +86,15 @@ class FleetMergePolicyTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("Migration authoring and local or authorized isolated migration testing", overlay)
-        self.assertIn("only when the merge will not trigger unapproved production activation", overlay)
-        self.assertIn("only committed reversible,", overlay)
-        self.assertIn("non-production workflows", overlay)
+        self.assertIn("full production-to-candidate risk", overlay)
+        self.assertIn("committed reversible workflows", overlay)
+        self.assertIn("exact effects are", overlay)
         pr_template = (ROOT / "docs/templates/draft-pr-description.md").read_text(
             encoding="utf-8"
         )
         normalized_pr_template = " ".join(pr_template.split())
         self.assertIn(
-            "Production migration execution and deployment/activation require explicit Founder approval",
+            "Production migration execution and product-defined protected activation require explicit Founder approval",
             normalized_pr_template,
         )
         retry_loop = (ROOT / "docs/verify-retry-loop.md").read_text(encoding="utf-8")

@@ -3,8 +3,9 @@
 Every agent PR uses this shape. After required GitHub checks are green,
 squash-merge eligible changes only when the merge will not trigger unapproved
 production activation (`docs/fleet-merge-policy.md`). Production migration
-execution and deployment/activation require explicit Founder approval before
-the triggering action. Do not `--admin`; do not wait for implementation-detail
+execution and product-defined protected activation require explicit Founder
+approval before the triggering action. Routine reversible deployment follows
+existing product authorization and full release-risk review. Do not `--admin`; do not wait for implementation-detail
 approval.
 
 ```markdown

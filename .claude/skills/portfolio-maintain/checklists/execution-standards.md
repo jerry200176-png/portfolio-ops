@@ -25,9 +25,9 @@ Tier 0 first, then Tier 1, then Tier 2. One repo, one branch/worktree, per
 - Commit, push the branch, open a PR using
   `../../../../docs/templates/draft-pr-description.md` with `Risk-Class`.
 - After required GitHub checks are green, merge eligible changes only when
-  the merge will not trigger production activation
-  (`docs/fleet-merge-policy.md`). Production deployment, migration execution,
-  and rollback require the Founder decision; never `--admin`.
+  the full triggered release is authorized (`docs/fleet-merge-policy.md`).
+  Production migration execution and protected activation require the Founder
+  decision; rollback follows the product contract and data compatibility; never `--admin`.
 - If CI cannot run: say so plainly in the PR, do not merge, and
   propose the smallest unblock step.
 

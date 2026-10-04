@@ -170,17 +170,18 @@ irreversible_actions:
     - enable_disabled_self_dispatch_loop
     - weaken_tests_assertions_allowlists_or_security_controls
   agent_owns_with_evidence:
-    - eligible_low_risk_reversible_squash_merge_without_production_activation
+    - eligible_low_risk_reversible_squash_merge
+    - routine_reversible_deploy_via_authorized_product_path
     - migration_file_authoring
     - local_or_authorized_isolated_migration_testing
     - close_github_issue
     - gmail_send_reply_label
-    - product_workflow_dispatch_non_production_reversible
+    - product_workflow_dispatch_authorized_reversible
     - production_readonly_verify
   founder_approval_required:
     - production_data_mutation
     - production_migration_execution
-    - production_deployment_or_activation
+    - protected_production_activation
     - destructive_or_irreversible_migration_design_locking_product_direction
     - breaking_schema_contract_material_blast_radius
     - identity_authentication_permission_privacy_security_policy

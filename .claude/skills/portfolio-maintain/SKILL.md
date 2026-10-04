@@ -15,8 +15,8 @@ you only load what you need.
 merge only when required checks are green and the merge will not trigger an
 unapproved production side effect (`docs/fleet-merge-policy.md`). Migration
 authoring and authorized isolated testing are Agent-owned; production
-migration execution and deployment/activation require explicit Founder
-approval. Do not wait for implementation-detail approval. See
+migration execution and protected activation require explicit Founder
+approval. Routine reversible deployment follows existing product authority. Do not wait for implementation-detail approval. See
 `governance/AUTONOMY_POLICY.md`.
 
 ## Modes
