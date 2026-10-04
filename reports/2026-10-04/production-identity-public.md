@@ -4,16 +4,15 @@ RUNTIME_VERIFIED = full runtime SHA plus healthy endpoint; RUNTIME_DEGRADED / RU
 
 | Product | Runtime state / SHA | Health details | Artifact digest | Inventory age / match | Pending candidate / age | Protected blocker | Product acceptance |
 |---|---|---|---|---|---|---|---|
-| alltrue | RUNTIME_VERIFIED / `e483c1dc43975cfa173b12e75376fa51dc107a30` (observed 2026-10-04T10:55:22.178269+00:00) | HEALTHY {} | UNKNOWN | 720h / NO (`e17d36ba838d36e6598af9f9b1d27a1f2134c204`) | `21cd3e0f2b75114ba66f9f59b6cde9edd87b3f2c` / 1h (WAITING) | ENVIRONMENT_REVIEW_REQUIRED | UNKNOWN |
-| sunrise | RUNTIME_DEGRADED / `fec9e458767bd5b4a0e51cb440d4145440591ecc` (observed 2026-10-04T10:55:22.178269+00:00) | DEGRADED {"rate_limit_grade": "degraded_per_isolate", "rate_limit_mode": "memory"} | UNKNOWN | 720h / NO (`6630b9eb003e2d5459c84c9452f2413cc93ba8ab`) | `UNKNOWN` / UNKNOWNh (UNKNOWN) | UNKNOWN | UNKNOWN |
+| alltrue | RUNTIME_VERIFIED / `e483c1dc43975cfa173b12e75376fa51dc107a30` (observed 2026-10-04T10:55:10.118445+00:00) | HEALTHY {} | UNKNOWN | 720h / NO (`e17d36ba838d36e6598af9f9b1d27a1f2134c204`) | `21cd3e0f2b75114ba66f9f59b6cde9edd87b3f2c` / 1h (WAITING) | ENVIRONMENT_REVIEW_REQUIRED | UNKNOWN |
+| sunrise | RUNTIME_DEGRADED / `fec9e458767bd5b4a0e51cb440d4145440591ecc` (observed 2026-10-04T10:55:10.118445+00:00) | DEGRADED {"rate_limit_grade": "degraded_per_isolate", "rate_limit_mode": "memory"} | UNKNOWN | 720h / NO (`6630b9eb003e2d5459c84c9452f2413cc93ba8ab`) | `UNKNOWN` / UNKNOWNh (UNKNOWN) | UNKNOWN | UNKNOWN |
 
 Evidence:
 - alltrue candidate: https://api.github.com/repos/jerry200176-png/AllTrue_System/deployments/6839479493
 - alltrue blocker: https://github.com/jerry200176-png/AllTrue_System/actions/runs/37193508312
-
 ## Exact runtime and release evidence
 
-- Observation time: `2026-10-04T10:55:22Z`. Portfolio Ops main was
+- Snapshot generated at: `2026-10-04T10:55:10Z`. Portfolio Ops main was
   `55a9eca71906162bc98730936aba50af14e16fb3` during generation.
 - AllTrue GitHub main is `21cd3e0f2b75114ba66f9f59b6cde9edd87b3f2c`.
   Public `/deployment.json` reports backend, frontend, and frontend build all
@@ -32,8 +31,8 @@ Evidence:
   `fec9e458767bd5b4a0e51cb440d4145440591ecc`. The public booking health
   endpoint returns `ok=true` but also `rate_limit_mode=memory` and
   `rate_limit_grade=degraded_per_isolate`, so this is DEGRADED.
-- Sunrise reminder workflow `37139788688` failed on
-  `2026-10-03T17:16:06Z` during “Resolve CRON_SECRET + run send-line twice +
+- Sunrise reminder workflow `37139788688` step failed at
+  `2026-10-03T17:16:03Z`; the workflow ended at `2026-10-03T17:16:06Z` during “Resolve CRON_SECRET + run send-line twice +
   verify”. It failed before the second request and verification. Cause and
   possible first-request side effect are UNKNOWN. The workflow was not
   rerun. Vercel's request log needs credentialed read-only access to resolve
@@ -72,3 +71,4 @@ Evidence:
   `ui-smoke-${{ github.event.pull_request.number || github.run_id }}` and
   cancels in progress only for `pull_request` events. The PR's exact-head
   required checks, including UI Smoke, passed.
+
