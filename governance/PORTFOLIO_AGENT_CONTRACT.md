@@ -1,42 +1,37 @@
 # Portfolio agent governance overlay
 
-This file is committed because a cloud or mobile agent may not have access to
-Ubuntu's `/home/jerry`. The canonical, detailed policy is maintained in
-`jerry200176-png/portfolio-ops` under `governance/`; this file is the portable
-minimum that travels with each governed repository.
+This portable contract points cloud and mobile agents to the company policy
+without assuming access to Ubuntu's `/home/jerry`. It does not create a second
+approval or orchestration system.
 
-## Required behavior
+## Authority and execution
 
-- Treat Cursor, Codex, Claude Code, and Cubelv as untrusted writers.
-- Before writing, identify the repository, branch/worktree, task scope, risk,
-  and verification plan. Never work directly on the default branch.
-- Read this repository's committed instructions and ExoProtocol's `.exo/`
-  constitution/lock when present. Do not edit governance files to make a task
-  pass or to bypass a lock, ticket, session, CI check, or review.
+- Follow `governance/COMPANY_CONSTITUTION.md` for precedence and
+  `governance/AUTONOMY_POLICY.md` for the capability table. This overlay cannot
+  widen or narrow those permissions.
+- Read this repository's committed `AGENTS.md`/`CLAUDE.md` and the target
+  product's production-control contract before acting.
+- Isolate work by repository, task, branch, and worktree. On the managed Ubuntu
+  workspace use `agent-control/bin/agent-start`; in cloud/mobile environments
+  use the controls supplied with the repository.
 - Migration authoring and local or authorized isolated migration testing are
-  Agent-owned engineering work. Production migration execution and product-defined protected
-  activation require explicit Founder approval before the side effect; a
-  merge or workflow that triggers them is part of that boundary.
-  Destructive migration design, material schema-contract risk, identity/
-  permission/security policy, billing/payment semantics, and material product
-  policy remain Founder decisions. Continue separable containment and ask only
-  when an unresolved policy blocks the next safe step.
-- Every change goes through a pull request. **Required GitHub checks are the
-  acceptance.** After they are green, agents squash-merge eligible changes
-  only when any triggered release is authorized under the full production-to-candidate risk, per
-  `jerry200176-png/portfolio-ops` `governance/AUTONOMY_POLICY.md` and
-  `docs/fleet-merge-policy.md`. Founder-risk code may be prepared and reviewed
-  as a PR; R3 needs a Repair Manifest where applicable. Branch prefixes never
-  grant a bypass of required checks. Do not `--admin` merge.
-- The Agent also closes issues (when evidence is filled), sends/replies on
-  Gmail for the task, and dispatches only committed reversible workflows whose exact effects are
-  authorized. Protected production effects still require the Founder
-  decision above. Machine bans: secret print, force-push, production SSH,
-  Gmail trash/delete.
-- Prefer mature open-source tools for generic lint, security, workflow, and
-  policy checks; keep company-specific risk, provenance, evidence, and release
-  boundaries in committed policy and CI.
+  Agent-owned. Production migration execution still requires Founder approval
+  before the side effect.
+- Agents own reversible engineering work and eligible merges after current
+  required checks and applicable review conditions pass. A passing CI run or
+  merge permission does not grant production deployment or activation rights;
+  release review covers the full production-to-candidate risk.
+- Agents may dispatch committed reversible workflows only when exact effects are
+  already authorized by the company and product contracts.
+- Production data changes, migration execution, protected activation, and the
+  other Founder-only actions in `AUTONOMY_POLICY.md` require explicit approval
+  before the protected side effect. Prepare independent work up to that step.
+- ExoProtocol is optional for isolated experiments. Do not require Exo sessions,
+  locks, generated adapters, or checks for fleet work, and do not let them
+  override the committed company or product contracts.
+- Never print secrets, force-push, use `--admin`, access production over SSH,
+  or delete Gmail. Preserve uncommitted work and never weaken required controls.
 
-If a product overlay bans Pi tests, campus leaks, or adds required CI, those
-stricter **safety** rules win. A product overlay must **not** add a Founder
-rubber-stamp; portfolio-ops owns the operator table.
+When this overlay is unavailable, follow the repository's committed controls
+and the authority chain above. If a genuinely protected decision is required,
+prepare its exact scope and evidence and stop only that action.

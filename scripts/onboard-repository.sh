@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
   cat <<'EOF'
@@ -9,9 +10,12 @@ Usage:
 
 Default is read-only. Fleet onboarding uses agent-control as the canonical
 session path. ExoProtocol is experiment-only: --apply installs an isolated
-experiment worktree only when EXO_EXPERIMENT=1 is set. --enable-ci remains a
-second-stage experiment action and is not a fleet ruleset requirement. The
-command never pushes, merges, or changes GitHub rulesets.
+experiment worktree only when EXO_EXPERIMENT=1 is set. --enable-ci adds a
+manual-only experiment workflow; it is not a fleet PR gate. Keep generated Exo
+artifacts in the experiment. A workflow-only change may be proposed through
+the repository's normal review path so the manual workflow can be dispatched;
+never add it to required checks. The command never pushes, merges, or changes
+GitHub rulesets.
 EOF
 }
 
@@ -43,7 +47,7 @@ if [[ "$APPLY" == 0 ]]; then
   echo "local_path=$LOCAL_PATH"
   echo "canonical session path: agent-start (agent-control)"
   if [[ "$ENABLE_CI" == 1 ]]; then
-    echo "would add experimental .github/workflows/exo-governance.yml (not a fleet gate)"
+    echo "would add manual-only .github/workflows/exo-governance.yml in an isolated experiment (not a fleet gate)"
   else
     echo "Exo bootstrap is experiment-only; set EXO_EXPERIMENT=1 with --apply to create .exo/"
   fi
@@ -61,7 +65,7 @@ command -v exo >/dev/null || {
   exit 1
 }
 
-OVERLAY_TEMPLATE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../governance" && pwd)/PORTFOLIO_AGENT_CONTRACT.md"
+OVERLAY_TEMPLATE="${SCRIPT_DIR}/../governance/PORTFOLIO_AGENT_CONTRACT.md"
 [[ -f "$OVERLAY_TEMPLATE" ]] || {
   echo "governance overlay template missing: $OVERLAY_TEMPLATE" >&2
   exit 1
@@ -107,9 +111,17 @@ if [[ "$ENABLE_CI" == 1 ]]; then
     exit 1
   }
   if [[ ! -f "$worktree/.github/workflows/exo-governance.yml" ]]; then
-    exo --repo "$worktree" adapter-generate --target ci
+    EXO_WORKFLOW_TEMPLATE="${SCRIPT_DIR}/../.github/workflows/exo-governance.yml"
+    [[ -f "$EXO_WORKFLOW_TEMPLATE" ]] || {
+      echo "manual Exo workflow template missing: $EXO_WORKFLOW_TEMPLATE" >&2
+      git -C "$LOCAL_PATH" worktree remove --force "$worktree"
+      git -C "$LOCAL_PATH" branch -D "$branch"
+      exit 1
+    }
+    mkdir -p "$worktree/.github/workflows"
+    cp "$EXO_WORKFLOW_TEMPLATE" "$worktree/.github/workflows/exo-governance.yml"
   else
-    echo "governance-onboard: Exo CI already present; leaving it unchanged"
+    echo "governance-onboard: Exo workflow already present; leaving it unchanged"
   fi
 else
   exo --repo "$worktree" init --no-scan
@@ -142,8 +154,7 @@ echo "repo=$REPO"
 echo "branch=$branch"
 echo "worktree=$worktree"
 if [[ "$ENABLE_CI" == 1 ]]; then
-  echo "next: inspect the CI workflow, then open a Draft PR; require the Exo check after it passes"
+  echo "next: inspect the manual workflow; if useful, propose only that workflow through normal review, never as a required fleet check"
 else
-  echo "next: inspect .exo policy and generated adapters, then open a Draft PR"
-  echo "after that PR merges: rerun with --apply --enable-ci, then require ExoProtocol Governance"
+  echo "next: inspect .exo policy and generated adapters inside the isolated experiment; keep them local and do not merge"
 fi
