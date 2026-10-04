@@ -25,7 +25,9 @@ def portfolio(expected: str = SHA_A) -> dict:
     return {
         "projects": [{
             "id": "sample",
+            "github_repo": "example/sample",
             "source_commit": expected,
+            "last_verified_at": "2026-10-02T00:00:00Z",
             "production": {
                 "health_url": "https://example.test/health",
                 "version_url": "https://example.test/version",
@@ -39,7 +41,7 @@ class ProductionIdentityTests(unittest.TestCase):
         responses = {"https://example.test/health": {"ok": True},
                      "https://example.test/version": {"commit": SHA_A}}
         row = MODULE.probe(portfolio(), responses.__getitem__, NOW)["projects"][0]
-        self.assertEqual(row["delivery_state"], "VERIFIED")
+        self.assertEqual(row["delivery_state"], "RUNTIME_VERIFIED")
         self.assertEqual(row["health"], "HEALTHY")
         self.assertTrue(row["inventory_match"])
 
@@ -47,7 +49,7 @@ class ProductionIdentityTests(unittest.TestCase):
         responses = {"https://example.test/health": {"status": "ok"},
                      "https://example.test/version": {"build_sha": SHA_B}}
         row = MODULE.probe(portfolio(), responses.__getitem__, NOW)["projects"][0]
-        self.assertEqual(row["delivery_state"], "VERIFIED")
+        self.assertEqual(row["delivery_state"], "RUNTIME_VERIFIED")
         self.assertEqual(row["serving_sha"], SHA_B)
         self.assertFalse(row["inventory_match"])
         self.assertIn("NO", MODULE.render_markdown({"generated_at": NOW.isoformat(), "projects": [row]}))
@@ -72,6 +74,64 @@ class ProductionIdentityTests(unittest.TestCase):
         row = MODULE.probe(portfolio(""), responses.__getitem__, NOW)["projects"][0]
         self.assertIsNone(row["inventory_match"])
         self.assertEqual(row["product_acceptance"], "UNKNOWN")
+
+    def test_waiting_deployment_with_pending_reviewer_is_protected_blocker(self) -> None:
+        responses = {"https://example.test/health": {"ok": True},
+                     "https://example.test/version": {"commit": SHA_A}}
+        api = {
+            "repos/example/sample/deployments?per_page=20": [
+                {"id": 42, "sha": SHA_B, "environment": "production-activation",
+                 "created_at": "2026-10-03T12:00:00Z"}],
+            "repos/example/sample/deployments/42/statuses?per_page=20": [
+                {"state": "waiting", "created_at": "2026-10-03T12:01:00Z"}],
+            f"repos/example/sample/actions/runs?head_sha={SHA_B}&status=waiting&per_page=20": {
+                "workflow_runs": [{"id": 72, "head_sha": SHA_B, "status": "waiting"}]},
+            "repos/example/sample/actions/runs/72/pending_deployments": [
+                {"environment": {"name": "production-activation"},
+                 "reviewers": [{"type": "User", "reviewer": {"login": "owner"}}]}],
+        }
+        row = MODULE.probe(portfolio(), responses.__getitem__, NOW, api.__getitem__)["projects"][0]
+        self.assertEqual(row["candidate_sha"], SHA_B)
+        self.assertEqual(row["candidate_state"], "WAITING")
+        self.assertEqual(row["candidate_age_hours"], 12)
+        self.assertEqual(row["inventory_age_hours"], 48)
+        self.assertEqual(row["protected_blocker"], "ENVIRONMENT_REVIEW_REQUIRED")
+        self.assertEqual(row["product_acceptance"], "UNKNOWN")
+
+    def test_waiting_without_reviewer_evidence_keeps_blocker_unknown(self) -> None:
+        responses = {"https://example.test/health": {"ok": True},
+                     "https://example.test/version": {"commit": SHA_A}}
+        def api(path: str) -> dict | list:
+            if path.endswith("deployments?per_page=20"):
+                return [{"id": 42, "sha": SHA_B, "environment": "Production",
+                         "created_at": "2026-10-03T12:00:00Z"}]
+            if "/statuses?" in path:
+                return [{"state": "waiting", "created_at": "2026-10-03T12:01:00Z"}]
+            raise RuntimeError("API unavailable")
+        row = MODULE.probe(portfolio(), responses.__getitem__, NOW, api)["projects"][0]
+        self.assertEqual(row["candidate_sha"], SHA_B)
+        self.assertEqual(row["protected_blocker"], "UNKNOWN")
+
+    def test_old_successful_deployment_is_not_candidate(self) -> None:
+        responses = {"https://example.test/health": {"ok": True},
+                     "https://example.test/version": {"commit": SHA_A}}
+        def api(path: str) -> dict | list:
+            if path.endswith("deployments?per_page=20"):
+                return [{"id": 42, "sha": SHA_B, "environment": "Production",
+                         "created_at": "2026-09-01T00:00:00Z"}]
+            return [{"state": "success", "created_at": "2026-09-01T00:02:00Z"}]
+        row = MODULE.probe(portfolio(), responses.__getitem__, NOW, api)["projects"][0]
+        self.assertIsNone(row["candidate_sha"])
+        self.assertEqual(row["candidate_state"], "UNKNOWN")
+
+    def test_no_github_access_keeps_candidate_and_blocker_unknown(self) -> None:
+        responses = {"https://example.test/health": {"ok": True},
+                     "https://example.test/version": {"commit": SHA_A}}
+        def api(_path: str) -> dict | list:
+            raise RuntimeError("private repo not readable")
+        row = MODULE.probe(portfolio(), responses.__getitem__, NOW, api)["projects"][0]
+        self.assertIsNone(row["candidate_sha"])
+        self.assertEqual(row["protected_blocker"], "UNKNOWN")
 
     def test_missing_or_short_version_is_unknown_even_with_healthy_endpoint(self) -> None:
         responses = {"https://example.test/health": {"ok": True},
