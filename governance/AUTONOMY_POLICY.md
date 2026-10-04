@@ -18,18 +18,32 @@ Procedure for PRs: `docs/fleet-merge-policy.md`. Rationale:
 
 ## Default posture
 
-Low-risk, reversible, clearly scoped changes whose **required**
-tests/CI/review/provenance checks are green may be opened, squash-merged,
-deployed (via the product's normal path), and runtime-verified by the Agent
-without Founder approval.
+Low-risk, reversible, clearly scoped engineering changes whose **required**
+tests/CI/review/provenance checks are green may be implemented, tested, and
+opened as PRs by the Agent without Founder approval. Eligible PRs may be
+squash-merged when doing so will not itself trigger production activation.
 
-Docs, UI, and small bug fixes that do **not** touch schema, permission,
-security policy, billing rules, or production data mutation do not need
-Founder approval.
+Authoring a migration is engineering work, not production execution. Agents
+may write migration files and database function/constraint changes, and may
+test them locally or in an authorized isolated environment. Production
+migration execution and production deployment/activation are separate
+side-effect boundaries and require explicit Founder approval before they run.
 
-**Deploy itself is not a Founder gate — risk is.** If production verification
-fails, stop further mutation, roll back or report through the product path,
-and do not weaken gates to proceed.
+Ordinary implementation details — including reversible schema changes and
+migration authoring — do not need individual Founder approval. Founder
+decisions remain required for production side effects, destructive or
+irreversible design choices, and material product, identity, authentication,
+permission, privacy, security, or billing semantics.
+If a repair exposes a new reservation/payment policy question, continue
+separable containment and implementation; ask the Founder only when the
+unresolved policy blocks the next safe step. Do not invent deadlines, payment
+states, or customer-facing policy semantics.
+
+Production deployment/activation is a Founder gate regardless of whether a
+rollback is available. A merge or workflow dispatch that automatically
+triggers production deployment or migration execution is part of that same
+activation boundary. If production verification fails, stop further mutation
+and surface the evidence; do not bypass approval or weaken gates to proceed.
 
 Never delete tests, lower assertions, broaden allowlists, or bypass security
 controls to make CI green.
@@ -39,33 +53,53 @@ controls to make CI green.
 | Read GitHub, Gmail, repositories, logs, telemetry | Yes | Minimize PII and secret exposure |
 | Triage, label, and organize | Yes | Do not trash/delete Gmail |
 | Create/update issues, PR comments, PRs | Yes | Exact target, grounded evidence |
-| Merge a low-risk reversible PR (R0–R1; scoped R2 without irreversible activation) | **Yes** | Required checks green; no `--admin`; provenance present when required |
-| Deploy / release via product path after green merge | **Yes** | Risk class allows it; record deploy + runtime verify evidence |
+| Author migration files, database functions, and constraints | **Yes** | Reviewed diff; regression coverage; no production execution |
+| Run migrations locally / in authorized isolated test or staging | **Yes** | Verify environment and credentials are isolated from production |
+| Merge an eligible reversible PR | **Yes** | Required checks green; no `--admin`; merge must not trigger unapproved production activation |
+| Production migration execution or production deployment/activation | **No** | Explicit Founder approval before execution/activation |
 | Production verification (read-only) | Yes | health/version/deploy identity endpoints, logs, dashboards |
 | Close a GitHub issue after evidence | **Yes** | Evidence Contract filled; in-app bugs still need product public-reply |
 | Send or reply on Gmail for the current task | **Yes** | Grounded content; never print secrets |
 | Gmail trash / delete | **No** | Machine ban |
-| Production **data** mutation | Conditional | Exact target, current backup/recovery point, bounded operation, audited product path, post-action evidence |
-| Irreversible migration / production activation without reliable rollback | Conditional | Verified recovery path and bounded execution package; stop if recovery cannot be verified |
-| Identity / permission / security policy changes | Conditional | Required security checks and explicit verification of affected permissions |
-| Billing rule / money-path changes | Conditional | Existing approved business rule, bounded execution package, financial reconciliation |
-| Major data repair / destructive operations | Conditional | Current backup, isolated restore proof where applicable, exact target and bounded batch |
-| Major product direction decisions | No | Jerry sets business direction; ask only when direction is genuinely unspecified |
-| Credential rotation / revoke | Conditional | Existing committed workflow, verify replacement before revocation; never print secret values |
+| Production **data** mutation | **No** | Founder approval + backup/recovery point + audited path |
+| Destructive or difficult-to-reverse migration design that locks in product direction | **No** | Founder decision before implementation locks in that direction |
+| Breaking schema contract with material blast radius; major architecture expansion | **No** | Founder decision on material risk/tradeoff |
+| Identity / authentication / permission / privacy / security policy changes | **No** | Founder approval |
+| Billing / payment semantics or material reservation/product policy | **No** | Founder decision; continue separable containment |
+| Major data repair / destructive operations | **No** | Founder approval |
+| Major product direction decisions | **No** | Founder approval |
+| Credential rotation / revoke | **No** | Founder-directed; never print secret values |
 | Git history rewrite / force-push / `--admin` merge | **No** | Machine ban |
 | SSH / artisan / phpunit / edit files on production hosts | **No** | Machine ban |
 | Enable a previously disabled self-dispatch autonomous-loop | **No** | Machine ban until product overlay says the probe is fixed |
 | Echo or commit secret values | **No** | Machine ban |
 
-## Controlled R3 execution
+## Founder-protected R3 execution
 
-The Agent owns PR → merge → deploy → verify for R3 after required checks and
-an execution package records the exact target/SHA, affected data and users,
-backup or recovery point where applicable, compatibility and rollback or
-forward-repair steps, and post-action probes. Run only the committed product
-control plane. If any required control cannot be verified, stop and report
-the actual blocker; do not replace evidence with a human click. Jerry alone
-sets new business policy when the task does not already specify it.
+Keep Founder approval for:
+
+1. Production data mutation
+2. Destructive or difficult-to-reverse migration design that locks in product direction
+3. Identity / authentication / permission / privacy / security policy
+4. Billing
+5. Major data repair
+6. Destructive operations
+7. Major product direction
+8. Breaking schema contract with material blast radius or major architecture expansion
+9. Production migration execution or production deployment/activation, including
+   a merge or workflow dispatch that triggers either side effect
+
+Other low-risk, reversible, scoped work is Agent-owned through implementation,
+testing, PR, required checks, review, and eligible merge. Production activation
+remains Founder-gated. If evidence cannot resolve a material risk tradeoff,
+stop at that decision boundary and ask the Founder.
+
+For a protected action, the Agent prepares an execution package with the exact
+target and source SHA, affected data and users, current recovery point where
+applicable, bounded steps, compatibility and rollback or forward-repair plan,
+and post-action probes. Founder approval must name the exact protected action
+and scope before an authorized executor uses the committed product control
+plane. If recovery or an essential control cannot be verified, stop.
 
 ## Founder decisions and GitHub execution
 
@@ -96,8 +130,10 @@ Surface immediately, then contain only through allowed paths:
 - production identity differing from the intended release
 - production verification failure after deploy
 
-On verification failure: stop further mutation, execute or open the product
-rollback path, and report. Do not lower gates.
+On verification failure: stop further mutation and surface the evidence.
+Production rollback or re-activation requires the Founder decision, except for
+a specific rollback action already authorized for that incident. Do not lower
+gates.
 
 ## Gmail
 

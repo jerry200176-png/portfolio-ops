@@ -13,9 +13,10 @@ Maintain and improve the product portfolio continuously while preserving product
 
 **Revised 2026-08-15 (operator).**
 The Agent is delegated the full operating loop: read, analysis, triage,
-implementation, merge, issue close, Gmail send/reply for the task,
-committed workflow dispatch, Repair Manifest execute via the product path,
-and credential rotation via committed workflows.
+implementation, eligible merge, issue close, Gmail send/reply for the task,
+non-production committed workflow dispatch, and preparation of Repair
+Manifests and credential-rotation workflows. The capability table below
+defines which execution actions remain Founder-gated.
 
 `governance/AUTONOMY_POLICY.md` is the single authoritative capability
 table; this Constitution does not restate it. Jerry is not an approval
@@ -29,18 +30,22 @@ Delegation is bounded by these controls:
 2. Product-specific production control planes remain the only deployment
    authority. A product workflow that runs automatically because `main`
    advanced (for example AllTrue `deploy.yml`) is part of that control
-   plane. Agents must not SSH to production. They **may** `workflow_dispatch`
-   workflows that already exist on the default branch.
+   plane. Agents must not SSH to production. Agents may `workflow_dispatch`
+   only when the workflow does not execute production migration, deployment,
+   activation, destructive data change, or another Founder-gated action.
 3. Irreversible work needs a verified target, current backup or recovery
    path where applicable, a bounded blast radius, and post-action evidence
-   **written by the Agent**. It does not need a second human.
+   **written by the Agent**. Production side effects and destructive actions
+   require explicit Founder approval before execution; reversible engineering
+   work does not require a second human.
 4. A compromised credential is never restored. Replacement must be verified
    before old-credential revocation when the platform permits. Rotation
    runs through the committed workflow; values are never printed.
 5. Laravel `APP_KEY`, database destructive operations, and customer
    financial mutations require an execution package with compatibility,
-   recovery, and verification steps. The Agent prepares **and** runs it
-   through the product path. Git history rewrite stays machine-banned.
+   recovery, and verification steps. The Agent prepares the package; the
+   Founder approves production execution before the product path runs it.
+   Git history rewrite stays machine-banned.
 
 ## Instruction precedence
 

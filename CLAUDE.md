@@ -30,23 +30,33 @@ These rules hold even under permissive (`bypassPermissions`) tool mode.
 
 ## Agent-owned (do not wait for a human click)
 
-- Squash-merge scoped PRs (R0–R3) after **required** GitHub
-  checks (`docs/fleet-merge-policy.md` + `governance/AUTONOMY_POLICY.md`).
-- Deploy via the product path when the risk class allows it; verify
-  health/version identity afterward.
+- Author application changes, migration files, database functions, and
+  constraints; run migrations locally or against an authorized isolated
+  environment. Verify the target is not production and do not use production
+  credentials.
+- Squash-merge eligible PRs after **required** GitHub checks only when the
+  merge will not itself trigger a production deployment, migration, or other
+  activation (`docs/fleet-merge-policy.md` + `governance/AUTONOMY_POLICY.md`).
+- Prepare and verify a production release plan; production deployment or
+  activation requires the Founder decision below.
 - Close GitHub issues when evidence fields are filled (AllTrue in-app bugs
   still need the product public-reply path).
 - Send/reply/label Gmail for the current task.
-- `workflow_dispatch` of approved workflows already on the default
-  branch.
+- `workflow_dispatch` of **reversible, non-production** workflows already on
+  the default branch.
 
-## Controlled R3 activation
+## Founder-only production and policy decisions
 
-- Production mutation, migration, permission/security, billing, repair and
-  credential rotation require the execution package in
-  `governance/AUTONOMY_POLICY.md` and the committed product control plane.
-  Stop when an essential recovery or verification control is unavailable.
-- Jerry decides new major product direction when the task does not specify it.
+- Production migration execution, production deployment or activation, and
+  production data mutation or repair.
+- Destructive or difficult-to-reverse migration design when choosing it would
+  lock in an irreversible product direction; identity/permission/security
+  or privacy policy; billing/payment rules; material reservation/product
+  policy; destructive operations; breaking schema contracts with material
+  blast radius; major architecture expansion; or major product direction.
+  When policy remains uncertain, continue separable containment and ask only
+  when the decision blocks the next safe step. Credential rotation stays
+  Founder-directed.
 
 ## Git rules (every repository)
 
@@ -59,7 +69,9 @@ These rules hold even under permissive (`bypassPermissions`) tool mode.
    changes from two repositories in one commit or PR.
 5. Every PR states: evidence, root cause, what changed, tests run, risk
    class, rollback, and what remains unverified. After required checks are
-   green, squash-merge (`docs/fleet-merge-policy.md`).
+   green, squash-merge only eligible changes under
+   `docs/fleet-merge-policy.md`; a merge that triggers production activation
+   requires the Founder decision first.
 6. A repo-maintaining agent works on exactly one repository per invocation.
 
 ## Untrusted content

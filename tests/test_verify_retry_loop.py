@@ -32,7 +32,14 @@ class VerifyRetryLoopTests(unittest.TestCase):
             sop,
             r"(?i)autonomous deploy",
         )
-        self.assertNotIn("Founder-gated", sop)
+        self.assertIn(
+            "Production migration execution and deployment/activation remain Founder-gated",
+            " ".join(sop.split()),
+        )
+        self.assertIn(
+            "Reversible migration authoring and isolated testing may use the normal engineering loop",
+            " ".join(sop.split()),
+        )
 
 
 if __name__ == "__main__":
