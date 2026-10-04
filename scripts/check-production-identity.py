@@ -137,8 +137,10 @@ def probe(portfolio: dict, fetch: Callable[[str], dict], now: datetime,
             "delivery_state": "UNKNOWN",
             "verification_scope": "runtime_identity_and_health_only",
             "product_acceptance": "UNKNOWN",
+            "artifact_digest": "UNKNOWN",
             "inventory_match": None,
             "inventory_age_hours": age_hours(str(project.get("last_verified_at") or ""), now),
+            "health_details": {},
             "errors": [],
         }
         health_url = prod.get("health_url")
@@ -146,8 +148,18 @@ def probe(portfolio: dict, fetch: Callable[[str], dict], now: datetime,
         if health_url:
             try:
                 health = fetch(health_url)
-                if health.get("status") == "ok" or health.get("ok") is True:
-                    row["health"] = "HEALTHY"
+                row["health_details"] = {
+                    key: health[key]
+                    for key in ("rate_limit_mode", "rate_limit_grade")
+                    if isinstance(health.get(key), (str, bool, int, float))
+                }
+                has_health = health.get("status") == "ok" or health.get("ok") is True
+                if has_health:
+                    rate_limit_grade = str(health.get("rate_limit_grade") or "").lower()
+                    if rate_limit_grade.startswith("degraded"):
+                        row["health"] = "DEGRADED"
+                    else:
+                        row["health"] = "HEALTHY"
                 elif "status" in health or health.get("ok") is False:
                     row["health"] = "UNHEALTHY"
             except (OSError, TimeoutError, ValueError, TypeError, KeyError) as exc:
@@ -168,7 +180,12 @@ def probe(portfolio: dict, fetch: Callable[[str], dict], now: datetime,
             row["errors"].append("version URL missing")
 
         if row["serving_sha"]:
-            row["delivery_state"] = "RUNTIME_VERIFIED" if row["health"] == "HEALTHY" else "DEPLOYED"
+            row["delivery_state"] = {
+                "HEALTHY": "RUNTIME_VERIFIED",
+                "DEGRADED": "RUNTIME_DEGRADED",
+                "UNHEALTHY": "RUNTIME_UNHEALTHY",
+                "UNKNOWN": "DEPLOYED",
+            }[row["health"]]
             if SHA40.fullmatch(expected):
                 row["inventory_match"] = expected.lower() == row["serving_sha"]
         if github_fetch is not None:
@@ -184,10 +201,10 @@ def render_markdown(report: dict) -> str:
     rows = [
         "## Production identity (read-only observation)",
         f"Generated: `{report['generated_at']}`",
-        "RUNTIME_VERIFIED = full runtime SHA plus healthy endpoint in this probe; DEPLOYED = SHA observed, health unverified; UNKNOWN = no full runtime SHA. Product acceptance remains UNKNOWN; MERGED is not inferred from these endpoints.",
+        "RUNTIME_VERIFIED = full runtime SHA plus healthy endpoint; RUNTIME_DEGRADED / RUNTIME_UNHEALTHY = full SHA with corresponding health state; DEPLOYED = SHA observed but health unknown; UNKNOWN = no full runtime SHA. Product acceptance remains UNKNOWN; MERGED is not inferred from runtime endpoints.",
         "",
-        "| Product | Runtime state / SHA | Inventory age / match | Pending candidate / age | Protected blocker | Product acceptance |",
-        "|---|---|---|---|---|---|",
+        "| Product | Runtime state / SHA | Health details | Artifact digest | Inventory age / match | Pending candidate / age | Protected blocker | Product acceptance |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     evidence = []
     for row in report["projects"]:
@@ -195,6 +212,8 @@ def render_markdown(report: dict) -> str:
         rows.append(
             f"| {row['id']} | {row['delivery_state']} / `{row['serving_sha'] or 'UNKNOWN'}` "
             f"(observed {row['observed_at']}) | "
+            f"{row['health']} {json.dumps(row.get('health_details', {}), sort_keys=True)} | "
+            f"{row.get('artifact_digest', 'UNKNOWN')} | "
             f"{row['inventory_age_hours'] if row['inventory_age_hours'] is not None else 'UNKNOWN'}h / {match} "
             f"(`{row['inventory_source_commit'] or 'UNKNOWN'}`) | "
             f"`{row['candidate_sha'] or 'UNKNOWN'}` / "
