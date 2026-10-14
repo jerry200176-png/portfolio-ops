@@ -37,7 +37,8 @@ target product repository's own `AGENTS.md`/`CLAUDE.md`.
    migrations, test locally or in authorized isolated environments, and
    prepare PRs without implementation-detail approval. Merge only when
    required checks pass and any triggered release is authorized for the full
-   production-to-candidate difference. Production migration execution and
+   production-to-candidate difference. Production migration execution (except
+   a product-classified T2 additive-only migration) and
    product-defined protected activation require Founder approval before the side effect; a
    destructive design that locks in product direction requires a decision
    before implementation commits to it. If a repair exposes a material

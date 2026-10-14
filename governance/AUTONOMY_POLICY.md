@@ -29,7 +29,10 @@ Authoring a migration is engineering work, not production execution. Agents
 may write migration files and database function/constraint changes, and may
 test them locally or in an authorized isolated environment. Production
 migration execution and protected activation are separate side-effect
-boundaries and require explicit Founder approval before they run.
+boundaries and require explicit Founder approval before they run. The one
+exception (Founder 2026-10-14): an additive-only migration (new tables,
+columns or plain indexes) that the product's committed classifier marks T2
+may run through that product's deploy pipeline after its release gates pass.
 
 Ordinary implementation details — including reversible schema changes and
 migration authoring — do not need individual Founder approval. Founder
@@ -97,7 +100,8 @@ Keep Founder approval for:
 6. Destructive operations
 7. Major product direction
 8. Breaking schema contract with material blast radius or major architecture expansion
-9. Production migration execution or product-defined protected activation,
+9. Production migration execution (except a product-classified T2
+   additive-only migration) or product-defined protected activation,
    including a merge or workflow dispatch that triggers either side effect
 
 Other low-risk, reversible, scoped work is Agent-owned through implementation,

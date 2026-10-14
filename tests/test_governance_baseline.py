@@ -141,10 +141,9 @@ class GovernanceBaselineTests(unittest.TestCase):
         self.assertIn("persist-credentials: false", workflow)
         self.assertIn('test "$(git rev-parse HEAD)" = "$EXO_HEAD_SHA"', workflow)
         self.assertNotIn("github.event.pull_request", workflow)
-        self.assertIn("workflow-only change may be proposed", onboarding)
-        self.assertIn("never as a required fleet check", onboarding)
+        self.assertIn("ExoProtocol onboarding is retired", onboarding)
+        self.assertNotIn("exo --repo", onboarding)
         self.assertNotIn("require ExoProtocol Governance", onboarding)
-        self.assertIn('EXO_WORKFLOW_TEMPLATE="${SCRIPT_DIR}/../.github/workflows/exo-governance.yml"', onboarding)
         self.assertNotIn("adapter-generate --target ci", onboarding)
 
 

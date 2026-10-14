@@ -94,11 +94,10 @@ highest-ROI safe work as Draft PRs; use `weekly-review` for the wider
 weekly sweep.
 
 From Ubuntu, `governance-audit` audits GitHub enforcement without writing.
-`governance-onboard owner/repo --dry-run` previews a new project; `--apply`
-creates an isolated onboarding worktree with the pinned ExoProtocol governance
-core and only missing adapters. After that bootstrap PR merges,
-`governance-onboard owner/repo --apply --enable-ci` adds the Exo CI workflow as
-a separate reviewable change.
+`governance-onboard owner/repo --dry-run` checks a new project read-only.
+ExoProtocol is retired (Founder 2026-10-14), so `--apply` and `--enable-ci`
+are refused; a new repository gets the committed
+`governance/PORTFOLIO_AGENT_CONTRACT.md` overlay through a normal PR.
 
 ## Definition of done (this control plane's scope)
 

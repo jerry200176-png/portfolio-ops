@@ -15,8 +15,9 @@ fixes.
 | Squash-merge low-risk reversible PR (R0–R1; scoped reversible R2) after **required** checks | **Yes** when any push-triggered release is also authorized and fully classified |
 | Routine reversible product deploy after `main` moved | **Conditional** — existing product authority, exact candidate, full production diff, rollback and runtime checks |
 | `workflow_dispatch` of a committed reversible workflow already on default branch | **Conditional** — the exact effect must be authorized; record the run URL |
-| Production migration execution, protected activation, production data mutation, identity/permission/privacy/security policy, billing/payment semantics, material reservation/product policy, major data repair, destructive ops, major product direction | **No** — Founder approval |
+| Production migration execution (other than product-classified T2 additive-only), protected activation, production data mutation, identity/permission/privacy/security policy, billing/payment semantics, material reservation/product policy, major data repair, destructive ops, major product direction | **No** — Founder approval |
 | Author migration files and test locally / in authorized isolated environments | **Yes** — confirm environment isolation; never use production credentials |
+| Additive-only production migration that the product's committed classifier marks T2 | **Yes** — through the product deploy pipeline after its release gates (Founder 2026-10-14) |
 | SSH / artisan / phpunit on the production host | **No** — machine ban |
 | Force-push, history rewrite, `--admin` | **No** — machine ban |
 
@@ -60,7 +61,7 @@ prepare a Founder decision. Do not weaken gates.
 | R0 | Docs, INDEX, radar, no production behavior | Agent merges after checks |
 | R1 | Isolated fix; may include reversible migration authoring, but no production execution, authz/billing/security-policy change | Agent merges and releases after product and release-level gates |
 | R2 | Scheduling/UX/API behavior that remains reversible with rollback | Agent merges and releases when the product contract authorizes it and full release risk is known |
-| R3 / Founder-risk | Production migration execution, protected activation, production data repair, destructive or direction-locking migration design, breaking schema contract with material blast radius, privilege/security policy, billing/payment semantics, material reservation policy, destructive ops, major product direction/architecture | Code and migration may be prepared/tested as PR; **protected activation/mutation requires Founder** |
+| R3 / Founder-risk | Production migration execution (other than product-classified T2 additive-only), protected activation, production data repair, destructive or direction-locking migration design, breaking schema contract with material blast radius, privilege/security policy, billing/payment semantics, material reservation policy, destructive ops, major product direction/architecture | Code and migration may be prepared/tested as PR; **protected activation/mutation requires Founder** |
 
 When unsure between R1 and R2, declare R2. When unsure whether Founder risk
 applies, treat it as Founder-risk and stop before the protected production
