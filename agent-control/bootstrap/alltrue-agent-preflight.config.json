@@ -20,7 +20,8 @@
     "/workspace/AllTrue_System"
   ],
   "allowed_path_prefixes": [
-    "/home/jerry/workspace/tasks/alltrue/"
+    "/home/jerry/workspace/tasks/alltrue/",
+    "/workspace/tasks/alltrue/"
   ],
   "branch_prefix_regex": "^(feat|fix|hotfix|chore|exp|perf|test|refactor|docs|build|ci)/.+",
   "production_mutation_env": "ALLTRUE_PRODUCTION_MUTATION",
