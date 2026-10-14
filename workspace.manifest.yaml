@@ -1,4 +1,6 @@
 schema_version: 1
+# Legacy local (Ubuntu) inventory. Since 2026-10-14 the default is a Claude
+# cloud session, which uses none of these paths.
 workspace_root: /home/jerry/workspace
 manifest_owner: /home/jerry/workspace/portfolio-ops
 last_verified_at: "2026-09-04T18:05:00+08:00"

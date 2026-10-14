@@ -36,8 +36,8 @@ agent_entrypoints:
 session_invariants:
   one_repository_per_session: true
   one_task_one_branch: true
-  isolated_worktree_required: true
-  session_manifest_required: true
+  isolated_worktree_required: true  # cloud session clone (default) or legacy local worktree
+  session_manifest_required: true  # legacy local: agent-start manifest; cloud: the PR (branch, diff, checks) is the session record
   evidence_before_claim: true
   draft_pr_is_default_finish_line: false
   production_mutation_default: false
@@ -174,13 +174,14 @@ irreversible_actions:
     - routine_reversible_deploy_via_authorized_product_path
     - migration_file_authoring
     - local_or_authorized_isolated_migration_testing
+    - additive_only_migration_via_product_t2_classifier
     - close_github_issue
     - gmail_send_reply_label
     - product_workflow_dispatch_authorized_reversible
     - production_readonly_verify
   founder_approval_required:
     - production_data_mutation
-    - production_migration_execution
+    - production_migration_execution  # except additive_only_migration_via_product_t2_classifier
     - protected_production_activation
     - destructive_or_irreversible_migration_design_locking_product_direction
     - breaking_schema_contract_material_blast_radius

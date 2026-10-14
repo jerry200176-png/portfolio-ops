@@ -11,24 +11,26 @@ approval or orchestration system.
   widen or narrow those permissions.
 - Read this repository's committed `AGENTS.md`/`CLAUDE.md` and the target
   product's production-control contract before acting.
-- Isolate work by repository, task, branch, and worktree. On the managed Ubuntu
-  workspace use `agent-control/bin/agent-start`; in cloud/mobile environments
-  use the controls supplied with the repository.
+- Isolate work by repository, task, and branch. Since 2026-10-14 the default
+  is a Claude cloud session (fresh clone, branch from `origin/main`, PR). The
+  Ubuntu `agent-control/bin/agent-start` worktree path is legacy and being
+  retired; use it only when a task genuinely needs the local machine.
 - Migration authoring and local or authorized isolated migration testing are
-  Agent-owned. Production migration execution still requires Founder approval
-  before the side effect.
+  Agent-owned. An additive-only migration (new tables/columns/plain indexes)
+  may run through the product's own deploy pipeline when that product's
+  committed classifier marks it T2. Any other production migration execution
+  still requires Founder approval before the side effect.
 - Agents own reversible engineering work and eligible merges after current
   required checks and applicable review conditions pass. A passing CI run or
   merge permission does not grant production deployment or activation rights;
   release review covers the full production-to-candidate risk.
 - Agents may dispatch committed reversible workflows only when exact effects are
   already authorized by the company and product contracts.
-- Production data changes, migration execution, protected activation, and the
+- Production data changes, non-additive migration execution, protected activation, and the
   other Founder-only actions in `AUTONOMY_POLICY.md` require explicit approval
   before the protected side effect. Prepare independent work up to that step.
-- ExoProtocol is optional for isolated experiments. Do not require Exo sessions,
-  locks, generated adapters, or checks for fleet work, and do not let them
-  override the committed company or product contracts.
+- ExoProtocol is retired (Founder 2026-10-14). Ignore any `.exo/` tree; do not
+  require Exo sessions, locks, generated adapters, or checks.
 - Never print secrets, force-push, use `--admin`, access production over SSH,
   or delete Gmail. Preserve uncommitted work and never weaken required controls.
 

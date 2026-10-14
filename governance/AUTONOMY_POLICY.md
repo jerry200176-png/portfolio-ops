@@ -29,7 +29,10 @@ Authoring a migration is engineering work, not production execution. Agents
 may write migration files and database function/constraint changes, and may
 test them locally or in an authorized isolated environment. Production
 migration execution and protected activation are separate side-effect
-boundaries and require explicit Founder approval before they run.
+boundaries and require explicit Founder approval before they run. The one
+exception (Founder 2026-10-14): an additive-only migration (new tables,
+columns or plain indexes) that the product's committed classifier marks T2
+may run through that product's deploy pipeline after its release gates pass.
 
 Ordinary implementation details — including reversible schema changes and
 migration authoring — do not need individual Founder approval. Founder
@@ -66,7 +69,8 @@ controls to make CI green.
 | Run migrations locally / in authorized isolated test or staging | **Yes** | Verify environment and credentials are isolated from production |
 | Merge an eligible reversible PR | **Yes** | Required checks green; no `--admin`; classify any push-triggered release against actual production |
 | Routine reversible production deploy | Conditional | Existing product authorization; exact candidate, full production diff, checks, rollback and runtime evidence |
-| Production migration execution or protected activation | **No** | Explicit Founder approval before execution/activation |
+| Additive-only production migration (new tables/columns/plain indexes) via the product deploy pipeline | Conditional | The product's committed classifier marks it T2; required checks, review and rollback evidence (Founder 2026-10-14) |
+| Any other production migration execution, or protected activation | **No** | Explicit Founder approval before execution/activation |
 | Production verification (read-only) | Yes | health/version/deploy identity endpoints, logs, dashboards |
 | Close a GitHub issue after evidence | **Yes** | Evidence Contract filled; in-app bugs still need product public-reply |
 | Send or reply on Gmail for the current task | **Yes** | Grounded content; never print secrets |
@@ -96,7 +100,8 @@ Keep Founder approval for:
 6. Destructive operations
 7. Major product direction
 8. Breaking schema contract with material blast radius or major architecture expansion
-9. Production migration execution or product-defined protected activation,
+9. Production migration execution (except a product-classified T2
+   additive-only migration) or product-defined protected activation,
    including a merge or workflow dispatch that triggers either side effect
 
 Other low-risk, reversible, scoped work is Agent-owned through implementation,

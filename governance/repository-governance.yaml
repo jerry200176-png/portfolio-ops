@@ -4,17 +4,17 @@ canonical_policy: governance/AGENT_BOOTSTRAP.md
 agent_kernel:
   name: agent-control
   version: "0.5.0"
-  rollout: canonical
+  rollout: legacy_local  # Founder 2026-10-14: default is a Claude cloud session
   session_entrypoint: /home/jerry/workspace/agent-control/bin/agent-start
   task_root: /home/jerry/workspace/tasks
   bare_repos: /home/jerry/workspace/repos
 exo_experiment:
   name: exoprotocol
   version: "0.2.3"
-  status: experiment_only
+  status: retired
   required_in_ci: false
   required_in_rulesets: false
-  note: "Do not dual-track governance; agent-control remains the only required session path."
+  note: "Retired 2026-10-14. Default session: Claude cloud session (fresh clone, branch from origin/main, PR); agent-control is legacy local."
 agents: [cursor, codex, claude-code, cubelv]
 remote_enforcement:
   default_branch: main
