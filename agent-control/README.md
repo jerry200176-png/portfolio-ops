@@ -56,8 +56,8 @@ The first successful terminal evaluation is also recorded once per session;
 later idle callbacks or event replays cannot reclaim dependencies regenerated
 after that completion.
 
-For Exo, use the adapter **from outside the task worktree** so its own shell
-does not count as active use:
+Legacy (ExoProtocol is retired, Founder 2026-10-14): for Exo, the adapter was
+used **from outside the task worktree** so its own shell did not count as active use:
 
 ```bash
 agent-control/bin/exo-session-finish portfolio-ops TASK-123 -- \
