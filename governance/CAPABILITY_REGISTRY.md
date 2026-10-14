@@ -12,7 +12,7 @@
 | Local git | Proven | Canonical checkouts and isolated governance worktrees were inspected; existing user changes were preserved | Daily |
 | Codex scheduled automation | Proven | Daily loop, weekly governance review, and P0/P1 watch created and rendered in the app | Weekly |
 | GitHub baseline governance rulesets | Partial | `portfolio-governance-main` remains active on all 7 repositories with PR/CI, deletion, and force-push controls; the single-owner policy now intentionally requires no human approval. Four repositories still miss one or more declared adapters. | Weekly |
-| ExoProtocol 0.2.3 pilot | Partial | Isolated `engineering-intelligence` pilot evidence exists; the Exo workflow is not present across the seven-repository fleet and generated adapters/CI remain Draft-PR work. | Per repo rollout |
+| ExoProtocol 0.2.3 pilot | Retired (2026-10-14) | Founder 2026-10-14（三）#6 retired Exo fleet-wide; tracked `.exo/` trees and the manual workflow are removed. | None |
 | AllTrue production mutation | Unverified | Use repository capability registry and canonical workflow only | Before use |
 | Sunrise production mutation | Partial | Vercel integration exists; recent failed deployments require fresh verification | Before use |
 

@@ -3,8 +3,8 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .agent-session/
-# ExoProtocol: audit logs excluded (privacy.commit_logs=false)
-.exo/logs/
+# ExoProtocol is retired (Founder 2026-10-14)
+.exo/
 # Graph Control Plane durable store (never commit)
 state/graph-control.sqlite
 state/graph-control.sqlite-*

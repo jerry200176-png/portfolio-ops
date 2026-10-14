@@ -129,23 +129,20 @@ class GovernanceBaselineTests(unittest.TestCase):
         self.assertNotIn("Merge, deploy", overlay)
         self.assertNotIn("eligible merges require Founder approval", overlay)
 
-    def test_exo_governance_is_manual_experiment_only(self):
-        workflow = (ROOT / ".github/workflows/exo-governance.yml").read_text(encoding="utf-8")
+    def test_exo_is_retired(self):
+        # Founder 2026-10-14（三）#6: ExoProtocol is retired. Git history keeps the old files.
         onboarding = (ROOT / "scripts/onboard-repository.sh").read_text(encoding="utf-8")
-        self.assertIn("workflow_dispatch:", workflow)
-        self.assertNotIn("pull_request:", workflow)
-        self.assertIn("Manual-only experiment workflow", workflow)
-        self.assertIn("base_sha:", workflow)
-        self.assertIn("head_sha:", workflow)
-        self.assertIn("ref: ${{ inputs.head_sha }}", workflow)
-        self.assertIn("persist-credentials: false", workflow)
-        self.assertIn('test "$(git rev-parse HEAD)" = "$EXO_HEAD_SHA"', workflow)
-        self.assertNotIn("github.event.pull_request", workflow)
+        cursorrules = (ROOT / ".cursorrules").read_text(encoding="utf-8")
+        self.assertFalse((ROOT / ".github/workflows/exo-governance.yml").exists())
+        tracked = subprocess.run(["git", "ls-files", ".exo", ".agent-session"], cwd=ROOT,
+                                 capture_output=True, text=True, check=True).stdout
+        self.assertEqual("", tracked.strip())
+        self.assertNotIn("<!-- exo:governance:begin -->", cursorrules)
+        self.assertIn("ExoProtocol is retired", cursorrules)
         self.assertIn("ExoProtocol onboarding is retired", onboarding)
         self.assertNotIn("exo --repo", onboarding)
         self.assertNotIn("require ExoProtocol Governance", onboarding)
         self.assertNotIn("adapter-generate --target ci", onboarding)
-
 
 if __name__ == "__main__":
     unittest.main()

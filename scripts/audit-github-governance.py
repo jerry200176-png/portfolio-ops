@@ -78,10 +78,6 @@ def audit(entry: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
             branch_protection.get("required_pull_request_reviews")
         )
 
-    workflow_present = ".github" in root_names and gh_json(
-        f"repos/{repo}/contents/.github/workflows/exo-governance.yml"
-    ) is not None
-
     return {
         "id": entry["id"],
         "github_repo": repo,
@@ -89,7 +85,6 @@ def audit(entry: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
         "missing_adapters": missing_adapters,
         "main_protected": protected,
         "human_review_required": review_required,
-        "exo_workflow_present": workflow_present,
         "main_rulesets": [rule.get("name") for rule in main_rulesets],
     }
 
@@ -114,7 +109,7 @@ def main() -> int:
     if args.json:
         print(json.dumps(reports, indent=2, ensure_ascii=False))
     else:
-        print("repo\tprotected\treview\texo-ci\tmissing-adapters")
+        print("repo\tprotected\treview\tmissing-adapters")
         for report in reports:
             print(
                 "\t".join(
@@ -122,7 +117,6 @@ def main() -> int:
                         report["github_repo"],
                         "PASS" if report["main_protected"] else "FAIL",
                         "PASS" if report["human_review_required"] else "FAIL",
-                        "PASS" if report["exo_workflow_present"] else "WARN",
                         ",".join(report["missing_adapters"]) or "-",
                     ]
                 )
@@ -135,7 +129,6 @@ def main() -> int:
             report["missing_adapters"]
             or not report["main_protected"]
             or not report["human_review_required"]
-            or not report["exo_workflow_present"]
             for report in reports
         )
     )
