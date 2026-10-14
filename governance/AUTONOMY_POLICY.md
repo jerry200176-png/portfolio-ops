@@ -66,7 +66,8 @@ controls to make CI green.
 | Run migrations locally / in authorized isolated test or staging | **Yes** | Verify environment and credentials are isolated from production |
 | Merge an eligible reversible PR | **Yes** | Required checks green; no `--admin`; classify any push-triggered release against actual production |
 | Routine reversible production deploy | Conditional | Existing product authorization; exact candidate, full production diff, checks, rollback and runtime evidence |
-| Production migration execution or protected activation | **No** | Explicit Founder approval before execution/activation |
+| Additive-only production migration (new tables/columns/plain indexes) via the product deploy pipeline | Conditional | The product's committed classifier marks it T2; required checks, review and rollback evidence (Founder 2026-10-14) |
+| Any other production migration execution, or protected activation | **No** | Explicit Founder approval before execution/activation |
 | Production verification (read-only) | Yes | health/version/deploy identity endpoints, logs, dashboards |
 | Close a GitHub issue after evidence | **Yes** | Evidence Contract filled; in-app bugs still need product public-reply |
 | Send or reply on Gmail for the current task | **Yes** | Grounded content; never print secrets |

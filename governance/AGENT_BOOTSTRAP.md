@@ -15,7 +15,9 @@ target product repository's own `AGENTS.md`/`CLAUDE.md`.
 2. Use the target repository's committed instructions and production control
    contract as the source of truth. Do not replace them with chat memory,
    local assumptions, or a second hand-written policy.
-3. On Ubuntu, the **canonical session path** is
+3. The default session is a Claude cloud session (Founder 2026-10-14): fresh
+   clone, branch from `origin/main`, PR. The local Ubuntu path is legacy and
+   being retired; when a task truly needs it, use
    `/home/jerry/workspace/agent-control/bin/agent-start` (also installed as
    `~/.local/bin/agent-start`). It creates the approved task worktree,
    preflight, and manifest. Do not edit legacy checkouts:
@@ -52,13 +54,14 @@ local agent must not weaken those controls to make a task pass.
 
 ## Session kernel (canonical vs experiment)
 
-- **Canonical:** `agent-control` (Phase 0.5). One task → one branch → one
+- **Default:** Claude cloud session (Founder 2026-10-14). One task → one
+  branch from `origin/main` → one PR.
+- **Legacy local:** `agent-control` (Phase 0.5), being retired. One task → one
   isolated worktree under `/home/jerry/workspace/tasks/<project>/` with a
   session manifest and provenance.
-- **Experiment only:** ExoProtocol. Do **not** require Exo CI or Exo ruleset
-  checks. Do **not** treat Exo-generated adapter blocks as a second policy
-  source over product `AGENTS.md`/`CLAUDE.md`. Keep any `.exo/` trees local to
-  experiment sessions; do not expand Exo into a fleet framework.
+- **Retired:** ExoProtocol. Do **not** require Exo CI or Exo ruleset checks,
+  and do not treat Exo-generated adapter blocks as a policy source. Ignore any
+  `.exo/` tree.
 
 ## Open-source baseline
 

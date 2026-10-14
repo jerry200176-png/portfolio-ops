@@ -107,8 +107,9 @@ class GovernanceBaselineTests(unittest.TestCase):
 
     def test_agent_entrypoints_follow_company_authority_and_gateway(self):
         bootstrap = (ROOT / "governance" / "AGENT_BOOTSTRAP.md").read_text(encoding="utf-8")
-        self.assertIn("**Canonical:** `agent-control`", bootstrap)
-        self.assertIn("**Experiment only:** ExoProtocol", bootstrap)
+        self.assertIn("**Default:** Claude cloud session", bootstrap)
+        self.assertIn("**Legacy local:** `agent-control`", bootstrap)
+        self.assertIn("**Retired:** ExoProtocol", bootstrap)
         for name in ("AGENTS.md", "CLAUDE.md", "codex.md"):
             entrypoint = (ROOT / name).read_text(encoding="utf-8")
             with self.subTest(entrypoint=name):
@@ -118,7 +119,7 @@ class GovernanceBaselineTests(unittest.TestCase):
                 self.assertIn("agent-control/bin/agent-start", entrypoint)
                 self.assertNotIn("<!-- exo:governance:begin -->", entrypoint)
                 self.assertNotRegex(entrypoint, r"(?i)exo session-start|exo session-finish|exo push")
-                self.assertIn("ExoProtocol is optional", entrypoint)
+                self.assertIn("ExoProtocol is retired", entrypoint)
 
     def test_portable_overlay_does_not_add_a_founder_gate(self):
         overlay = (ROOT / "governance" / "PORTFOLIO_AGENT_CONTRACT.md").read_text(encoding="utf-8")

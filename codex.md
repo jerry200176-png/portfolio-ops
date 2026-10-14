@@ -26,14 +26,14 @@ precedence is in `governance/COMPANY_CONSTITUTION.md`; execution permissions
 are in `governance/AUTONOMY_POLICY.md`. The portable minimum for cloud and
 mobile agents is `governance/PORTFOLIO_AGENT_CONTRACT.md`.
 
-On the managed Ubuntu workspace, use `agent-control/bin/agent-start` for an
-isolated task worktree, preflight, and provenance. In cloud or mobile work,
-use the supplied repository and its committed controls; do not assume the
-local gateway or `/home/jerry` exists.
+Default (Founder 2026-10-14): work in a Claude cloud session with the supplied
+repository and its committed controls; do not assume the local gateway or
+`/home/jerry` exists. The Ubuntu `agent-control/bin/agent-start` worktree path
+is legacy and being retired.
 
-ExoProtocol is optional for isolated experiments. Its sessions, locks,
-generated adapters, and CI are not required for fleet work and cannot override
-these committed contracts. Existing product, data, security, and protected
+ExoProtocol is retired. Ignore any `.exo/` tree; its sessions, locks,
+generated adapters, and CI are not required and cannot override these
+committed contracts. Existing product, data, security, and protected
 production-action boundaries remain in force.
 
 ## Portfolio governance overlay
