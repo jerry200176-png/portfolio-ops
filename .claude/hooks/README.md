@@ -13,8 +13,14 @@ after this install).
   pnpm run deploy`), and commands that dump a credential-shaped file
   (`.env`, `*.pem`, `id_rsa`, `credentials.json`) to stdout or toward an
   external host via curl/scp/rsync.
-- `deny_tool.py` — matcher on Gmail **trash/delete** MCP tool names.
+- `deny_tool.py` — matcher on Gmail **trash/delete/spam** MCP tool names,
+  in both naming schemes: local (`mcp__claude_ai_Gmail__*`) and cloud
+  (`mcp__Gmail__*`). Two redundant entries: a regex over any server name
+  containing "gmail" and any tool containing `trash`/`delete`/`spam`, plus an
+  exact-name list (the plain `a|b` form Claude Code never reads as regex).
+  `permissions.deny` repeats the core trash/delete names as a third layer.
   Send, reply, draft, and label are allowed (`governance/AUTONOMY_POLICY.md`).
+  Regression test: `python -m unittest tests.test_gmail_deny_hook`.
   GitHub merge is allowed after required checks; do not hook-deny it.
 
 No `jq` on this machine, so both hooks are plain Python 3 reading/writing
@@ -52,13 +58,14 @@ Or pipe-test a single case directly:
 ```bash
 echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' | python3 guard_bash.py   # expect: no output
 echo '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' | python3 guard_bash.py  # expect: deny JSON
-echo '{"tool_name":"mcp__claude_ai_Gmail__send_message","tool_input":{}}' | python3 deny_tool.py  # expect: deny JSON
+echo '{"tool_name":"mcp__Gmail__trash_message","tool_input":{}}' | python3 deny_tool.py  # expect: deny JSON (deny_tool denies whatever settings.json routes to it)
 ```
 
 ## Portability (Cloud / alternate checkouts)
 
 Hook commands in `../settings.json` must **not** hardcode
-`/home/jerry/workspace/portfolio-ops/...`.
+an absolute checkout path such as `$HOME/workspace/portfolio-ops/...`
+(the legacy local layout) — cloud sessions clone elsewhere.
 
 They use:
 

@@ -2,7 +2,11 @@
 
 ## Local repositories
 
-Scan `/home/jerry/workspace` at reasonable depth for Git repositories.
+Scan the workspace root at reasonable depth for Git repositories. In a
+cloud session that is the directory holding the session's clones (the
+parent of this repository, usually `$HOME`); on a legacy local machine it is
+`$HOME/workspace`. Repos that aren't cloned in this session are covered by
+the GitHub section below, not guessed from local paths.
 Delegate this to `portfolio-auditor` (read-only). For each repo record:
 
 - name, local path, remote URL, owner, default branch, current branch
@@ -42,8 +46,9 @@ Only clone a GitHub repo that is Active-30d or production-critical AND not
 already present locally under a path in `portfolio.yaml`. Before cloning:
 
 1. Confirm it isn't the same repo under a different remote/old clone.
-2. Clone to `/home/jerry/workspace/<repo-name>` — never overwrite an
-   existing directory.
+2. Clone next to this repository (`../<repo-name>` relative to the
+   portfolio-ops checkout, e.g. `$HOME/<repo-name>` in a cloud session) —
+   never overwrite an existing directory.
 3. Never bulk-clone starred repositories.
 4. After cloning, run a baseline audit (`checklists/baseline-audit.md`)
    before making any changes — don't touch it heavily on first contact.

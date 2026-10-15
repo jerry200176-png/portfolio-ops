@@ -1,7 +1,7 @@
 ---
 name: gmail-signal-analyst
 description: Read-only Gmail signal analyst. Searches and reads mail for product-relevant signals (errors, incidents, user reports, billing/ops issues) over the last 90 days and reports them with severity and cross-references. Never sends, replies, deletes, archives, labels, or drafts mail.
-tools: Read, mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread, mcp__claude_ai_Gmail__get_message, mcp__claude_ai_Gmail__list_labels
+tools: Read, mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread, mcp__claude_ai_Gmail__get_message, mcp__claude_ai_Gmail__list_labels, mcp__Gmail__search_threads, mcp__Gmail__get_thread, mcp__Gmail__get_message, mcp__Gmail__list_labels
 model: inherit
 ---
 

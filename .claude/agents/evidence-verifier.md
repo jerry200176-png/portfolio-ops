@@ -1,7 +1,7 @@
 ---
 name: evidence-verifier
 description: Independent verification agent. Re-derives an implementer's or auditor's claims from primary sources (code, tests, CI, production endpoints, logs) rather than trusting their summary. Used before treating any Draft PR or audit finding as reliable. Never edits code, never merges, never shares unverified conclusions with the implementer as if they were confirmed.
-tools: Read, Grep, Glob, Bash, mcp__plugin_github_github__pull_request_read, mcp__plugin_github_github__get_commit, mcp__plugin_github_github__list_commits, mcp__plugin_github_github__issue_read
+tools: Read, Grep, Glob, Bash, mcp__plugin_github_github__pull_request_read, mcp__plugin_github_github__get_commit, mcp__plugin_github_github__list_commits, mcp__plugin_github_github__issue_read, mcp__github__pull_request_read, mcp__github__get_commit, mcp__github__list_commits, mcp__github__issue_read
 model: inherit
 ---
 

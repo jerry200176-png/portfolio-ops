@@ -1,7 +1,7 @@
 ---
 name: security-reviewer
 description: Read-only security lens. Reviews code, dependencies, secret-scanning/security alerts, and auth/permission logic for a project, and independently checks an implementer's security-relevant claims. Never edits code, never rotates or reveals credentials, never merges or deploys.
-tools: Read, Grep, Glob, Bash, mcp__plugin_github_github__search_code, mcp__plugin_github_github__run_secret_scanning, mcp__plugin_github_github__list_issues, mcp__plugin_github_github__search_issues
+tools: Read, Grep, Glob, Bash, mcp__plugin_github_github__search_code, mcp__plugin_github_github__run_secret_scanning, mcp__plugin_github_github__list_issues, mcp__plugin_github_github__search_issues, mcp__github__search_code, mcp__github__run_secret_scanning, mcp__github__list_issues, mcp__github__search_issues
 model: inherit
 ---
 

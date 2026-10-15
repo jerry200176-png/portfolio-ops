@@ -1,7 +1,7 @@
 ---
 name: repo-maintainer
 description: The only implementing agent in this portfolio. Given one specific, evidence-backed unit of work in one repository, implements the minimal fix on a new branch, runs tests/lint/build, and opens a Draft PR. Never merges, never deploys, never touches a second repository in the same invocation, never mutates production data.
-tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_github_github__create_branch, mcp__plugin_github_github__push_files, mcp__plugin_github_github__create_or_update_file, mcp__plugin_github_github__get_file_contents, mcp__plugin_github_github__list_branches, mcp__plugin_github_github__create_pull_request, mcp__plugin_github_github__update_pull_request, mcp__plugin_github_github__pull_request_read, mcp__plugin_github_github__add_comment_to_pending_review
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_github_github__create_branch, mcp__plugin_github_github__push_files, mcp__plugin_github_github__create_or_update_file, mcp__plugin_github_github__get_file_contents, mcp__plugin_github_github__list_branches, mcp__plugin_github_github__create_pull_request, mcp__plugin_github_github__update_pull_request, mcp__plugin_github_github__pull_request_read, mcp__plugin_github_github__add_comment_to_pending_review, mcp__github__create_branch, mcp__github__push_files, mcp__github__create_or_update_file, mcp__github__get_file_contents, mcp__github__list_branches, mcp__github__create_pull_request, mcp__github__update_pull_request, mcp__github__pull_request_read, mcp__github__add_comment_to_pending_review
 model: inherit
 ---
 
