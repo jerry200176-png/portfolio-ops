@@ -116,6 +116,34 @@ and post-action probes. Founder approval must name the exact protected action
 and scope before an authorized executor uses the committed product control
 plane. If recovery or an essential control cannot be verified, stop.
 
+## Founder standing decisions (2026-10-12, recorded in the active collaboration session)
+
+The Founder answered a decision round ("照推薦") to stop routine approval waits.
+These are standing approvals for every governed product repository unless a
+product overlay states a stricter **machine** control:
+
+1. **R3 code merges and routine release.** Billing, permission and other R3
+   code changes that implement an already-decided rule may be squash-merged and
+   released by the Agent when: required checks are green at the exact head,
+   an independent review exists (Codex or reviewer agent), and no P1 finding is
+   open. After release the Agent verifies `deployment.json`/version identity and
+   health. This does not decide new billing/payment *semantics*; a new rule
+   question still goes to the Founder.
+2. **Still Founder-only:** production data mutation, production migration
+   execution, credential rotation, and irreversible/destructive operations
+   (items 1, 2, 5, 6, 9 above). Platform reviewer gates that require a human
+   click (e.g. a GitHub Environment reviewer) stay in place until the Founder
+   changes them.
+3. **Issue closure.** Close when the fix is merged, released, verified
+   (identity + health + smoke) and the in-app reporter has been answered; do not
+   wait for the reporter to confirm. Reopen if it recurs. Duplicates and
+   superseded issues may be closed with the evidence link.
+4. **Review stop rule.** Fix every P1. Fix P2 findings in one batch, then merge;
+   later P2s become follow-up issues instead of blocking the PR.
+5. **Existing holds stay.** Items the Founder explicitly put on hold (for
+   example AllTrue #3862 pending director confirmation, #3785 money rules,
+   RFID hardware acceptance) remain held until the Founder releases them.
+
 ## Founder decisions and GitHub execution
 
 Founder decisions are requested and recorded in the active collaboration
