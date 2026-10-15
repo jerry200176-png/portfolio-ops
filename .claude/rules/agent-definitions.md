@@ -27,3 +27,8 @@ write new ones the same way, don't improvise a different shape.
 - A reviewer/verifier agent (`ux-reviewer`, `security-reviewer`,
   `evidence-verifier`) must re-derive claims from primary sources, not
   restate an implementer's summary as fact.
+- MCP tool names differ by host: local Claude Code exposes
+  `mcp__plugin_github_github__*` / `mcp__claude_ai_Gmail__*`, cloud sessions
+  expose `mcp__github__*` / `mcp__Gmail__*`. List both names for each tool,
+  and only the exact same tools in each scheme, so an agent keeps the same
+  scope in both places (a read-only agent stays read-only in the cloud).

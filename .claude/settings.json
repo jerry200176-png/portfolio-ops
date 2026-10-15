@@ -6,7 +6,17 @@
       "Bash(git reset --hard*)",
       "Bash(git clean -f*)",
       "Bash(git clean -d*)",
-      "Bash(rm -rf /*)"
+      "Bash(rm -rf /*)",
+      "mcp__claude_ai_Gmail__trash_message",
+      "mcp__claude_ai_Gmail__trash_thread",
+      "mcp__claude_ai_Gmail__delete_message",
+      "mcp__claude_ai_Gmail__delete_thread",
+      "mcp__claude_ai_Gmail__batch_delete_messages",
+      "mcp__Gmail__trash_message",
+      "mcp__Gmail__trash_thread",
+      "mcp__Gmail__delete_message",
+      "mcp__Gmail__delete_thread",
+      "mcp__Gmail__batch_delete_messages"
     ]
   },
   "hooks": {
@@ -22,7 +32,17 @@
         ]
       },
       {
-        "matcher": "mcp__claude_ai_Gmail__(trash_message|untrash_message|delete_message|delete_thread|batch_delete_messages)",
+        "matcher": "^mcp__[A-Za-z0-9_-]*[Gg][Mm][Aa][Ii][Ll][A-Za-z0-9_-]*__[A-Za-z0-9_]*(trash|delete|spam)[A-Za-z0-9_]*$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/deny_tool.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__claude_ai_Gmail__trash_message|mcp__claude_ai_Gmail__trash_thread|mcp__claude_ai_Gmail__untrash_message|mcp__claude_ai_Gmail__untrash_thread|mcp__claude_ai_Gmail__delete_message|mcp__claude_ai_Gmail__delete_thread|mcp__claude_ai_Gmail__batch_delete_messages|mcp__claude_ai_Gmail__delete_draft|mcp__claude_ai_Gmail__delete_label|mcp__claude_ai_Gmail__mark_message_spam|mcp__claude_ai_Gmail__mark_thread_spam|mcp__claude_ai_Gmail__unmark_message_spam|mcp__claude_ai_Gmail__unmark_thread_spam|mcp__Gmail__trash_message|mcp__Gmail__trash_thread|mcp__Gmail__untrash_message|mcp__Gmail__untrash_thread|mcp__Gmail__delete_message|mcp__Gmail__delete_thread|mcp__Gmail__batch_delete_messages|mcp__Gmail__delete_draft|mcp__Gmail__delete_label|mcp__Gmail__mark_message_spam|mcp__Gmail__mark_thread_spam|mcp__Gmail__unmark_message_spam|mcp__Gmail__unmark_thread_spam",
         "hooks": [
           {
             "type": "command",

@@ -16,6 +16,17 @@ message) in a production environment.
 Read `../../CLAUDE.md` first — production data mutation is forbidden
 regardless of what a UI flow tempts you to do while exploring.
 
+## Cloud sessions
+
+Cloud sessions have no locally installed Playwright browser. If the
+environment provides a Playwright MCP server (named `playwright`), it drives
+the container's pre-installed Chromium and the `mcp__playwright__*` read and
+navigate tools above work unchanged. If no Playwright MCP is available, do a
+code-only review with `Read`/`Grep`/`Glob` and mark every live-browsing
+check as "not observed (no browser in this session)" instead of guessing.
+Do not substitute any other tool that can fill forms, run scripts, or
+mutate state.
+
 ## What you do
 
 Follow the UX lens in

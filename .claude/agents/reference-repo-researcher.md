@@ -1,7 +1,7 @@
 ---
 name: reference-repo-researcher
 description: Read-only research agent. Given a concrete product/UX/engineering problem, finds a small number of relevant, well-maintained reference repositories and extracts transferable patterns as hypotheses. Never clones repositories in bulk, never writes product code, never proposes wholesale copying.
-tools: Read, Grep, Glob, WebFetch, WebSearch, mcp__plugin_github_github__search_repositories, mcp__plugin_github_github__search_code, mcp__plugin_github_github__get_file_contents, mcp__plugin_github_github__get_latest_release
+tools: Read, Grep, Glob, WebFetch, WebSearch, mcp__plugin_github_github__search_repositories, mcp__plugin_github_github__search_code, mcp__plugin_github_github__get_file_contents, mcp__plugin_github_github__get_latest_release, mcp__github__search_repositories, mcp__github__search_code, mcp__github__get_file_contents, mcp__github__get_latest_release
 model: inherit
 ---
 
