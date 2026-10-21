@@ -14,7 +14,7 @@ not the default daily mode.
    Tier 0/1 project, from GitHub data already gathered in triage.
 4. Product KPI trends: only if a real signal source exists (production
    telemetry, prior reports) — do not fabricate metrics.
-5. Governance drift: check whether `governance/AUTONOMY_POLICY.md`,
+5. Governance drift: check whether `governance/RULEBOOK.md`,
    `CLAUDE.md`, and actual recent agent behavior (per `state/work-queue.yaml`
    evidence) still agree. Flag drift, don't silently "fix" policy files
    without surfacing the change.

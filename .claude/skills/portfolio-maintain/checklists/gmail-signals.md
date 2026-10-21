@@ -2,7 +2,7 @@
 
 Delegate to `gmail-signal-analyst`. **Read-only** — search and read only;
 never send, reply, delete, archive, or modify mail (see
-`../../../../governance/AUTONOMY_POLICY.md`).
+`../../../../governance/RULEBOOK.md`).
 
 ## Search surface (last 90 days)
 

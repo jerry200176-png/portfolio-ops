@@ -7,35 +7,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class FleetMergePolicyTests(unittest.TestCase):
     def test_autonomy_agent_is_operator(self):
-        policy = (ROOT / "governance/AUTONOMY_POLICY.md").read_text(
-            encoding="utf-8"
-        )
-        normalized_policy = " ".join(policy.split())
+        rulebook = (ROOT / "governance/RULEBOOK.md").read_text(encoding="utf-8")
+        policy = (ROOT / "governance/AUTONOMY_POLICY.md").read_text(encoding="utf-8")
+        self.assertIn("governance/RULEBOOK.md", policy)
+        self.assertLess(len(policy.splitlines()), 15, "AUTONOMY_POLICY is a pointer")
         fleet = (ROOT / "docs/fleet-merge-policy.md").read_text(encoding="utf-8")
         contract = (ROOT / "governance/company-agent-contract.yaml").read_text(
             encoding="utf-8"
         )
-        self.assertIn("docs/fleet-merge-policy.md", policy)
-        self.assertIn("Authoring a migration is engineering work", policy)
-        self.assertIn("A routine reversible", policy)
-        self.assertIn("product T0–T3 classes", policy)
-        self.assertIn("complete difference from the actual production", policy)
-        self.assertIn("Author migration files, database functions, and constraints", policy)
-        self.assertIn("Run migrations locally / in authorized isolated test or staging", policy)
-        self.assertIn("Any other production migration execution, or protected activation", policy)
-        self.assertIn("Additive-only production migration", policy)
-        self.assertIn("classify any push-triggered release", policy)
-        self.assertNotIn("Deploy itself is not a Founder gate", policy)
-        self.assertIn("continue separable containment", policy)
-        self.assertIn("Do not invent deadlines, payment states", normalized_policy)
-        self.assertIn("Production **data** mutation", policy)
-        self.assertIn("**No**", policy.split("Production **data** mutation")[1][:120])
-        self.assertIn("Founder approval", policy.split("Production **data** mutation")[1][:180])
-        self.assertIn("Founder-protected R3 execution", policy)
+        self.assertIn("non-additive production migration", rulebook)
+        self.assertIn("Production data mutation or repair", rulebook)
+        self.assertIn("Additive-only migrations follow the product's committed classifier", rulebook)
+        self.assertIn("Gmail trash or permanent delete", rulebook)
         self.assertIn("Stop if recovery or", fleet)
-        self.assertIn("Close a GitHub issue", policy)
-        self.assertIn("Gmail trash / delete", policy)
-        self.assertIn("**No**", policy.split("Gmail trash / delete")[1][:120])
         self.assertIn("gh pr merge --squash --delete-branch", fleet)
         self.assertIn("Do not `--admin`", fleet)
         self.assertIn(
@@ -64,32 +48,15 @@ class FleetMergePolicyTests(unittest.TestCase):
         security = (ROOT / "docs/security-boundaries.md").read_text(encoding="utf-8")
         self.assertIn("classify the full", security)
         self.assertIn("exact effects are already authorized", security)
-        constitution = (ROOT / "governance/COMPANY_CONSTITUTION.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("exact effects are already authorized", constitution)
-        self.assertIn("require explicit Founder approval before execution", constitution)
-        self.assertIn("Founder approves production execution", constitution)
-        skill = (ROOT / ".claude/skills/portfolio-maintain/SKILL.md").read_text(
-            encoding="utf-8"
-        )
-        normalized_skill = " ".join(skill.split())
-        execute = (ROOT / ".claude/skills/portfolio-maintain/modes/execute.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn(
-            "Migration authoring and authorized isolated testing are Agent-owned",
-            normalized_skill,
-        )
-        self.assertIn("Production migration execution", execute)
-        self.assertIn("continue separable containment", execute)
-        overlay = (ROOT / "governance/PORTFOLIO_AGENT_CONTRACT.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("Migration authoring and local or authorized isolated migration testing", overlay)
-        self.assertIn("full production-to-candidate risk", overlay)
-        self.assertIn("committed reversible workflows", overlay)
-        self.assertIn("exact effects are", overlay)
+        for name in ("COMPANY_CONSTITUTION", "AGENT_BOOTSTRAP", "PORTFOLIO_AGENT_CONTRACT"):
+            pointer = (ROOT / f"governance/{name}.md").read_text(encoding="utf-8")
+            self.assertIn("governance/RULEBOOK.md", pointer, name)
+            self.assertLess(len(pointer.splitlines()), 15, name)
+        for path in (".claude/skills/portfolio-maintain/SKILL.md",
+                     ".claude/skills/portfolio-maintain/modes/execute.md"):
+            text = (ROOT / path).read_text(encoding="utf-8")
+            self.assertIn("RULEBOOK", text, path)
+            self.assertNotRegex(text, r"(?i)requires? explicit Founder approval", path)
         pr_template = (ROOT / "docs/templates/draft-pr-description.md").read_text(
             encoding="utf-8"
         )

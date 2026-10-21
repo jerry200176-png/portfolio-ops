@@ -14,7 +14,7 @@ after this install).
   (`.env`, `*.pem`, `id_rsa`, `credentials.json`) to stdout or toward an
   external host via curl/scp/rsync.
 - `deny_tool.py` — matcher on Gmail **trash/delete** MCP tool names.
-  Send, reply, draft, and label are allowed (`governance/AUTONOMY_POLICY.md`).
+  Send, reply, draft, and label are allowed (`governance/RULEBOOK.md`).
   GitHub merge is allowed after required checks; do not hook-deny it.
 
 No `jq` on this machine, so both hooks are plain Python 3 reading/writing

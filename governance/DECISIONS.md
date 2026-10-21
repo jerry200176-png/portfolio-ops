@@ -62,3 +62,19 @@ follow the same form.
      is slimmed in PR 1b.
 - **Consequences:** Older policy files become pointers in follow-up PRs; until then the rulebook
   wins on conflict. Platform controls naming the Founder stay until a product PR changes them.
+
+## D-0004 Design before code; no duplicate features (2026-10-21)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.1.0.
+- **Context:** Founder, 2026-10-21: 「我怕你在修或做功能的時候做出重複的東西 或是UI/UX不好
+  希望你做之前都能詳細規劃 有架構等 就像一個軟體公司要上線產品一樣」.
+- **Decision:** Every feature and non-trivial fix has a short design doc in the issue before
+  implementation (problem and user, inventory of existing features, at least two options,
+  architecture, UX, acceptance, rollout and rollback, metrics), modelled on Google design docs
+  and Amazon working backwards. D3 reviewers check for duplication and UX consistency;
+  duplication is P1. Skill `product-design-doc` is vendored to product repos with
+  `reference-first-design`; PR templates gain 「設計文件」 and 「重複檢查」 lines. Fixes of about
+  50 lines or less with no UI change use a 5-line version.
+- **Also:** PR 1b slimmed `CLAUDE.md`/`AGENTS.md` and pointer-ized the Constitution, Autonomy
+  policy, Agent bootstrap and Portfolio agent contract, so `max_always_loaded_lines` is back at
+  the default 300 (K1; the temporary 340 in D-0003 is retired).
