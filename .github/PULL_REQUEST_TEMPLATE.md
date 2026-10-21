@@ -1,5 +1,11 @@
 ## Summary
 
+## 參考做法 (Reference-first, RULEBOOK D0)
+
+- 參考 (project, link, license) and pattern adopted:
+- 對應到我們:
+- 不照抄 (what we skip, why):
+
 ## Scope and non-goals
 
 ## Evidence

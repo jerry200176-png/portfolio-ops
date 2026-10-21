@@ -22,7 +22,17 @@
         ]
       },
       {
-        "matcher": "mcp__claude_ai_Gmail__(trash_message|untrash_message|delete_message|delete_thread|batch_delete_messages)",
+        "matcher": "mcp__claude_ai_Gmail__(trash_message|trash_thread|untrash_message|delete_message|delete_thread|batch_delete_messages)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/deny_tool.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__Gmail__(trash_message|trash_thread|delete_message|delete_thread|batch_delete_messages)",
         "hooks": [
           {
             "type": "command",

@@ -1,38 +1,39 @@
-# Agent entry point
+# portfolio-ops agent guide
 
-This file exists for non-Claude-Code automation that reads `AGENTS.md` by
-convention. The authoritative operating rules live in `CLAUDE.md` at the root
-of this repository, with procedure in
-`.claude/skills/portfolio-maintain/SKILL.md`. Read both before acting.
+Portfolio control plane for jerry200176-png's products (AllTrue System, Sunrise Cafe). It
+governs how agents triage, audit and maintain those products; it holds no product code.
+Rules for every agent are in `governance/RULEBOOK.md` (canonical copy lives here). This file
+only adds what is specific to this repository.
 
-All local and cloud agents should also load `governance/AGENT_BOOTSTRAP.md`.
-It is the compact cross-agent contract; the detailed authority remains in
-`governance/` and this repository's `CLAUDE.md`.
+## Read order
 
-Do not duplicate rules here — if this file and `CLAUDE.md` ever disagree,
-`CLAUDE.md` wins.
-Company-wide contract: read `governance/company-agent-contract.yaml` and
-`docs/agent-operating-loop.md` before acting on a portfolio task.
+1. `governance/RULEBOOK.md`, then this file.
+2. `.claude/skills/portfolio-maintain/SKILL.md` and the mode file you are running.
+3. `portfolio.yaml`, `CEO_DASHBOARD.md` and `state/work-queue.yaml` for current state.
+4. For product work: the product repo's own `AGENTS.md`.
 
-## Company authority and session gateway
+Operating loop and contract: `docs/agent-operating-loop.md`,
+`governance/company-agent-contract.yaml`. Rationale: `docs/security-boundaries.md`,
+`docs/evidence-policy.md`, `docs/prioritization.md`. History: `governance/DECISIONS.md`.
 
-Read `governance/AGENT_BOOTSTRAP.md` before governed work. The instruction
-precedence is in `governance/COMPANY_CONSTITUTION.md`; execution permissions
-are in `governance/AUTONOMY_POLICY.md`. The portable minimum for cloud and
-mobile agents is `governance/PORTFOLIO_AGENT_CONTRACT.md`.
+## Commands (what CI runs)
 
-Default (Founder 2026-10-14): work in a Claude cloud session with the supplied
-repository and its committed controls; do not assume the local gateway or
-`/home/jerry` exists. The Ubuntu `agent-control/bin/agent-start` worktree path
-is legacy and being retired.
+```bash
+python -m unittest discover -s tests -v
+python scripts/check-rulebook.py
+python scripts/validate-governance-contract.py
+python scripts/validate-company-agent-contract.py
+python scripts/company-context.py --check
+git diff --check
+```
 
-ExoProtocol is retired. Ignore any `.exo/` tree; its sessions, locks,
-generated adapters, and CI are not required and cannot override these
-committed contracts. Existing product, data, security, and protected
-production-action boundaries remain in force.
+After editing `.claude/hooks/`, also run `python3 .claude/hooks/test_guard_bash.py`.
 
-## Portfolio governance overlay
+## Repo-specific rules
 
-Read `governance/PORTFOLIO_AGENT_CONTRACT.md` before writing. It is committed
-for cloud/mobile agents and contains the company's PR, approval, production,
-and Founder-approval boundaries.
+- A repo-maintaining agent works on exactly one repository per invocation.
+- Editing `governance/RULEBOOK.md`: update `governance/rules.yaml` IDs and the `sha256` in
+  `governance/RULEBOOK.lock` in the same PR, and add a `governance/DECISIONS.md` entry when a
+  rule changes. Product repos then re-vendor with `scripts/check-rulebook.py --update <sha>`.
+- `agent-control/` and `docs/workspace-entrypoints/` are the retired local gateway; do not
+  require them.

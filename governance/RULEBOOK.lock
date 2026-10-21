@@ -1,0 +1,6 @@
+# Rulebook pin, checked by scripts/check-rulebook.py. portfolio-ops is the source ("self");
+# product repos pin a 40-hex portfolio-ops commit and regenerate with --update <sha>.
+source_repo=jerry200176-png/portfolio-ops
+source_ref=self
+sha256=b86b5584570ef092cb0e54b95092e541700f1c6b75c015d7e6f1e885a4a01e6a
+scan_include=docs/*.md
