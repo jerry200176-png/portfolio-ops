@@ -95,6 +95,9 @@ weekly sweep.
 
 From Ubuntu, `governance-audit` audits GitHub enforcement without writing.
 `governance-onboard owner/repo --dry-run` checks a new project read-only.
+To add a project to the governed set run `scripts/bootstrap-repo.sh owner/repo` and open the
+PR it prepares (`docs/governance-sync.md`); `portfolio.yaml` `governance_sync: true` then
+keeps its vendored rulebook current.
 ExoProtocol is retired (Founder 2026-10-14), so `--apply` and `--enable-ci`
 are refused; a new repository gets the committed
 `governance/PORTFOLIO_AGENT_CONTRACT.md` overlay through a normal PR.

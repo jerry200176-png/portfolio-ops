@@ -15,6 +15,7 @@ project_fields:
   name: {type: string, required: true}
   local_path: {type: string, required: true, note: "absolute path; must exist or be flagged missing"}
   github_repo: {type: string, required: true, note: "owner/repo, or null for non-GitHub"}
+  governance_sync: {type: bool, required: false, note: "true = scripts/sync-governance.py opens rulebook sync PRs here; default false"}
   forbidden_checkouts: {type: list<string>, required: false, note: "paths agents must never edit (legacy/duplicate clones)"}
   tier: {type: int, required: true, enum: [0, 1, 2, 3], note: "see docs/prioritization.md"}
   lifecycle: {type: string, required: true, enum: [production, active, incubating, dormant, archived]}

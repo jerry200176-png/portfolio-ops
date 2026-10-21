@@ -2,7 +2,7 @@
 # authoritative. tests/test_rulebook.py fails if an ID or the version drifts.
 schema_version: 1
 rulebook: governance/RULEBOOK.md
-version: 2.1.0
+version: 2.1.1
 decision_log: governance/DECISIONS.md
 founder: jerry200176-png
 

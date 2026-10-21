@@ -1,6 +1,6 @@
 # Portfolio rulebook
 
-Version: 2.1.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
+Version: 2.1.1 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
 
 One rule set for every agent (Claude Code, Codex, Cursor, Copilot, Cubelv) in every governed repo.
 Product repos vendor this file byte-for-byte; `scripts/check-rulebook.py` fails CI on drift.
@@ -149,6 +149,7 @@ skills, subagents, prompt caching); Aider repo-map; Serena (LSP symbol search); 
 ## 11. Changing this rulebook
 
 - Edit only in portfolio-ops; products pick up changes by re-vendoring (`--update`).
+- Add a project with `scripts/bootstrap-repo.sh owner/repo`; a sync bot then opens R0 re-vendor PRs in every repo with `governance_sync: true` (how-to: `docs/governance-sync.md`).
 - A change that widens agent capability (removes an F or B item, or adds a T1 source) needs the
   Founder's direction quoted in the PR and does not merge on the day it opens.
 - Pure dedupe, wording or pointer edits are R0. CI rejects these retired phrases in rule files (one regex per line, spaces match any whitespace):

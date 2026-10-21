@@ -1,0 +1,10 @@
+name: Rulebook
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  rulebook:
+    uses: jerry200176-png/portfolio-ops/.github/workflows/rulebook-check.yml@__PORTFOLIO_OPS_SHA__

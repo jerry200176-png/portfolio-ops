@@ -78,3 +78,12 @@ follow the same form.
 - **Also:** PR 1b slimmed `CLAUDE.md`/`AGENTS.md` and pointer-ized the Constitution, Autonomy
   policy, Agent bootstrap and Portfolio agent contract, so `max_always_loaded_lines` is back at
   the default 300 (K1; the temporary 340 in D-0003 is retired).
+
+## D-0005 Governance sync bot, reusable check, one-command bootstrap (2026-10-21)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.1.1.
+- **Decision:** Manual vendoring does not scale to more projects. `portfolio.yaml`
+  `governance_sync: true` marks governed repos; a workflow opens R0 re-vendor PRs on rulebook
+  changes (needs the Founder-created `GOVERNANCE_SYNC_TOKEN`; skips when absent); the rulebook
+  check is a reusable workflow; `scripts/bootstrap-repo.sh` adds a project. exoprotocol is
+  retired and never synced. See `docs/governance-sync.md`.

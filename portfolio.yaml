@@ -13,6 +13,7 @@ projects:
     name: AllTrue System
     local_path: /home/jerry/workspace/repos/AllTrue_System.git
     github_repo: jerry200176-png/AllTrue_System
+    governance_sync: false # set true after AllTrue's own governance PRs merge; then the sync bot opens PRs there
     forbidden_checkouts:
       - /home/jerry/alltrue
       - /home/jerry/workspace/AllTrue_System
@@ -49,6 +50,7 @@ projects:
     name: Sunrise Cafe
     local_path: /home/jerry/workspace/repos/sunrise-cafe.git
     github_repo: jerry200176-png/sunrise-cafe
+    governance_sync: true
     forbidden_checkouts:
       - /home/jerry/workspace/sunrise-cafe
     tier: 0
@@ -85,6 +87,7 @@ meta:
     name: Portfolio Ops (this repository)
     local_path: /home/jerry/workspace/repos/portfolio-ops.git
     github_repo: jerry200176-png/portfolio-ops
+    governance_sync: false # source of the rulebook
     note: control plane, not a product — excluded from Tier scoring
   - id: agent-control
     name: Agent session launcher
@@ -95,6 +98,7 @@ meta:
     name: Engineering Intelligence
     local_path: /home/jerry/workspace/engineering-intelligence
     github_repo: jerry200176-png/engineering-intelligence
+    governance_sync: true
     note: read-only engineering intelligence pipeline relative to product repos
   - id: income-statement-app
     name: Income Statement App
@@ -106,6 +110,13 @@ meta:
     local_path: /home/jerry/workspace/income-statement-app-releases
     github_repo: jerry200176-png/income-statement-app-releases
     note: public .exe release artifacts only
+  - id: exoprotocol
+    name: ExoProtocol (retired)
+    local_path: /home/jerry/workspace/exoprotocol
+    github_repo: jerry200176-png/exoprotocol
+    governance_sync: false
+    status: retired
+    note: retired 2026-10-14; public OSS repo with a RETIRED banner; never receives rulebook sync PRs
   - id: korea-trip-plan
     name: Korea Trip Plan
     local_path: /home/jerry/workspace/korea-trip-plan
