@@ -110,7 +110,8 @@ class GovernanceBaselineTests(unittest.TestCase):
         self.assertIn("**Default:** Claude cloud session", bootstrap)
         self.assertIn("**Legacy local:** `agent-control`", bootstrap)
         self.assertIn("**Retired:** ExoProtocol", bootstrap)
-        for name in ("AGENTS.md", "CLAUDE.md", "codex.md"):
+        self.assertFalse((ROOT / "codex.md").exists())
+        for name in ("AGENTS.md", "CLAUDE.md"):
             entrypoint = (ROOT / name).read_text(encoding="utf-8")
             with self.subTest(entrypoint=name):
                 self.assertIn("governance/AGENT_BOOTSTRAP.md", entrypoint)
@@ -132,13 +133,11 @@ class GovernanceBaselineTests(unittest.TestCase):
     def test_exo_is_retired(self):
         # Founder 2026-10-14（三）#6: ExoProtocol is retired. Git history keeps the old files.
         onboarding = (ROOT / "scripts/onboard-repository.sh").read_text(encoding="utf-8")
-        cursorrules = (ROOT / ".cursorrules").read_text(encoding="utf-8")
         self.assertFalse((ROOT / ".github/workflows/exo-governance.yml").exists())
         tracked = subprocess.run(["git", "ls-files", ".exo", ".agent-session"], cwd=ROOT,
                                  capture_output=True, text=True, check=True).stdout
         self.assertEqual("", tracked.strip())
-        self.assertNotIn("<!-- exo:governance:begin -->", cursorrules)
-        self.assertIn("ExoProtocol is retired", cursorrules)
+        self.assertFalse((ROOT / ".cursorrules").exists())
         self.assertIn("ExoProtocol onboarding is retired", onboarding)
         self.assertNotIn("exo --repo", onboarding)
         self.assertNotIn("require ExoProtocol Governance", onboarding)

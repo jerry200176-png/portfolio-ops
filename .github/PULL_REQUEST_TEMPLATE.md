@@ -1,5 +1,11 @@
 ## Summary
 
+## 參考做法 (Reference-first, RULEBOOK D0)
+
+- 競品／大公司怎麼做:
+- 開源參考（含授權）:
+- 根因 vs 症狀:
+
 ## Scope and non-goals
 
 ## Evidence

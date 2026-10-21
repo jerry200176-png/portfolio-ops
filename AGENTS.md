@@ -9,8 +9,8 @@ All local and cloud agents should also load `governance/AGENT_BOOTSTRAP.md`.
 It is the compact cross-agent contract; the detailed authority remains in
 `governance/` and this repository's `CLAUDE.md`.
 
-Do not duplicate rules here — if this file and `CLAUDE.md` ever disagree,
-`CLAUDE.md` wins.
+Do not duplicate rules here. `governance/RULEBOOK.md` is the portfolio rule set
+and wins over both files.
 Company-wide contract: read `governance/company-agent-contract.yaml` and
 `docs/agent-operating-loop.md` before acting on a portfolio task.
 

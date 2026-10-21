@@ -1,0 +1,7 @@
+# Rulebook pin for scripts/check-rulebook.py. Products pin a 40-hex SHA via --update <sha>.
+source_repo=jerry200176-png/portfolio-ops
+source_ref=self
+sha256=397ac849a2e4976510e55a45b0289b2edf7848a6648bb734130f270bf3d9c33f
+scan_include=docs/*.md
+# Temporary until PR 1b slims CLAUDE.md and restores the default 300 (RULEBOOK K1).
+max_always_loaded_lines=340

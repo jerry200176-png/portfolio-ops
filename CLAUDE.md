@@ -1,4 +1,10 @@
+@AGENTS.md
+@governance/RULEBOOK.md
+
 # Portfolio Ops — Operating Rules
+
+`governance/RULEBOOK.md` (imported above) is the portfolio rule set; where the text below
+conflicts with it, the rulebook wins. This file is slimmed in a follow-up PR.
 
 This repository is the portfolio control plane for jerry200176-png's product
 portfolio (currently: AllTrue System, Sunrise Cafe). It governs how AI agents

@@ -31,13 +31,13 @@ repositories:
     local_path: /home/jerry/workspace/repos/AllTrue_System.git
     write_path: /home/jerry/workspace/tasks/alltrue/
     lifecycle: production
-    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+    required_adapters: [AGENTS.md, CLAUDE.md]
   - id: sunrise
     github_repo: jerry200176-png/sunrise-cafe
     local_path: /home/jerry/workspace/repos/sunrise-cafe.git
     write_path: /home/jerry/workspace/tasks/sunrise/
     lifecycle: production
-    required_adapters: [AGENTS.md, CLAUDE.md, .cursorrules]
+    required_adapters: [AGENTS.md, CLAUDE.md]
   - id: portfolio-ops
     github_repo: jerry200176-png/portfolio-ops
     local_path: /home/jerry/workspace/repos/portfolio-ops.git

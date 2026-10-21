@@ -20,7 +20,7 @@ def main() -> None:
             "permissionDecision": "deny",
             "permissionDecisionReason": (
                 f"Blocked: {tool} is machine-banned mailbox destruction "
-                "(governance/AUTONOMY_POLICY.md). Send/reply/label are allowed."
+                "(governance/RULEBOOK.md B4). Send/reply/label are allowed."
             ),
         }
     }))
