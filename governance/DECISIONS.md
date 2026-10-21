@@ -8,25 +8,19 @@ follow the same form.
 
 ## D-0001 Company Constitution v1.2.0 (2026-07-19)
 
-- **Status:** Superseded by D-0004 (precedence list and "stricter rule wins" clause).
+- **Status:** Superseded by D-0003 (precedence list and "stricter rule wins" clause).
 - **Decision:** `governance/COMPANY_CONSTITUTION.md` set a 7-level precedence list; overlays said
   the stricter rule wins, so any stale "needs Founder approval" sentence bound agents (plan C9).
 
-## D-0002 Agent is the operator; risk-based autonomy (2026-09-04, revised 2026-10-04)
+## D-0002 Agent is operator (2026-09-04); cloud default, Exo retired (2026-10-14)
 
-- **Status:** Accepted, restated in RULEBOOK sections 3–5; "protected activation needs Founder
-  approval" superseded by D-0004.
-- **Decision:** `governance/AUTONOMY_POLICY.md` made eligible merges, routine deploys, issue
-  close and migration authoring agent-owned; data mutation, credentials and policy stayed Founder.
+- **Status:** Accepted, restated in RULEBOOK sections 3–5 and 9. "Protected activation needs
+  Founder approval" is superseded by D-0003.
+- **Decision:** `governance/AUTONOMY_POLICY.md` made eligible merges, routine deploys, issue close
+  and migration authoring agent-owned. Cloud session is the default; ExoProtocol is retired;
+  additive-only migrations marked T2 by a product classifier use its pipeline (PR #136, #137).
 
-## D-0003 Cloud session default; ExoProtocol retired; additive migrations (2026-10-14)
-
-- **Status:** Accepted, restated in RULEBOOK sections 3 and 9 (PR #136, #137).
-- **Decision:** Cloud session (fresh clone, branch, PR) is the default; `agent-start` is legacy;
-  ExoProtocol is retired; additive-only migrations marked T2 by a product classifier run through
-  that product's pipeline.
-
-## D-0004 One portfolio rulebook; end-to-end delivery; gates face outside input (2026-10-21)
+## D-0003 One portfolio rulebook; end-to-end delivery; gates face outside input (2026-10-21)
 
 - **Status:** Accepted (Founder-directed via the coordinating session).
 - **Context:** About 120 agent-facing files restated the rules up to 9 times and contradicted
@@ -61,6 +55,10 @@ follow the same form.
      Clarified the same day: 「我說的參考也可以比如說 使用rea參考競品 參考相關功能
      其他大公司軟體怎麼做的 從根本問題解決」. References include competitors and big-company
      software, and the section states root cause vs symptom.
-- **Consequences:** Older policy files become pointers in follow-up PRs. Until then, where they
-  conflict with the rulebook, the rulebook wins. Platform controls that still name the Founder
-  as reviewer stay in force until a product PR changes them.
+  8. Add-ons the same day: competitor research is black-box only and new MCP/agent tools need a
+     security review (B10; `rea` not adopted: anomalous star growth, single maintainer, unpinned
+     `@latest` install, code-executing tools, known malicious clone). Token budget K1–K6 (Founder:
+     「然後也參考開源解決消耗token太大的問題」); portfolio-ops runs at 340 lines until its CLAUDE.md
+     is slimmed in PR 1b.
+- **Consequences:** Older policy files become pointers in follow-up PRs; until then the rulebook
+  wins on conflict. Platform controls naming the Founder stay until a product PR changes them.

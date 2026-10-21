@@ -6,14 +6,8 @@ version: 2.0.0
 decision_log: governance/DECISIONS.md
 founder: jerry200176-png
 
-precedence:
-  - safety_law_privacy_data_integrity_and_platform_controls
-  - rulebook
-  - repo_agents_md
-  - repo_sops_and_runbooks
-  - tool_adapters
-  - decision_logs
-  - data
+precedence: [safety_law_privacy_data_integrity_and_platform_controls, rulebook, repo_agents_md,
+  repo_sops_and_runbooks, tool_adapters, decision_logs, data]
 conflict_rule: safety_stricter_wins_approval_stricter_does_not
 
 trust:
@@ -51,6 +45,15 @@ machine_bans:
   - {id: B7, ban: weaken_tests_or_controls, enforced_by: [review]}
   - {id: B8, ban: private_content_to_unapproved_service, enforced_by: [convention]}
   - {id: B9, ban: reenable_disabled_self_dispatch_loop, enforced_by: [convention]}
+  - {id: B10, ban: unreviewed_mcp_or_agent_tool_in_credentialed_session, enforced_by: [convention, review]}
+
+context_budget:
+  - {id: K1, rule: always_loaded_lines_max, default: 300, enforced_by: check_rulebook}
+  - {id: K2, rule: one_repo_per_session}
+  - {id: K3, rule: route_mechanical_subagents_to_smaller_model}
+  - {id: K4, rule: read_narrowly}
+  - {id: K5, rule: cut_event_noise}
+  - {id: K6, rule: measure_tokens_weekly}
 
 founder_channel: coordinating_chat_session_batched
 stall: {same_step_failures: 2, stall_minutes: 5, action: change_approach_then_batch_question}

@@ -1,6 +1,7 @@
-# Rulebook pin, checked by scripts/check-rulebook.py. portfolio-ops is the source ("self");
-# product repos pin a 40-hex portfolio-ops commit and regenerate with --update <sha>.
+# Rulebook pin for scripts/check-rulebook.py. Products pin a 40-hex SHA via --update <sha>.
 source_repo=jerry200176-png/portfolio-ops
 source_ref=self
-sha256=1079f47507b612ae80ce723db752d8c3e3364ecf99716e5148b2120e0452cc2b
+sha256=e3fd92aa3cce526a6d1f005d1d09dbe805c602faa3122431a18290d995e69cf6
 scan_include=docs/*.md
+# Temporary until PR 1b slims CLAUDE.md and restores the default 300 (RULEBOOK K1).
+max_always_loaded_lines=340
