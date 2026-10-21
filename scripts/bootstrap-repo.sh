@@ -24,7 +24,8 @@ done
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
 NAME="${REPO##*/}"
 WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
-gh repo clone "$REPO" "$WORK/repo" -- --depth 1 >/dev/null
+gh repo clone "$REPO" "$WORK/repo" -- --depth 1 >/dev/null 2>&1 \
+  || git clone -q --depth 1 "https://github.com/$REPO.git" "$WORK/repo"
 cd "$WORK/repo"
 git checkout -q -b chore/governance-bootstrap
 

@@ -70,7 +70,9 @@ def apply_sync(src: Path, dst: Path, sha: str) -> list[str]:
 def sync_repo(repo: str, sha: str, dry: bool) -> str:
     with tempfile.TemporaryDirectory() as tmp:
         dst = Path(tmp) / "repo"
-        run("gh", "repo", "clone", repo, str(dst), "--", "--depth", "1")
+        if subprocess.run(["gh", "repo", "clone", repo, str(dst), "--", "--depth", "1"],
+                          capture_output=True).returncode:
+            run("git", "clone", "-q", "--depth", "1", f"https://github.com/{repo}.git", str(dst))
         base = run("git", "rev-parse", "--abbrev-ref", "HEAD", cwd=dst)
         branch = f"{BRANCH_PREFIX}{sha[:7]}"
         run("git", "checkout", "-q", "-b", branch, cwd=dst)
