@@ -2,9 +2,9 @@
 
 ## 參考做法 (Reference-first, RULEBOOK D0)
 
-- 參考 (project, link, license) and pattern adopted:
-- 對應到我們:
-- 不照抄 (what we skip, why):
+- 競品／大公司怎麼做:
+- 開源參考（含授權）:
+- 根因 vs 症狀:
 
 ## Scope and non-goals
 

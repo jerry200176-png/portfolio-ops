@@ -105,19 +105,22 @@ class GovernanceBaselineTests(unittest.TestCase):
         policy = (ROOT / "governance" / "repository-governance.yaml").read_text(encoding="utf-8")
         self.assertIn("require_human_review: false", policy)
 
-    def test_agent_entrypoints_import_the_rulebook(self):
+    def test_agent_entrypoints_follow_company_authority_and_gateway(self):
         bootstrap = (ROOT / "governance" / "AGENT_BOOTSTRAP.md").read_text(encoding="utf-8")
+        self.assertIn("**Default:** Claude cloud session", bootstrap)
+        self.assertIn("**Legacy local:** `agent-control`", bootstrap)
         self.assertIn("**Retired:** ExoProtocol", bootstrap)
-        claude = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
-        self.assertTrue(claude.startswith("@AGENTS.md\n@governance/RULEBOOK.md\n"))
-        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
-        self.assertIn("governance/RULEBOOK.md", agents)
-        self.assertNotIn("CLAUDE.md wins", agents)
-        for name in (".cursorrules", "codex.md"):
-            self.assertFalse((ROOT / name).exists(), f"{name} is retired")
-        for entrypoint in (claude, agents):
-            self.assertNotIn("<!-- exo:governance:begin -->", entrypoint)
-            self.assertNotRegex(entrypoint, r"(?i)exo session-start|exo session-finish|exo push")
+        self.assertFalse((ROOT / "codex.md").exists())
+        for name in ("AGENTS.md", "CLAUDE.md"):
+            entrypoint = (ROOT / name).read_text(encoding="utf-8")
+            with self.subTest(entrypoint=name):
+                self.assertIn("governance/AGENT_BOOTSTRAP.md", entrypoint)
+                self.assertIn("governance/COMPANY_CONSTITUTION.md", entrypoint)
+                self.assertIn("governance/AUTONOMY_POLICY.md", entrypoint)
+                self.assertIn("agent-control/bin/agent-start", entrypoint)
+                self.assertNotIn("<!-- exo:governance:begin -->", entrypoint)
+                self.assertNotRegex(entrypoint, r"(?i)exo session-start|exo session-finish|exo push")
+                self.assertIn("ExoProtocol is retired", entrypoint)
 
     def test_portable_overlay_does_not_add_a_founder_gate(self):
         overlay = (ROOT / "governance" / "PORTFOLIO_AGENT_CONTRACT.md").read_text(encoding="utf-8")
@@ -134,7 +137,7 @@ class GovernanceBaselineTests(unittest.TestCase):
         tracked = subprocess.run(["git", "ls-files", ".exo", ".agent-session"], cwd=ROOT,
                                  capture_output=True, text=True, check=True).stdout
         self.assertEqual("", tracked.strip())
-        self.assertIn("ExoProtocol", (ROOT / "governance/RULEBOOK.md").read_text(encoding="utf-8"))
+        self.assertFalse((ROOT / ".cursorrules").exists())
         self.assertIn("ExoProtocol onboarding is retired", onboarding)
         self.assertNotIn("exo --repo", onboarding)
         self.assertNotIn("require ExoProtocol Governance", onboarding)

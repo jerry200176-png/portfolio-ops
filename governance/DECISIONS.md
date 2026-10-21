@@ -9,27 +9,22 @@ follow the same form.
 ## D-0001 Company Constitution v1.2.0 (2026-07-19)
 
 - **Status:** Superseded by D-0004 (precedence list and "stricter rule wins" clause).
-- **Context:** Agents needed one authority chain across products.
-- **Decision:** `governance/COMPANY_CONSTITUTION.md` set a 7-level precedence list; portable
-  overlays said "if this overlay conflicts with a stricter product or safety rule, the stricter
-  rule wins".
-- **Consequences:** Any stale "needs Founder approval" sentence anywhere counted as stricter,
-  so agents stopped on routine work (plan C9).
+- **Decision:** `governance/COMPANY_CONSTITUTION.md` set a 7-level precedence list; overlays said
+  the stricter rule wins, so any stale "needs Founder approval" sentence bound agents (plan C9).
 
 ## D-0002 Agent is the operator; risk-based autonomy (2026-09-04, revised 2026-10-04)
 
-- **Status:** Accepted; restated in RULEBOOK sections 3–5. The "protected activation needs
-  Founder approval" part is superseded by D-0004.
-- **Decision:** `governance/AUTONOMY_POLICY.md` made eligible reversible merges, routine deploys,
-  issue close and migration authoring agent-owned; production data mutation, credential
-  rotation and policy semantics stayed with the Founder.
+- **Status:** Accepted, restated in RULEBOOK sections 3–5; "protected activation needs Founder
+  approval" superseded by D-0004.
+- **Decision:** `governance/AUTONOMY_POLICY.md` made eligible merges, routine deploys, issue
+  close and migration authoring agent-owned; data mutation, credentials and policy stayed Founder.
 
 ## D-0003 Cloud session default; ExoProtocol retired; additive migrations (2026-10-14)
 
-- **Status:** Accepted; restated in RULEBOOK sections 3 and 9.
-- **Decision:** Default environment is a Claude cloud session (fresh clone, branch, PR); the
-  local `agent-start` gateway is legacy. ExoProtocol is retired. Additive-only migrations that
-  a product's committed classifier marks T2 run through that product's pipeline (PR #136, #137).
+- **Status:** Accepted, restated in RULEBOOK sections 3 and 9 (PR #136, #137).
+- **Decision:** Cloud session (fresh clone, branch, PR) is the default; `agent-start` is legacy;
+  ExoProtocol is retired; additive-only migrations marked T2 by a product classifier run through
+  that product's pipeline.
 
 ## D-0004 One portfolio rulebook; end-to-end delivery; gates face outside input (2026-10-21)
 
@@ -63,6 +58,9 @@ follow the same form.
   7. Reference-first design (D0). Founder, 2026-10-21:
      「我希望雲端環境我們在做修復或是新功能 都能去參考成熟開源或是大公司軟體」. Every fix or
      feature names 1–3 mature references and records a 「參考做法」 section in the PR.
+     Clarified the same day: 「我說的參考也可以比如說 使用rea參考競品 參考相關功能
+     其他大公司軟體怎麼做的 從根本問題解決」. References include competitors and big-company
+     software, and the section states root cause vs symptom.
 - **Consequences:** Older policy files become pointers in follow-up PRs. Until then, where they
   conflict with the rulebook, the rulebook wins. Platform controls that still name the Founder
   as reviewer stay in force until a product PR changes them.

@@ -7,8 +7,8 @@ Vendor this file unchanged as scripts/check-rulebook.py in each governed repo.
   python3 scripts/check-rulebook.py --remote    # also compare with the pinned source commit
   python3 scripts/check-rulebook.py --update SHA  # re-vendor RULEBOOK.md at a portfolio-ops SHA
 
-governance/RULEBOOK.lock holds key=value lines: source_repo, source_ref (a 40-hex commit, or
-"self" in portfolio-ops), sha256, and optional repeated scan_include= / scan_exclude= globs.
+governance/RULEBOOK.lock: key=value lines source_repo, source_ref (40-hex or "self"), sha256,
+and optional repeated scan_include= / scan_exclude= globs.
 """
 from __future__ import annotations
 

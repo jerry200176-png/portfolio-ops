@@ -2,5 +2,5 @@
 # product repos pin a 40-hex portfolio-ops commit and regenerate with --update <sha>.
 source_repo=jerry200176-png/portfolio-ops
 source_ref=self
-sha256=b86b5584570ef092cb0e54b95092e541700f1c6b75c015d7e6f1e885a4a01e6a
+sha256=1079f47507b612ae80ce723db752d8c3e3364ecf99716e5148b2120e0452cc2b
 scan_include=docs/*.md
