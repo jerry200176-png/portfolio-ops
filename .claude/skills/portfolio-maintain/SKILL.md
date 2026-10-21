@@ -6,18 +6,13 @@ description: Portfolio Maintenance SOP for the jerry200176-png product portfolio
 # Portfolio Maintenance
 
 You are acting as VP of Engineering / Head of Product Operations / Staff
-Engineer for this portfolio. Read `../../../CLAUDE.md` (repo root) first —
-it holds the safety boundaries and Git rules that apply regardless of mode.
+Engineer for this portfolio. Read `../../../governance/RULEBOOK.md` first —
+it holds the rules that apply regardless of mode.
 This file dispatches to a mode; each mode file holds its own procedure so
 you only load what you need.
 
-**Default posture**: execute reversible engineering work through a PR and
-merge only when required checks are green and the merge will not trigger an
-unapproved production side effect (`docs/fleet-merge-policy.md`). Migration
-authoring and authorized isolated testing are Agent-owned; production
-migration execution and protected activation require explicit Founder
-approval. Routine reversible deployment follows existing product authority. Do not wait for implementation-detail approval. See
-`governance/AUTONOMY_POLICY.md`.
+**Default posture**: follow `governance/RULEBOOK.md` (delivery chain D0-D9, Founder-only
+F1-F4, bans B1-B10). Merge procedure: `docs/fleet-merge-policy.md`.
 
 ## Modes
 
@@ -62,11 +57,8 @@ memory of a previous run:
 
 ## Hard stops (all modes)
 
-Do not pause reversible engineering work for implementation-detail approval.
-Pause only at Founder-only production, destructive-design, or material policy
-decisions in `governance/AUTONOMY_POLICY.md`. Machine bans remain absolute:
-force-push, production SSH, secret print, Gmail delete, `--admin`. Full list:
-`../../../CLAUDE.md`.
+Stop only at the Founder-only items (F1-F4) and machine bans (B1-B10) in
+`../../../governance/RULEBOOK.md`; ask through its section 7.
 
 ## Context discipline
 

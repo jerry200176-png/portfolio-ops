@@ -35,7 +35,7 @@ unverified, severity, and evidence. Do not write files yourself.
 
 - If you find a live or suspected-live credential: report location and
   nature only (never the value), and flag it as a stop-the-line condition
-  per `governance/AUTONOMY_POLICY.md` for the orchestrator to escalate.
+  per `governance/RULEBOOK.md` for the orchestrator to escalate.
 - Never propose or perform credential rotation, visibility changes, or any
   other mutating containment step yourself — those need Founder approval.
 - Reviewer/implementer isolation: if `repo-maintainer` produced the code

@@ -105,30 +105,25 @@ class GovernanceBaselineTests(unittest.TestCase):
         policy = (ROOT / "governance" / "repository-governance.yaml").read_text(encoding="utf-8")
         self.assertIn("require_human_review: false", policy)
 
-    def test_agent_entrypoints_follow_company_authority_and_gateway(self):
-        bootstrap = (ROOT / "governance" / "AGENT_BOOTSTRAP.md").read_text(encoding="utf-8")
-        self.assertIn("**Default:** Claude cloud session", bootstrap)
-        self.assertIn("**Legacy local:** `agent-control`", bootstrap)
-        self.assertIn("**Retired:** ExoProtocol", bootstrap)
+    def test_agent_entrypoints_import_the_rulebook(self):
         self.assertFalse((ROOT / "codex.md").exists())
-        for name in ("AGENTS.md", "CLAUDE.md"):
-            entrypoint = (ROOT / name).read_text(encoding="utf-8")
+        rulebook = (ROOT / "governance" / "RULEBOOK.md").read_text(encoding="utf-8")
+        self.assertIn("## 9. Retired", rulebook)
+        claude = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+        for imp in ("@AGENTS.md", "@governance/RULEBOOK.md"):
+            self.assertIn(imp, claude)
+        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("read `governance/RULEBOOK.md`", agents)
+        for name, entrypoint in (("AGENTS.md", agents), ("CLAUDE.md", claude)):
             with self.subTest(entrypoint=name):
-                self.assertIn("governance/AGENT_BOOTSTRAP.md", entrypoint)
-                self.assertIn("governance/COMPANY_CONSTITUTION.md", entrypoint)
-                self.assertIn("governance/AUTONOMY_POLICY.md", entrypoint)
-                self.assertIn("agent-control/bin/agent-start", entrypoint)
                 self.assertNotIn("<!-- exo:governance:begin -->", entrypoint)
                 self.assertNotRegex(entrypoint, r"(?i)exo session-start|exo session-finish|exo push")
-                self.assertIn("ExoProtocol is retired", entrypoint)
 
-    def test_portable_overlay_does_not_add_a_founder_gate(self):
+    def test_portable_overlay_is_a_pointer(self):
         overlay = (ROOT / "governance" / "PORTFOLIO_AGENT_CONTRACT.md").read_text(encoding="utf-8")
-        self.assertIn("governance/AUTONOMY_POLICY.md", overlay)
-        self.assertIn("Agents own reversible engineering work", overlay)
+        self.assertIn("governance/RULEBOOK.md", overlay)
         self.assertNotIn("independent human approval", overlay)
-        self.assertNotIn("Merge, deploy", overlay)
-        self.assertNotIn("eligible merges require Founder approval", overlay)
+        self.assertLess(len(overlay.splitlines()), 15)
 
     def test_exo_is_retired(self):
         # Founder 2026-10-14（三）#6: ExoProtocol is retired. Git history keeps the old files.
