@@ -20,17 +20,18 @@ REPO, BRANCH = "o/r", "chore/old-x"
 class FakeGh:
     """Routes `gh api` calls to canned responses and records them."""
 
-    def __init__(self, **overrides):
-        self.calls = []
+    def __init__(self, repo=REPO, **overrides):
+        self.calls, self.repo = [], repo
         self.state = {
             "default": "main",
+            "fork": False,
             "tips": [TIP],  # successive answers for git/ref/heads/<branch>
             "protected": False,
             "rules": [],
             "open_head": [],
             "open_base": [],
             "closed": [{"number": 7, "merged_at": "2026-10-01T00:00:00Z",
-                        "head": {"sha": TIP, "ref": BRANCH, "repo": {"full_name": REPO}}}],
+                        "head": {"sha": TIP, "ref": BRANCH, "repo": {"full_name": repo}}}],
             "compare": "diverged",
             "fail": {},  # path prefix -> stderr, returned with exit code 1
         }
@@ -46,26 +47,26 @@ class FakeGh:
         return subprocess.CompletedProcess(args, 0, json.dumps(self.route(method, path)), "")
 
     def route(self, method, path):
-        s, enc = self.state, dmb.enc(BRANCH)
+        s, enc, repo = self.state, dmb.enc(BRANCH), self.repo
         base, _, query = path.partition("?")
         q = dict(urllib.parse.parse_qsl(query))
         if method == "DELETE":
-            assert base == f"repos/{REPO}/git/refs/heads/{enc}", base
+            assert base == f"repos/{repo}/git/refs/heads/{enc}", base
             return None
-        if base == f"repos/{REPO}":
-            return {"default_branch": s["default"]}
-        if base == f"repos/{REPO}/git/ref/heads/{enc}":
+        if base == f"repos/{repo}":
+            return {"default_branch": s["default"], "fork": s["fork"]}
+        if base == f"repos/{repo}/git/ref/heads/{enc}":
             sha = s["tips"].pop(0) if len(s["tips"]) > 1 else s["tips"][0]
             return {"ref": f"refs/heads/{BRANCH}", "object": {"type": "commit", "sha": sha}}
-        if base == f"repos/{REPO}/branches/{enc}":
+        if base == f"repos/{repo}/branches/{enc}":
             return {"protected": s["protected"]}
-        if base == f"repos/{REPO}/rules/branches/{enc}":
+        if base == f"repos/{repo}/rules/branches/{enc}":
             return s["rules"]
-        if base == f"repos/{REPO}/pulls":
+        if base == f"repos/{repo}/pulls":
             if q["state"] == "open":
                 return s["open_head"] if "head" in q else s["open_base"]
             return s["closed"]
-        if base.startswith(f"repos/{REPO}/compare/"):
+        if base.startswith(f"repos/{repo}/compare/"):
             return {"status": s["compare"]}
         raise AssertionError(f"unexpected call {method} {path}")
 
@@ -92,7 +93,9 @@ class DeleteMergedBranchTests(unittest.TestCase):
         self.assertEqual(self.deletes(fake), [("DELETE", f"repos/{REPO}/git/refs/heads/chore/old-x")])
         self.assertIn(f"tip={TIP}", out)
         self.assertIn("merged PR #7", out)
-        self.assertIn(f"git push origin {TIP}:refs/heads/{BRANCH}", out)
+        self.assertIn(f"gh api -X POST repos/{REPO}/git/refs -f ref=refs/heads/{BRANCH} "
+                      f"-f sha={TIP}", out)
+        self.assertNotIn("git push origin", out)
 
     def test_deletes_branch_whose_tip_is_already_in_the_default_branch(self):
         for status in ("behind", "identical"):
@@ -128,6 +131,8 @@ class DeleteMergedBranchTests(unittest.TestCase):
     def test_refuses_each_failed_api_check_without_deleting(self):
         cases = {
             "default branch": {"default": BRANCH},
+            "fork": {"fork": True},
+            "fork status unknown": {"fork": None},
             "protected": {"protected": True},
             "protection unknown": {"protected": None},
             "deletion rule": {"rules": [{"type": "deletion"}]},
@@ -164,6 +169,24 @@ class DeleteMergedBranchTests(unittest.TestCase):
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             dmb.main(["--rep", REPO, "--branch", BRANCH])
 
+
+    def test_refuses_forks_and_says_why(self):
+        fake = FakeGh(fork=True)
+        code, _, err = self.run_main(fake)
+        self.assertEqual(code, 2)
+        self.assertIn("is a fork", err)
+        self.assertIn("upstream", err)
+        self.assertEqual(self.deletes(fake), [])
+        self.assertEqual(fake.calls, [("GET", f"repos/{REPO}")])
+
+    def test_restore_command_targets_the_requested_repo(self):
+        for repo in ("o/r", "other-owner/other.repo"):
+            fake = FakeGh(repo=repo)
+            code, out, _ = self.run_main(fake, ["--repo", repo, "--branch", BRANCH])
+            self.assertEqual(code, 0, repo)
+            self.assertIn(f"restore: gh api -X POST repos/{repo}/git/refs "
+                          f"-f ref=refs/heads/{BRANCH} -f sha={TIP}", out)
+            self.assertEqual(self.deletes(fake), [("DELETE", f"repos/{repo}/git/refs/heads/{BRANCH}")])
 
 if __name__ == "__main__":
     unittest.main()

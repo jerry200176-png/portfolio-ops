@@ -9,6 +9,7 @@ command only in exactly this form. It uses the REST API through `gh api` and del
 one branch, only after verifying that:
 
 - the repo and branch are plain names and the branch passes `git check-ref-format --branch`;
+- the repo is not a fork (upstream PRs from a fork's branch are not visible from the fork);
 - the branch is not the default branch, HEAD, main, master, trunk, develop, gh-pages,
   release*, releases/* or hotfix*, and refs/heads/<branch> exists (it is a branch, not a tag);
 - GitHub reports it unprotected (`branches/<b>.protected` is false) and no ruleset rule of
@@ -19,7 +20,8 @@ one branch, only after verifying that:
   (`compare/<default>...<tip>` is `behind` or `identical`);
 - the tip has not moved between the checks and the delete.
 
-It prints the repo, branch, tip SHA and a restore command for the session checkpoint.
+It prints the repo, branch, tip SHA and a restore command that targets --repo explicitly
+(`gh api -X POST repos/<repo>/git/refs ...`) for the session checkpoint.
 Exit codes: 0 deleted (or eligible with --dry-run), 2 refused, 1 API or tool error.
 Stdlib only; needs `gh` (authenticated) and `git` on PATH.
 """
@@ -111,7 +113,13 @@ def pulls(repo: str, **query: str) -> list:
 def verify(repo: str, branch: str) -> tuple[str, str]:
     """Return (tip_sha, reason) when the branch may be deleted; raise Refused otherwise."""
     validate_names(repo, branch)
-    default = (api(f"repos/{repo}") or {}).get("default_branch")
+    info = api(f"repos/{repo}") or {}
+    if info.get("fork") is not False:
+        raise Refused(f"{repo} is a fork (or fork status is unknown): open PRs from this branch "
+                      "into the upstream repository are not visible from the fork, so the "
+                      "no-open-PR check cannot be done here; delete it by hand after checking "
+                      "upstream")
+    default = info.get("default_branch")
     if not default:
         raise Refused(f"could not read the default branch of {repo}")
     if branch == default:
@@ -163,8 +171,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     verb = "eligible (dry run, nothing deleted)" if args.dry_run else "deleted"
     print(f"{verb}: repo={args.repo} branch={args.branch} tip={tip} ({reason})")
-    print(f"restore: git push origin {tip}:refs/heads/{args.branch}  "
-          "(or the PR's \"Restore branch\" button)")
+    print(f"restore: gh api -X POST repos/{args.repo}/git/refs "
+          f"-f ref=refs/heads/{args.branch} -f sha={tip}  (or the PR's \"Restore branch\" button)")
     return 0
 
 

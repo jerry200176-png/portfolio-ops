@@ -16,7 +16,7 @@ dir / session scratchpad, dummy `.env` content, and standalone piping of
 synthetic JSON into the hook scripts (never executing the dangerous command
 itself). The full machine-checked list lives in
 `.claude/hooks/test_guard_bash.py` (run: `python3
-.claude/hooks/test_guard_bash.py`) — 197 dangerous cases, 48 safe cases, plus
+.claude/hooks/test_guard_bash.py`) — 219 dangerous cases, 53 safe cases, plus
 branch-detection and symlink-resolution cases, all passing as of this
 writing.
 
@@ -96,13 +96,24 @@ text hook cannot close that class, so it never approves a deletion it parsed:
   both values matching fixed regexes (no quotes, metacharacters, globs or `..`). Any other
   command naming the script with `--repo`/`--branch` (wrapped, chained, quoted, looped,
   reordered, `--repo=`, another path) is denied.
-- **The script decides through the GitHub API**, not the shell: default branch, protection,
+- **The script decides through the GitHub API**, not the shell: forks are refused (upstream
+  PRs are not visible from them); then default branch, protection,
   ruleset `deletion`/`update` rules, open PRs (head or base), and whether the tip is a merged
   or closed PR head or already in the default branch. It re-reads the tip before deleting and
   prints the name and tip SHA for the checkpoint (`tests/test_delete_merged_branch.py`).
 - **Strictness costs:** deletion-looking arguments after any `push` word are denied even in
   harmless contexts (`echo push --delete`), and a REST write whose target path holds a variable
   (`gh api -X POST "repos/o/r/issues/$N/comments"`) is denied; name write paths literally.
+- **curl and gh are parsed per client:** short clusters split per letter with attached
+  values (`-d'{...}'`, `-sXPOST`, `-Fname=@f`), unambiguous long prefixes, `-G`/`--get` keeps
+  `-d` a read, `-T` is a PUT. GraphQL bodies read from a file, stdin or a variable are denied
+  for curl and gh. The `git stash push` exemption applies only after `git [global options]
+  stash`, so `git -C /tmp/stash push ...` is checked.
+- **Review stop rule (from 2026-10-23):** shell-text matching cannot be complete. Protection of
+  `main`, release branches and tags rests on GitHub rulesets (platform-enforced for every token)
+  plus restorable branches. Reviewer findings that `main`'s hook also allows (not introduced or
+  widened by this PR) go to a follow-up issue instead of blocking; findings in new code (the
+  deletion script, new exemptions, new allowlists) are always fixed.
 - **Recommended complement:** GitHub's "Automatically delete head branches" setting removes the
   head branch at merge; it is a Founder settings change per repo.
 

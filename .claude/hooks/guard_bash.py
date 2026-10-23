@@ -299,76 +299,115 @@ def _push_rest_denied(rest: str) -> bool:
     return False
 
 
-def _http_tool(words: list) -> str:
+def _http_tool(words: list) -> tuple:
+    """(client, index of its command word) for gh api, curl, wget or httpie."""
     for i, w in enumerate(words):
         if "://" in w:
             continue
         base = w.rsplit("/", 1)[-1]
         if base == "gh" and "api" in words[i + 1:i + 3]:
-            return "gh"
+            return "gh", i
         if base in ("curl", "wget"):
-            return base
+            return base, i
         if base in ("http", "https", "xh", "xhs"):
-            return "httpie"
-    return ""
+            return "httpie", i
+    return "", -1
 
 
-def _http_methods(tool: str, words: list) -> set:
-    """Write methods a gh/curl/wget/httpie call may use; '?' is unreadable."""
-    methods, explicit = set(), False
-    for i, w in enumerate(words):
-        for piece in w.split("="):
-            if piece.upper() in _HTTP_WRITE:
-                methods.add(piece.upper())
-        m = re.fullmatch(r"-[A-Za-z]*X(?P<v>.*)|--(?P<l>[a-z]{3,})(?:=(?P<lv>.*))?", w)
-        if not m or (m.group("l") and not ("request".startswith(m.group("l"))
-                                          or "method".startswith(m.group("l")))):
-            continue
-        val = (m.group("v") if m.group("l") is None else m.group("lv")) or \
-            (words[i + 1] if i + 1 < len(words) else "")
-        explicit = True
-        if val.upper() in _HTTP_WRITE:
-            methods.add(val.upper())
-        elif val.upper() not in _HTTP_READ:
-            methods.add("?")
-    if explicit or methods:
-        return methods
-    implicit = {
-        # gh api: -f/-F/--field/--raw-field/--input make it a POST.
-        "gh": r"-[fF]|--(?:field|raw-field|input)(?:=.*)?",
-        # curl: -f is --fail (a read); -d/-F/-T and --data*/--json/--form*/--upload-file write.
-        "curl": r"-[A-Za-z]*[dFT][A-Za-z]*|--(?:data[a-z-]*|json|form[a-z-]*|upload-file)(?:=.*)?",
-        "wget": r"--(?:post|body)-(?:data|file)(?:=.*)?",
-        "httpie": r"[^-/][^=:@/]*(?::?=|@).*",
-    }[tool]
-    return {"POST"} if any(re.fullmatch(implicit, w) for w in words) else set()
-
-
-# Flags whose value is a body, header, auth or output setting, never the
-# request target. Every other non-flag word is checked as a possible target.
-_HTTP_VALUE_FLAGS = {
-    "gh": {"-f", "-F", "--field", "--raw-field", "-H", "--header", "-q", "--jq",
-           "-t", "--template"},
-    "curl": {"-d", "--data", "--data-raw", "--data-binary", "--data-urlencode",
-             "--data-ascii", "--json", "-F", "--form", "--form-string", "-H", "--header",
-             "-u", "--user", "-A", "--user-agent", "-e", "--referer", "-b", "--cookie",
-             "-w", "--write-out", "-o", "--output"},
-    "wget": {"--header", "--post-data", "--body-data", "-O", "--output-document",
-             "--user", "--password"},
-    "httpie": set(),
+# Options that take a value. curl: short letters from `curl --help all`, long
+# names that matter here (curl also accepts unambiguous long prefixes). gh: pflag.
+_CLI_SHORT_ARG = {"curl": set("AbcCdDeEFHKmoPQrtTuUwxXyYz"), "gh": set("XHfFqtp")}
+_CLI_LONG_ARG = {
+    "curl": ("request", "data", "data-raw", "data-binary", "data-urlencode", "data-ascii",
+             "json", "form", "form-string", "upload-file", "header", "user", "user-agent",
+             "referer", "cookie", "cookie-jar", "write-out", "output", "config", "url",
+             "proxy", "oauth2-bearer", "url-query", "max-time", "connect-timeout", "retry"),
+    "gh": ("method", "header", "field", "raw-field", "jq", "template", "preview", "input",
+           "cache", "hostname"),
 }
+_CLI_LONG_FLAG = {"curl": ("get", "head", "globoff"), "gh": ("include", "paginate", "silent",
+                                                                 "verbose", "slurp")}
 
 
-def _endpoint_words(tool: str, words: list) -> list:
-    out, skip = [], False
-    for w in words:
-        if skip:
-            skip = False
-        elif w.startswith("-"):
-            skip = w in _HTTP_VALUE_FLAGS[tool]
+def _parse_cli(tool: str, words: list) -> tuple:
+    """Return (options, targets) for a curl or gh api call. options is a list
+    of (name, value) with short clusters split per letter (`-sXPOST` is s, X=POST;
+    `-d'{...}'` is d={...}); targets are the words that may name the URL/path."""
+    opts, targets, i = [], [], 0
+    names = _CLI_LONG_ARG[tool] + _CLI_LONG_FLAG[tool]
+    while i < len(words):
+        w = words[i]
+        if w.startswith("--") and len(w) > 2:
+            raw, eq, val = w[2:].partition("=")
+            hits = [n for n in names if n == raw] or [n for n in names if n.startswith(raw)]
+            # An ambiguous prefix that covers a body option counts as one (fail closed).
+            name = hits[0] if len(hits) == 1 else next((h for h in hits if h in _CURL_BODY), raw)
+            if not eq and name in _CLI_LONG_ARG[tool] and i + 1 < len(words):
+                val, i = words[i + 1], i + 1
+            opts.append((name, val if (eq or name in _CLI_LONG_ARG[tool]) else None))
+            if name == "url" and val:
+                targets.append(val)
+        elif w.startswith("-") and len(w) > 1:
+            for j, ch in enumerate(w[1:]):
+                if ch in _CLI_SHORT_ARG[tool]:
+                    val = w[j + 2:]
+                    if not val and i + 1 < len(words):
+                        val, i = words[i + 1], i + 1
+                    opts.append((ch, val))
+                    break
+                opts.append((ch, None))
         else:
-            out.append(w)
-    return out
+            targets.append(w)
+        i += 1
+    return opts, targets
+
+
+_CURL_BODY = {"d", "F", "data", "data-raw", "data-binary", "data-urlencode", "data-ascii",
+              "json", "form", "form-string"}
+
+
+def _method_value(val: str) -> set:
+    v = (val or "").upper()
+    return {v} if v in _HTTP_WRITE else (set() if v in _HTTP_READ else {"?"})
+
+
+def _http_methods(tool: str, words: list, opts: list) -> set:
+    """Write methods the call may use; '?' marks a method the hook cannot read."""
+    names = {n for n, _ in opts}
+    explicit = [v for n, v in opts if n in ("X", "request", "method")]
+    if tool == "curl":
+        if explicit:
+            return _method_value(explicit[-1])
+        if names & {"T", "upload-file"}:
+            return {"PUT"}
+        if names & _CURL_BODY and not names & {"G", "get"}:  # -G/--get sends data as a GET
+            return {"POST"}
+        return set()
+    if tool == "gh":
+        if explicit:
+            return _method_value(explicit[-1])
+        return {"POST"} if names & {"f", "F", "field", "raw-field", "input"} else set()
+    methods = {p.upper() for w in words for p in w.split("=") if p.upper() in _HTTP_WRITE}
+    for i, w in enumerate(words):  # wget --method=X / --method X
+        if re.fullmatch(r"--method(?:=.*)?", w):
+            methods |= _method_value(w.partition("=")[2] or (words[i + 1] if i + 1 < len(words) else ""))
+    implicit = {"wget": r"--(?:post|body)-(?:data|file)(?:=.*)?",
+                "httpie": r"[^-/][^=:@/]*(?::?=|@).*"}[tool]
+    if not methods and any(re.fullmatch(implicit, w) for w in words):
+        methods.add("POST")
+    return methods
+
+
+def _graphql_body_unreadable(tool: str, opts: list) -> bool:
+    """A curl/gh GraphQL body read from a file, stdin or a variable cannot be
+    checked for ref mutations."""
+    for name, val in opts:
+        if name in ("T", "upload-file", "K", "config", "input"):
+            return True
+        if name in _CURL_BODY | {"f", "field", "raw-field"} and val is not None and (
+                re.match(r"[@<]|[^=]*@|.*=[@<]", val) or re.search(r"[$`]", val)):
+            return True
+    return False
 
 
 def _http_path_denied(words: list) -> bool:
@@ -393,6 +432,18 @@ def _http_path_denied(words: list) -> bool:
     return False
 
 
+# `git [global options] stash` right before a `push` word: the only exemption
+# from the push check (`git stash push <pathspec>`). Global options are parsed so
+# a path or value that merely ends in "stash" (`git -C /tmp/stash push`) is not it.
+_GIT_GLOBAL_OPTS = (
+    r"(?:\s+(?:-[Cc]\s+(?:'[^']*'|\"[^\"]*\"|\S+)|--(?:git-dir|work-tree|namespace|"
+    r"exec-path|config-env|super-prefix)(?:=\S*|\s+\S+)|--(?:no-pager|paginate|bare|"
+    r"no-replace-objects|literal-pathspecs|glob-pathspecs|noglob-pathspecs|icase-pathspecs|"
+    r"no-optional-locks|no-advice|no-lazy-fetch)|-[pP]))*"
+)
+_STASH_BEFORE_PUSH_RE = re.compile(rf"(?:^|[\s;&|(`'\"])git{_GIT_GLOBAL_OPTS}\s+stash\s+$")
+
+
 def check_ref_deletion(cmd: str, api_cmd: str) -> None:
     """RULEBOOK B1/B5: deny every shell-level remote ref deletion or write
     (git push, gh api, curl, wget, httpie, GraphQL); allow only the exact
@@ -412,23 +463,29 @@ def check_ref_deletion(cmd: str, api_cmd: str) -> None:
                 re.search(r"\balias\s+[^=\s]+=.*\bpush\b", stmt):
             deny(_DENY_DELETE)
         for m in _PUSH_WORD_RE.finditer(stmt):
-            before = re.search(r"([\w-]+)[\s'\",]*$", stmt[: m.start()])
-            if before and before.group(1) == "stash":  # git stash push <pathspec>
+            if _STASH_BEFORE_PUSH_RE.search(stmt[: m.start()]):  # git stash push <pathspec>
                 continue
             if _push_rest_denied(stmt[m.end():]):
                 deny(_DENY_DELETE)
     for stmt in _statements(api_cmd):
         words = _shell_words(stmt)
         flat = " ".join(words)
+        tool, idx = _http_tool(words)
+        args = words[idx + 1:] if tool else []
+        if tool in ("curl", "gh"):
+            opts, targets = _parse_cli(tool, args)
+        else:
+            opts, targets = [], [w for w in args if not w.startswith("-")]
         if re.search(r"\bgraphql\b", flat) and (
-                _GRAPHQL_DENY_RE.search(flat) or re.search(r"=@|--input\b|query=\$", flat)):
+                _GRAPHQL_DENY_RE.search(flat) or re.search(r"=@|--input\b|query=\$", flat)
+                or _graphql_body_unreadable(tool, opts)):
             deny(
                 "Blocked: GraphQL ref, branch-protection or ruleset mutations, and "
-                "queries the hook cannot read, are banned (RULEBOOK B1, B5)."
+                "bodies the hook cannot read (from a file, stdin or a variable), are "
+                "banned (RULEBOOK B1, B5)."
             )
-        tool = _http_tool(words)
-        if tool and _http_methods(tool, words) and (
-                re.search(r"\$'", stmt) or _http_path_denied(_endpoint_words(tool, words))):
+        if tool and _http_methods(tool, args, opts) and (
+                re.search(r"\$'", stmt) or _http_path_denied(targets)):
             deny(
                 "Blocked: REST writes to git refs, rulesets, branch protection or "
                 "renames, or to a path the hook cannot read (dot segments, globs, "
