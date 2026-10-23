@@ -42,13 +42,12 @@ machine_bans:
   - {id: B2, ban: production_host_ssh_artisan_phpunit_edit, enforced_by: [hooks, product_red_lines]}
   - {id: B3, ban: secret_exposure_and_env_files, enforced_by: [gitleaks, hooks]}
   - {id: B4, ban: gmail_trash_or_delete, enforced_by: [claude_pretooluse_hook]}
-  - {id: B5, ban: remote_branch_delete_unless_unprotected_closed_and_preserved,
-     enforced_by: [bash_hook, ruleset, agent_checks],
-     allowed_only_if: [not_default_head_release_tag_or_protected, no_open_pr,
-       tip_is_merged_or_closed_pr_head_or_in_default_branch,
-       one_top_level_command_refs_heads_branch_via_push_delete_d_colon_or_refs_api_delete,
-       name_and_tip_sha_in_session_checkpoint],
-     not_allowed: [gh_pr_close_delete_branch, bare_or_tag_names, rest_ref_create_update_force]}
+  - {id: B5, ban: remote_branch_delete_except_merge_or_verified_script,
+     enforced_by: [bash_hook, ruleset, delete_merged_branch_script],
+     allowed_only_via: [gh_pr_merge_delete_branch, 'scripts/delete-merged-branch.py'],
+     script_verifies: [not_default_head_release_hotfix_or_tag, not_protected_no_ruleset_deletion_or_update_rule,
+       no_open_pr_as_head_or_base, tip_is_merged_or_closed_pr_head_or_in_default_branch,
+       prints_name_and_tip_sha_for_checkpoint]}
   - {id: B6, ban: discard_uncommitted_work, enforced_by: [bash_hook, convention]}
   - {id: B7, ban: weaken_tests_or_controls, enforced_by: [review]}
   - {id: B8, ban: private_content_to_unapproved_service, enforced_by: [convention]}

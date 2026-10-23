@@ -200,347 +200,268 @@ def check_git_patterns(cmd: str) -> None:
 
 
 # --- Remote branch deletion and ref writes (RULEBOOK B1, B5) -----------------
-# The hook checks only what the command text shows: that a deletion is a plain
-# top-level `git push`, `gh api` or `curl` statement, deletes exactly one branch
-# spelled refs/heads/<branch>, and that the name is valid and not protected.
-# It cannot see PR state or ancestry; RULEBOOK B5 keeps those checks (no open
-# PR; tip is a merged/closed PR head or already in the default branch) on the
-# agent. Everything that writes refs another way (force, mirror, prune, config
-# refspecs, REST create/update, GraphQL) or weakens the backstops B5 relies on
-# (rulesets, branch protection, renames) is denied.
+# Every shell-level remote branch/tag deletion and ref write is denied, as
+# strictly as before B5 2.2.0 or more. A text hook cannot parse shell, curl
+# and git exactly (quoting, comments, globbing, URL normalization, option
+# prefixes, config), so it never approves a deletion it parsed (review of PR
+# #144). The one allowed path is `scripts/delete-merged-branch.py`, which
+# verifies the branch through the GitHub API; the hook permits it only as the
+# whole command in one fixed form.
 
-# Never deletable, case-insensitive (after refs/heads/).
-PROTECTED_BRANCH_RE = re.compile(
-    r"^(?:main|master|head|trunk|develop|gh-pages|releases?(?:[/_.-].*)?)$", re.I
+# The only allowed deletion command (plus an optional --dry-run).
+_DMB_ALLOWED_RE = re.compile(
+    r"python3 scripts/delete-merged-branch\.py"
+    r" --repo [A-Za-z0-9][A-Za-z0-9_.-]{0,99}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}"
+    r" --branch (?P<branch>[A-Za-z0-9][A-Za-z0-9._/-]{0,199})(?: --dry-run)?"
 )
-# Characters the hook cannot read as a literal name: globs, expansions,
-# substitutions, escapes and percent-encoding.
-UNSEEN_NAME_RE = re.compile(r"[*?\[\]{}$`\\%'\"]")
-# Statement start: optional `then`, the tolerated no-op prefixes and plain
-# VAR=value assignments. A deletion must be the statement's own command, not
-# an argument of xargs, parallel, find -exec, eval, bash -c, a loop or a script.
-_LEAD = rf"^\s*(?:then\s+)?{_PREFIX}(?:[A-Za-z_][A-Za-z0-9_]*=[^\s;&|]*\s+)*"
-_ARG = r"(?:'[^']*'|\"[^\"$`]*\"|[^\s'\"$`()]+)"
-_GIT_GLOBAL = (
-    rf"(?:\s+(?:-[Cc]\s+{_ARG}|--(?:git-dir|work-tree|namespace|exec-path|config-env)"
-    rf"(?:=|\s+){_ARG}|--(?:no-pager|paginate|bare|no-replace-objects|literal-pathspecs|"
-    r"glob-pathspecs|noglob-pathspecs|icase-pathspecs|no-optional-locks|no-advice)|-[pP]))*"
+_DELETE_HINT = (
+    "Use `gh pr merge --delete-branch`, or run exactly `python3 "
+    "scripts/delete-merged-branch.py --repo <owner>/<name> --branch <name>` as "
+    "the whole command; it verifies the branch through the API."
 )
-_TOP_PUSH_RE = re.compile(rf"{_LEAD}git{_GIT_GLOBAL}\s+(?P<push>push)(?=\s|$)")
-_TOP_API_RE = re.compile(rf"{_LEAD}(?:gh\s+api|curl)(?=\s)")
-# Any `push` word after `git` in the statement, also inside Python/JS list
-# literals ('git','push',...). `push` must be a whole word.
-_PUSH_RE = re.compile(
-    rf"\bgit\b{GAP}(?<![^\s'\",])(?P<push>push)(?![^\s'\",])(?=(?P<rest>(?:(?!{SEP}).)*))"
+_DENY_DELETE = (
+    "Blocked: shell-level remote branch/tag deletion and ref writes are banned "
+    "(RULEBOOK B1, B5). " + _DELETE_HINT
 )
-# $(...) / `...` in a push's own arguments; their contents are matched separately.
-_SUBST_RE = re.compile(r"\$\((?:[^()]|\([^()]*\))*\)|`[^`]*`")
-# Shell words, also inside list literals.
+# Any long option that is, or is a prefix of, one of these (git accepts
+# unambiguous prefixes such as --del) deletes, mirrors, prunes or forces.
+_BAD_PUSH_LONG = ("--delete", "--mirror", "--prune", "--force",
+                  "--force-with-lease", "--force-if-includes")
+# A standalone `push` word (git push, $g push, "git" push, 'git','push').
+_PUSH_WORD_RE = re.compile(r"(?<![^\s'\",;&|(`])push(?![^\s'\",;&|)`])")
 _WORD_RE = re.compile(r"[^\s'\",()\[\]]+")
-
-# git push long options. git accepts any unambiguous prefix (`--del`), so a
-# prefix is resolved before checking; an ambiguous or unknown one is denied.
-_PUSH_LONG_BASE = (
-    "--all", "--branches", "--mirror", "--prune", "--dry-run", "--porcelain",
-    "--delete", "--tags", "--follow-tags", "--signed", "--atomic", "--push-option",
-    "--receive-pack", "--exec", "--force-with-lease", "--force-if-includes",
-    "--force", "--repo", "--set-upstream", "--thin", "--quiet", "--verbose",
-    "--progress", "--recurse-submodules", "--verify", "--ipv4", "--ipv6",
-)
-_PUSH_LONG = set(_PUSH_LONG_BASE) | {"--no-" + o[2:] for o in _PUSH_LONG_BASE}
-_PUSH_LONG_WITH_ARG = {"--push-option", "--receive-pack", "--exec", "--repo"}
-
 _HTTP_WRITE = {"DELETE", "PATCH", "POST", "PUT"}
 _HTTP_READ = {"GET", "HEAD", "OPTIONS"}
-_METHOD_FLAG_RE = re.compile(r"-[A-Za-z]*X(?P<val>.*)|--(?P<long>[a-z]+)(?:=(?P<lval>.*))?")
-_IMPLICIT_WRITE_RE = re.compile(
-    r"^(?:-[fFdT]|--(?:field|raw-field|input|data[a-z-]*|json|form[a-z-]*|upload-file)(?:=.*)?)$"
-)
-_GIT_API_PATH_RE = re.compile(r"(?:^|/)git/(?P<after>[^?#]*)")
-_CONTROL_PATH_RE = re.compile(
-    r"(?:^|/)rulesets(?:/|$)|(?:^|/)branches/.+/(?:protection|rename)(?:/|$)", re.I
-)
 _GRAPHQL_DENY_RE = re.compile(
     r"\b(?:deleteRef|updateRefs?|(?:create|update|delete)BranchProtectionRule|"
     r"(?:create|update|delete)RepositoryRuleset)\b"
 )
-
-_ONE_BRANCH = (
-    "Blocked: delete exactly one remote branch per command, named literally "
-    "as refs/heads/<branch>, after the RULEBOOK B5 checks."
+_REF_CONFIG_RE = re.compile(
+    r"\b(?:remote\.[^\s=\"']+?\.(?:push|mirror)|include(?:if\.[^\s=\"']*)?\.path|"
+    r"alias\.[^\s=\"']+)\b",
+    re.I,
 )
 
 
-def _words(rest: str) -> list:
-    """Shell words of the rest of a statement, minus redirections/comments."""
-    words, skip_next = [], False
-    for tok in _WORD_RE.findall(rest):
-        if tok.startswith("#"):
-            break
-        if skip_next:
-            skip_next = False
-        elif re.fullmatch(r"\d*[<>]+&?", tok):  # `>` `2>` `>>`: target follows
-            skip_next = True
-        elif not re.match(r"\d*[<>]", tok):  # `2>/dev/null`: target attached
-            words.append(tok)
-    return words
+def _statements(cmd: str) -> list:
+    """Split at unquoted ; & | and newlines, so quoted text (a ';' inside a
+    URL, a '#' argument) stays with its command. Unbalanced quotes: the whole
+    command is one statement."""
+    out, cur, quote, i = [], [], None, 0
+    while i < len(cmd):
+        c = cmd[i]
+        if c == "\\" and quote != "'" and i + 1 < len(cmd):
+            cur.append(cmd[i:i + 2])
+            i += 2
+            continue
+        if quote:
+            quote = None if c == quote else quote
+            cur.append(c)
+        elif c in "'\"":
+            quote = c
+            cur.append(c)
+        elif c in ";&|\n":
+            out.append("".join(cur))
+            cur = []
+        else:
+            cur.append(c)
+        i += 1
+    if quote:
+        return [cmd]
+    out.append("".join(cur))
+    return [s for s in out if s.strip()]
 
 
-def _bad_ref_name(name: str) -> bool:
-    """git check-ref-format rules for the part after refs/heads/."""
-    if not name or name == "@" or "@{" in name or ".." in name or "//" in name:
+def _shell_words(stmt: str) -> list:
+    try:
+        return shlex.split(stmt, posix=True)
+    except ValueError:  # unbalanced quotes: approximate, never fewer words
+        return re.sub(r"[\\'\"]", " ", stmt).split()
+
+
+def _push_rest_denied(rest: str) -> bool:
+    """True if the arguments after a `push` word could delete, force, mirror
+    or prune remote refs, or hide such an argument from this check."""
+    if re.search(r"\$'|(?<!\$)\{|[*?\[]", rest):  # ANSI-C quoting, brace/glob expansion
         return True
-    if name.startswith("/") or name.endswith(("/", ".")):
-        return True
-    if re.search(r"[\x00-\x20\x7f~^:?*\[\\]", name):
-        return True
-    return any(c.startswith(".") or c.endswith(".lock") for c in name.split("/"))
+    for w in _WORD_RE.findall(rest.replace("\\", "")):
+        if w.startswith("--") and len(w) > 2:
+            flag = w.split("=", 1)[0]
+            if any(bad.startswith(flag) for bad in _BAD_PUSH_LONG):
+                return True
+        elif re.fullmatch(r"-[A-Za-np-z0-9]*(?:o.*)?", w) and w != "-":
+            if set(w[1:].split("o", 1)[0]) & {"d", "f"}:
+                return True
+        elif w[0] in ":+" or re.fullmatch(r"\$\{?[@*]\}?", w):
+            return True
+        elif ":" in w and (w.split(":", 1)[0] == "" or re.search(r"[$`]", w.split(":", 1)[0])):
+            return True
+    return False
 
 
-def _check_branch_name(name: str) -> None:
-    if not name.startswith("refs/heads/"):
-        deny(
-            f"Blocked: '{name}' must be spelled refs/heads/<branch>. A bare "
-            "name can resolve to a tag, and tags and other refs may not be "
-            "deleted (RULEBOOK B5)."
-        )
-    short = name[len("refs/heads/"):]
-    if UNSEEN_NAME_RE.search(short) or _bad_ref_name(short):
-        deny(
-            f"Blocked: '{name}' is not one literal, valid branch name (no "
-            "globs, variables, substitution, escapes, percent-encoding, '.' "
-            "or '..' segments). RULEBOOK B5."
-        )
-    if PROTECTED_BRANCH_RE.match(short):
-        deny(
-            f"Blocked: '{name}' is a default, protected or release branch. "
-            "Deleting it is banned (RULEBOOK B5)."
-        )
-
-
-def _push_long_opt(flag: str, strict: bool):
-    if flag in _PUSH_LONG:
-        return flag
-    hits = [o for o in _PUSH_LONG if o.startswith(flag)]
-    if len(hits) == 1:
-        return hits[0]
-    if strict:
-        deny(
-            f"Blocked: '{flag}' is not a full git push option (abbreviated, "
-            "ambiguous or unknown). Spell it out (RULEBOOK B1, B5)."
-        )
-    return None
-
-
-def _parse_push(rest: str, strict: bool):
-    """Return (deletes, refs, targets) for a `git push`'s arguments; denies
-    force, mirror and prune shapes outright."""
-    deleting, bulk, positional, skip, end_opts = False, False, [], False, False
-    for tok in _words(_SUBST_RE.sub(" $SUBST ", rest)):
-        if skip:
-            skip = False
+def _http_tool(words: list) -> str:
+    for i, w in enumerate(words):
+        if "://" in w:
             continue
-        if end_opts or not tok.startswith("-") or tok == "-":
-            positional.append(tok)
-            continue
-        if tok == "--":
-            end_opts = True
-            continue
-        if tok.startswith("--"):
-            raw, _, value = tok.partition("=")
-            flag = _push_long_opt(raw, strict)
-            if flag is None:
-                continue
-            if flag in ("--mirror", "--prune"):
-                deny(
-                    f"Blocked: git push {flag} can delete or overwrite many "
-                    "remote refs at once (RULEBOOK B1, B5)."
-                )
-            if flag.startswith("--force"):
-                deny("Blocked: force push (RULEBOOK B1).")
-            if flag == "--delete":
-                deleting = True
-            elif flag in ("--all", "--branches", "--tags"):
-                bulk = True
-            elif flag in _PUSH_LONG_WITH_ARG and "=" not in tok:
-                skip = True
-            continue
-        if not re.fullmatch(r"-[A-Za-np-z0-9]*(?:o.*)?", tok):  # -o<arg> may hold anything
-            continue
-        cluster = tok[1:]  # short options: -d -f -u -n -q -v -4 -6 -o<arg>
-        for i, ch in enumerate(cluster):
-            if ch == "f":
-                deny("Blocked: force push (RULEBOOK B1).")
-            if ch == "d":
-                deleting = True
-            if ch == "o":
-                skip = i == len(cluster) - 1
-                break
-    refs = positional[1:] if positional and positional[0][0] not in ":+" else positional
-    if any(r.startswith("+") for r in refs):
-        deny("Blocked: a '+<refspec>' push is a force push (RULEBOOK B1).")
-    targets = refs if deleting else [r[1:] for r in refs if r.startswith(":")]
-    deletes = deleting or bool(targets)
-    if deletes and bulk:
-        deny(_ONE_BRANCH)
-    return deletes, refs, targets
+        base = w.rsplit("/", 1)[-1]
+        if base == "gh" and "api" in words[i + 1:i + 3]:
+            return "gh"
+        if base in ("curl", "wget"):
+            return base
+        if base in ("http", "https", "xh", "xhs"):
+            return "httpie"
+    return ""
 
 
-def _statement_push_deletions(stmt: str) -> list:
-    top = _TOP_PUSH_RE.match(stmt)
-    targets = []
-    for m in _PUSH_RE.finditer(stmt):
-        before = re.search(r"([\w-]+)[\s'\",]*$", stmt[: m.start("push")])
-        if before and before.group(1) == "stash":  # git stash push <pathspec>
-            continue
-        is_top = bool(top) and m.start("push") == top.start("push")
-        deletes, refs, found = _parse_push(m.group("rest"), strict=is_top)
-        if not deletes:
-            continue
-        if not is_top:
-            deny(
-                "Blocked: a remote branch deletion must be its own top-level "
-                "`git push` statement, not run through xargs, parallel, find "
-                "-exec, eval, bash -c, a loop, a script or a variable "
-                "(RULEBOOK B5)."
-            )
-        if len(refs) != 1 or len(found) != 1:
-            deny(_ONE_BRANCH)
-        if ":" in found[0]:
-            deny("Blocked: git push --delete takes a plain branch name (RULEBOOK B5).")
-        targets += found
-    return targets
-
-
-def _api_methods(words: list) -> set:
-    """HTTP methods a gh api / curl / wget / httpie statement may use. '?' marks
-    a method the hook cannot read; implicit body flags count as POST."""
+def _http_methods(tool: str, words: list) -> set:
+    """Write methods a gh/curl/wget/httpie call may use; '?' is unreadable."""
     methods, explicit = set(), False
     for i, w in enumerate(words):
         for piece in w.split("="):
             if piece.upper() in _HTTP_WRITE:
                 methods.add(piece.upper())
-        m = _METHOD_FLAG_RE.fullmatch(w)
-        if not m:
+        m = re.fullmatch(r"-[A-Za-z]*X(?P<v>.*)|--(?P<l>[a-z]{3,})(?:=(?P<lv>.*))?", w)
+        if not m or (m.group("l") and not ("request".startswith(m.group("l"))
+                                          or "method".startswith(m.group("l")))):
             continue
-        if m.group("long") is not None:
-            if not ("request".startswith(m.group("long")) or "method".startswith(m.group("long"))) \
-                    or len(m.group("long")) < 3:
-                continue
-            val = m.group("lval")
-        else:
-            val = m.group("val")
-        if val is None or val == "":
-            val = words[i + 1] if i + 1 < len(words) else ""
+        val = (m.group("v") if m.group("l") is None else m.group("lv")) or \
+            (words[i + 1] if i + 1 < len(words) else "")
         explicit = True
         if val.upper() in _HTTP_WRITE:
             methods.add(val.upper())
         elif val.upper() not in _HTTP_READ:
             methods.add("?")
-    if not explicit and not methods and any(_IMPLICIT_WRITE_RE.match(w) for w in words):
-        methods.add("POST")
-    return methods
+    if explicit or methods:
+        return methods
+    implicit = {
+        # gh api: -f/-F/--field/--raw-field/--input make it a POST.
+        "gh": r"-[fF]|--(?:field|raw-field|input)(?:=.*)?",
+        # curl: -f is --fail (a read); -d/-F/-T and --data*/--json/--form*/--upload-file write.
+        "curl": r"-[A-Za-z]*[dFT][A-Za-z]*|--(?:data[a-z-]*|json|form[a-z-]*|upload-file)(?:=.*)?",
+        "wget": r"--(?:post|body)-(?:data|file)(?:=.*)?",
+        "httpie": r"[^-/][^=:@/]*(?::?=|@).*",
+    }[tool]
+    return {"POST"} if any(re.fullmatch(implicit, w) for w in words) else set()
 
 
-def _api_pieces(stmt: str) -> list:
-    """Shell words after quote removal (shlex), split at list-literal
-    punctuation, URL-decoded once."""
-    try:
-        words = shlex.split(stmt, posix=True)
-    except ValueError:  # unbalanced quotes: approximate
-        words = re.sub(r"[\\'\"]", " ", stmt).split()
-    return [urllib.parse.unquote(p) for w in words for p in re.split(r"[,()\[\]]+", w) if p]
+# Flags whose value is a body, header, auth or output setting, never the
+# request target. Every other non-flag word is checked as a possible target.
+_HTTP_VALUE_FLAGS = {
+    "gh": {"-f", "-F", "--field", "--raw-field", "-H", "--header", "-q", "--jq",
+           "-t", "--template"},
+    "curl": {"-d", "--data", "--data-raw", "--data-binary", "--data-urlencode",
+             "--data-ascii", "--json", "-F", "--form", "--form-string", "-H", "--header",
+             "-u", "--user", "-A", "--user-agent", "-e", "--referer", "-b", "--cookie",
+             "-w", "--write-out", "-o", "--output"},
+    "wget": {"--header", "--post-data", "--body-data", "-O", "--output-document",
+             "--user", "--password"},
+    "httpie": set(),
+}
 
 
-_HTTP_TOOL_RE = re.compile(rf"\bgh\b{GAP}\bapi\b|\b(?:curl|wget|http|https|xh)\b")
+def _endpoint_words(tool: str, words: list) -> list:
+    out, skip = [], False
+    for w in words:
+        if skip:
+            skip = False
+        elif w.startswith("-"):
+            skip = w in _HTTP_VALUE_FLAGS[tool]
+        else:
+            out.append(w)
+    return out
 
 
-def _statement_api_deletions(stmt: str) -> list:
-    pieces = _api_pieces(stmt)
-    flat = " ".join(pieces)
-    if re.search(r"\bgraphql\b", flat) and (
-            _GRAPHQL_DENY_RE.search(flat) or re.search(r"=@|--input\b", flat)):
-        deny(
-            "Blocked: GraphQL ref, branch-protection or ruleset mutations "
-            "(and queries read from a file the hook cannot see) are banned; "
-            "use git push <remote> --delete refs/heads/<branch> (RULEBOOK B1, B5)."
-        )
-    methods = _api_methods(pieces)
-    if not methods:
-        return []  # a read
-    ref_paths = [m.group("after") for p in pieces for m in [_GIT_API_PATH_RE.search(p)]
-                 if m and re.match(r"[./]*(?:matching-)?refs\b", m.group("after"), re.I)]
-    if any(_CONTROL_PATH_RE.search(p) for p in pieces):
-        deny(
-            "Blocked: writes to rulesets, branch protection or branch renames "
-            "remove the backstops RULEBOOK B5 relies on. Change them by PR."
-        )
-    if (methods - {"POST"}) and _HTTP_TOOL_RE.search(stmt) and any(
-            re.search(r"[$`]", p) and ("/" in p or p.startswith("$")) for p in pieces):
-        deny(
-            "Blocked: name the API path and method literally; no variables or "
-            "substitution in a REST DELETE/PATCH/PUT (RULEBOOK B5)."
-        )
-    if not ref_paths:
-        return []
-    if methods - {"DELETE"}:
-        deny(
-            "Blocked: REST writes to git/refs (create, update, force) are banned; "
-            "push through git. Only one B5 branch DELETE is allowed (RULEBOOK B1, B5)."
-        )
-    if not _TOP_API_RE.match(stmt):
-        deny(
-            "Blocked: a REST branch deletion must be its own top-level `gh api` "
-            "or `curl` statement, not run through xargs, a loop, a script or "
-            "another tool (RULEBOOK B5)."
-        )
-    return ref_paths  # each is checked as refs/heads/<branch> by the caller
+def _http_path_denied(words: list) -> bool:
+    """True if a write could reach a ref, ruleset, branch protection or rename,
+    or its target cannot be read: dot segments, curl globs, variables."""
+    for w in words:
+        prev = None
+        while prev != w:  # undo nested percent-encoding
+            prev, w = w, urllib.parse.unquote(w)
+        if re.search(r"[$`]", w):
+            return True
+        if "/" not in w:
+            continue
+        w = re.sub(r"\{(?:owner|repo|branch)\}", "x", w)  # gh api placeholders
+        if re.search(r"[\[\]{}]", w):  # curl URL globbing ranges and sets
+            return True
+        segs = [s.lower() for s in re.split(r"[/?#;]", w)]
+        if {".", ".."} & set(segs) or {"git", "refs", "matching-refs", "rulesets"} & set(segs):
+            return True
+        if "branches" in segs and {"protection", "rename"} & set(segs):
+            return True
+    return False
 
 
 def check_ref_deletion(cmd: str, api_cmd: str) -> None:
-    """RULEBOOK B5: allow deleting one valid, non-protected branch per command
-    via a top-level `git push <remote> --delete|-d refs/heads/<branch>`,
-    `git push <remote> :refs/heads/<branch>`, or `gh api`/`curl` DELETE
-    .../git/refs/heads/<branch>. `api_cmd` keeps `-F` values (gh api fields)."""
-    targets = []
-    for stmt in re.split(SEP, cmd):
-        targets += _statement_push_deletions(stmt)
-    for stmt in re.split(SEP, api_cmd):
-        targets += _statement_api_deletions(stmt)
-    if len(targets) > 1:
-        deny(_ONE_BRANCH)
-    for name in targets:
-        _check_branch_name(name)
-
-
-_REMOTE_REFSPEC_KEY_RE = re.compile(r"\bremote\.[^\s=\"']+?\.(?:push|mirror)\b", re.I)
+    """RULEBOOK B1/B5: deny every shell-level remote ref deletion or write
+    (git push, gh api, curl, wget, httpie, GraphQL); allow only the exact
+    delete-merged-branch.py command."""
+    if "delete-merged-branch" in cmd and re.search(r"--repo|--branch", cmd):
+        m = _DMB_ALLOWED_RE.fullmatch(cmd.strip())
+        branch = m.group("branch") if m else ""
+        if not m or ".." in branch or "//" in branch or branch.endswith(("/", ".", ".lock")):
+            deny(
+                "Blocked: run exactly `python3 scripts/delete-merged-branch.py --repo "
+                "<owner>/<name> --branch <name>` as the whole command: no wrapper, "
+                "chaining, quoting, loop or substitution (RULEBOOK B5)."
+            )
+        return
+    for stmt in _statements(cmd):
+        if re.search(rf"\bgit\b{GAP}\b(?:send-pack|http-push)\b", stmt) or \
+                re.search(r"\balias\s+[^=\s]+=.*\bpush\b", stmt):
+            deny(_DENY_DELETE)
+        for m in _PUSH_WORD_RE.finditer(stmt):
+            before = re.search(r"([\w-]+)[\s'\",]*$", stmt[: m.start()])
+            if before and before.group(1) == "stash":  # git stash push <pathspec>
+                continue
+            if _push_rest_denied(stmt[m.end():]):
+                deny(_DENY_DELETE)
+    for stmt in _statements(api_cmd):
+        words = _shell_words(stmt)
+        flat = " ".join(words)
+        if re.search(r"\bgraphql\b", flat) and (
+                _GRAPHQL_DENY_RE.search(flat) or re.search(r"=@|--input\b|query=\$", flat)):
+            deny(
+                "Blocked: GraphQL ref, branch-protection or ruleset mutations, and "
+                "queries the hook cannot read, are banned (RULEBOOK B1, B5)."
+            )
+        tool = _http_tool(words)
+        if tool and _http_methods(tool, words) and (
+                re.search(r"\$'", stmt) or _http_path_denied(_endpoint_words(tool, words))):
+            deny(
+                "Blocked: REST writes to git refs, rulesets, branch protection or "
+                "renames, or to a path the hook cannot read (dot segments, globs, "
+                "variables), are banned (RULEBOOK B1, B5). " + _DELETE_HINT
+            )
 
 
 def check_config_writes(cmd: str) -> None:
-    """remote.<name>.push / .mirror make a plain `git push` delete, force or
-    mirror refs (RULEBOOK B1, B5). Deny setting them via -c, --config-env,
-    GIT_CONFIG_* or `git config`, and `git remote add --mirror[=push]`."""
-    for stmt in re.split(SEP, cmd):
-        if re.search(rf"\bgit\b{GAP}\bremote\b{GAP}(?<![^\s'\",])--mi[a-z]*(?!=fetch)\b", stmt):
-            deny("Blocked: a push mirror remote can delete or overwrite remote refs (RULEBOOK B1, B5).")
-        if not _REMOTE_REFSPEC_KEY_RE.search(stmt):
+    """remote.<name>.push/.mirror, include.path and git aliases can make a
+    plain `git push` delete, force or mirror refs (RULEBOOK B1, B5). Any
+    statement naming them is denied unless it is exactly `git config --get
+    <key>` or `git config --get-all <key>`; GIT_CONFIG* env and push mirror
+    remotes are denied too."""
+    for stmt in _statements(cmd):
+        if re.search(rf"\bgit\b{GAP}\bremote\b{GAP}(?<![^\s'\",])--mi[a-z]*(?!=fetch)\b", stmt) \
+                or re.search(r"\bGIT_CONFIG\w*=", stmt):
+            deny("Blocked: push mirrors and GIT_CONFIG* overrides can rewrite pushes (RULEBOOK B1, B5).")
+        words = _shell_words(stmt)
+        if not (_REF_CONFIG_RE.search(stmt) or _REF_CONFIG_RE.search(" ".join(words))):
             continue
-        is_config = re.search(rf"\bgit\b{GAP}(?<![^\s'\",])config(?![^\s'\",])", stmt)
-        code = re.sub(r"(?:^|\s)#.*", "", stmt)
-        read_only = re.search(
-            r"(?<![^\s'\",])(?:--get[a-z-]*|-l|--list)(?![^\s'\",])", code
-        ) or re.search(r"\bconfig\s+(?:get|list)\b", code)
-        injected = re.search(r"(?<![^\s'\",])(?:-c|--config-env)\b|GIT_CONFIG", stmt)
-        if (is_config and not read_only) or injected:
-            deny(
-                "Blocked: setting remote.<name>.push or remote.<name>.mirror "
-                "makes git push delete, force or mirror refs (RULEBOOK B1, B5)."
-            )
+        if len(words) == 4 and words[:2] == ["git", "config"] and \
+                words[2] in ("--get", "--get-all") and _REF_CONFIG_RE.fullmatch(words[3]):
+            continue
+        deny(
+            "Blocked: setting remote.<name>.push/.mirror, include.path or a git "
+            "alias can make git push delete, force or mirror refs (RULEBOOK B1, B5). "
+            "Only `git config --get <key>` is allowed."
+        )
 
 
 def check_github_cli(cmd: str) -> None:
     """gh shapes that bypass B1/B5: --admin merge, closing a PR with
-    --delete-branch (no visible name), and deleting a release's tag."""
+    --delete-branch, and deleting a release's tag."""
     if re.search(rf"\bgh\b{GAP}\bpr\b{GAP}\bmerge\b{GAP}(?<![^\s'\",])--admin\b", cmd):
         deny("Blocked: --admin merge bypasses required checks and review (RULEBOOK B1).")
     if re.search(
@@ -548,8 +469,8 @@ def check_github_cli(cmd: str) -> None:
         cmd,
     ):
         deny(
-            "Blocked: gh pr close --delete-branch deletes a branch the hook cannot "
-            "name. Close the PR, then delete refs/heads/<branch> under RULEBOOK B5."
+            "Blocked: gh pr close --delete-branch is not a B5 path. Close the PR, "
+            "then use scripts/delete-merged-branch.py (RULEBOOK B5)."
         )
     if re.search(rf"\bgh\b{GAP}\brelease\b{GAP}\bdelete\b{GAP}--cleanup-tag\b", cmd):
         deny("Blocked: --cleanup-tag deletes a tag; tags may not be deleted (RULEBOOK B5).")
