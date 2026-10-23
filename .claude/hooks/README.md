@@ -6,8 +6,11 @@ after this install).
 
 - `guard_bash.py` — matcher `Bash`. Denies: direct `git commit` on
   `main`/`master` (checked against the real current branch, not guessed),
-  force push, `git reset --hard`, `git clean -f*/-d*`, force branch delete,
-  remote branch/ref deletion, common production deploy/migration command
+  force push (including `+<refspec>`, `--mirror`, `--prune`), `git reset
+  --hard`, `git clean -f*/-d*`, force branch delete, remote deletion of
+  protected/release/tag refs or of more than one branch per command (one
+  literally named stale branch is allowed under `governance/RULEBOOK.md` B5;
+  the agent does the PR and ancestry checks), common production deploy/migration command
   shapes (`vercel --prod`, `terraform apply`, `supabase db push`, `prisma
   migrate deploy`, `kubectl apply`, `gh workflow run *deploy*`, `npm/yarn/
   pnpm run deploy`), and commands that dump a credential-shaped file

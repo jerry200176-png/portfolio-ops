@@ -1,6 +1,6 @@
 # Portfolio rulebook
 
-Version: 2.1.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
+Version: 2.2.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
 
 One rule set for every agent (Claude Code, Codex, Cursor, Copilot, Cubelv) in every governed repo.
 Product repos vendor this file byte-for-byte; `scripts/check-rulebook.py` fails CI on drift.
@@ -94,7 +94,7 @@ steps, verification, rollback) and send it through section 7. Everything else is
 | B2 | SSH, artisan, phpunit or file edits on production hosts (product read-only paths excepted) | Hooks + product red lines |
 | B3 | Print, echo or commit secret values; read or write `**/.env*`, `~/.ssh/**`, `~/.aws/**` | gitleaks + hooks |
 | B4 | Gmail trash or permanent delete | Claude PreToolUse hook (both Gmail tool prefixes) |
-| B5 | Delete a remote branch except via `gh pr merge --delete-branch` | Bash hook |
+| B5 | Delete a remote branch unless all hold: it is not the default branch, `HEAD`, `release/*`, a tag or protected by a ruleset or branch protection; it has no open PR; its tip SHA is the head of a merged or closed PR from it (so "Restore branch" works) or is already in the default branch (`git merge-base --is-ancestor <tip> origin/main`); it is deleted alone, after those checks, with `git push <remote> --delete <branch>` or the GitHub refs API; its name and tip SHA go into the session checkpoint. Deleting unmerged commits that no PR preserves stays banned; `gh pr merge --delete-branch` stays allowed | Bash hook (names, one branch per command) + ruleset + agent checks (PR state, ancestry) |
 | B6 | Overwrite or discard uncommitted work in any repository | Bash hook + convention |
 | B7 | Lower tests, assertions, allowlists or security controls to get green | Review (D3) |
 | B8 | Send private repo content to a non-approved external service | Convention |

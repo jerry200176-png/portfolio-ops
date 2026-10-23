@@ -22,6 +22,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.parse
 
 # Statement separators we treat as ending a "unit" a dangerous pattern must
 # stay within. Deliberately does not attempt real shell parsing (quotes,
@@ -177,20 +178,165 @@ def check_git_patterns(cmd: str) -> None:
             "(CLAUDE.md)."
         )
 
-    # 5. force branch delete / remote ref deletion
+    # 5. force branch delete (local; can discard unmerged commits, B6).
+    #    Remote branch deletion is check_ref_deletion() (RULEBOOK B5).
     if re.search(rf"\bgit\b{GAP}\bbranch\b{GAP}-[a-zA-Z]*D\b", cmd):
         deny(
             "Blocked: force branch delete. Forbidden without explicit "
             "Founder approval."
         )
-    if re.search(
-        rf"\bgit\b{GAP}\bpush\b{GAP}(--delete\b|:[A-Za-z0-9/_.-]+(?:\s|$))",
-        cmd,
-    ):
+
+
+# --- Remote branch deletion (RULEBOOK B5) -----------------------------------
+# The hook checks only what is visible in the command text: the branch NAME,
+# and that exactly one literal branch is deleted per command. It cannot see PR
+# state or ancestry; RULEBOOK B5 keeps those checks (no open PR; tip is a
+# merged/closed PR head or already in the default branch) on the agent.
+
+# Never deletable, case-insensitive, after stripping refs/heads/ or heads/.
+PROTECTED_BRANCH_RE = re.compile(
+    r"^(?:main|master|head|trunk|develop|gh-pages|releases?(?:[/_.-].*)?)$", re.I
+)
+# An unqualified name shaped like a version tag (v1, v1.2.3, 2.0, 2.0.0-rc1)
+# may resolve to a tag on the remote. Spelling refs/heads/<name> opts out.
+TAG_LIKE_RE = re.compile(r"^(?:v\d+(?:\.\d+)*|\d+(?:\.\d+)+)(?:[-+_.].*)?$", re.I)
+# A name the hook cannot read literally: globs, expansions, substitutions.
+UNSEEN_NAME_RE = re.compile(r"[*?\[\]{}$`\\]")
+
+# `push` must be a whole word (not `~/repos/push-notifications`).
+_PUSH_RE = re.compile(rf"\bgit\b{GAP}(?<![^\s'\",])push(?![^\s'\",])((?:(?!{SEP}).)*)")
+# Shell words, also inside Python/JS list literals ('git','push',...).
+_WORD_RE = re.compile(r"[^\s'\",()\[\]]+")
+_PUSH_OPTS_WITH_ARG = {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}
+_API_DELETE_RE = re.compile(r"(?:-X|--method|--request)[\s'\",=]*DELETE\b", re.I)
+_API_REF_RE = re.compile(r"git/refs/([^\s'\",()\[\]?#]*)")
+_GRAPHQL_REF_MUTATION_RE = re.compile(r"\b(?:deleteRef|updateRefs)\b")
+
+
+def _words(rest: str) -> list:
+    """Shell words of the rest of a statement, minus redirections/comments."""
+    words, skip_next = [], False
+    for tok in _WORD_RE.findall(rest):
+        if tok.startswith("#"):
+            break
+        if skip_next:
+            skip_next = False
+        elif re.fullmatch(r"\d*[<>]+&?", tok):  # `>` `2>` `>>`: target follows
+            skip_next = True
+        elif not re.match(r"\d*[<>]", tok):  # `2>/dev/null`: target attached
+            words.append(tok)
+    return words
+
+
+def _check_branch_name(name: str) -> None:
+    if not name or UNSEEN_NAME_RE.search(name):
         deny(
-            "Blocked: remote branch/ref deletion via push. Forbidden "
-            "without explicit Founder approval."
+            "Blocked: the branch to delete must be one literal name the hook "
+            "can read (no globs, variables, command substitution or xargs). "
+            "RULEBOOK B5."
         )
+    qualified = name.startswith("refs/heads/")
+    if qualified:
+        short = name[len("refs/heads/"):]
+    elif name.startswith("refs/") or name.lower().startswith("tags/"):
+        deny(
+            f"Blocked: '{name}' is not a branch. Tags and other refs may not "
+            "be deleted (RULEBOOK B5)."
+        )
+    else:
+        short = name[len("heads/"):] if name.startswith("heads/") else name
+    if not short:
+        _check_branch_name("")
+    if PROTECTED_BRANCH_RE.match(short):
+        deny(
+            f"Blocked: '{name}' is a default, protected or release branch "
+            "name. Deleting it is banned (RULEBOOK B5)."
+        )
+    if not qualified and TAG_LIKE_RE.match(short):
+        deny(
+            f"Blocked: '{name}' looks like a version tag. Tags may not be "
+            "deleted; for a branch with this name, spell refs/heads/"
+            f"{name} (RULEBOOK B5)."
+        )
+
+
+def _push_deletions(rest: str) -> list:
+    """Branch names a `git push` deletes; denies bulk/force shapes outright."""
+    deleting, bulk, positional, skip = False, False, [], False
+    for tok in _words(rest):
+        if skip:
+            skip = False
+            continue
+        flag = tok.split("=", 1)[0]
+        if flag in _PUSH_OPTS_WITH_ARG:
+            skip = "=" not in tok
+            continue
+        if tok.startswith("-o"):  # -o<push-option>
+            continue
+        if flag in ("--mirror", "--prune"):
+            deny(
+                f"Blocked: git push {flag} can delete or overwrite many remote "
+                "refs at once (RULEBOOK B1, B5)."
+            )
+        if flag.startswith("--force"):
+            deny("Blocked: force push (RULEBOOK B1).")
+        if flag == "--delete":
+            deleting = True
+        elif flag in ("--all", "--branches", "--tags"):
+            bulk = True
+        elif re.fullmatch(r"-[A-Za-z0-9]+", tok):
+            if "f" in tok:
+                deny("Blocked: force push (RULEBOOK B1).")
+            deleting = deleting or "d" in tok
+        elif not tok.startswith("-"):
+            positional.append(tok)
+    refs = positional[1:] if positional and positional[0][0] not in ":+" else positional
+    if any(r.startswith("+") for r in refs):
+        deny("Blocked: a '+<refspec>' push is a force push (RULEBOOK B1).")
+    targets = refs if deleting else [r[1:] for r in refs if r.startswith(":")]
+    if not deleting and not targets:
+        return []
+    if bulk or len(refs) != 1:
+        deny(
+            "Blocked: delete exactly one remote branch per command, named "
+            "literally, after the RULEBOOK B5 checks."
+        )
+    if deleting and ":" in targets[0]:
+        deny("Blocked: git push --delete takes a plain branch name (RULEBOOK B5).")
+    return targets
+
+
+def check_ref_deletion(cmd: str) -> None:
+    """RULEBOOK B5: allow deleting one non-protected, literally named branch
+    per command via `git push <remote> --delete|-d <branch>`, `git push
+    <remote> :<branch>` or the REST refs API (DELETE .../git/refs/heads/<b>)."""
+    targets = []
+    for m in _PUSH_RE.finditer(cmd):
+        targets += _push_deletions(m.group(1))
+    for statement in re.split(SEP, cmd):
+        if _GRAPHQL_REF_MUTATION_RE.search(statement):
+            deny(
+                "Blocked: GraphQL deleteRef/updateRefs take opaque IDs the hook "
+                "cannot check. Use git push <remote> --delete <branch> or the "
+                "REST refs API (RULEBOOK B5)."
+            )
+        if not _API_DELETE_RE.search(statement):
+            continue
+        for ref in _API_REF_RE.findall(statement):
+            ref = urllib.parse.unquote(ref)
+            if not ref.startswith("heads/"):
+                deny(
+                    f"Blocked: '{ref}' is not a branch. Tags and other refs may "
+                    "not be deleted (RULEBOOK B5)."
+                )
+            targets.append("refs/" + ref)
+    if len(targets) > 1:
+        deny(
+            "Blocked: delete exactly one remote branch per command, named "
+            "literally, after the RULEBOOK B5 checks."
+        )
+    for name in targets:
+        _check_branch_name(name)
 
 
 def check_deploy_patterns(cmd: str) -> None:
@@ -264,6 +410,7 @@ def check_credential_leak(cmd: str) -> None:
 def check_all(cmd: str, depth: int = 0) -> None:
     scan_cmd = _strip_non_executed_text(cmd)
     check_git_patterns(scan_cmd)
+    check_ref_deletion(scan_cmd)
     check_deploy_patterns(scan_cmd)
     check_credential_leak(scan_cmd)
 
