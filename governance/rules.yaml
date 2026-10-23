@@ -46,8 +46,9 @@ machine_bans:
      enforced_by: [bash_hook, ruleset, agent_checks],
      allowed_only_if: [not_default_head_release_tag_or_protected, no_open_pr,
        tip_is_merged_or_closed_pr_head_or_in_default_branch,
-       one_literal_branch_per_command_via_push_delete_or_refs_api,
-       name_and_tip_sha_in_session_checkpoint]}
+       one_top_level_command_refs_heads_branch_via_push_delete_d_colon_or_refs_api_delete,
+       name_and_tip_sha_in_session_checkpoint],
+     not_allowed: [gh_pr_close_delete_branch, bare_or_tag_names, rest_ref_create_update_force]}
   - {id: B6, ban: discard_uncommitted_work, enforced_by: [bash_hook, convention]}
   - {id: B7, ban: weaken_tests_or_controls, enforced_by: [review]}
   - {id: B8, ban: private_content_to_unapproved_service, enforced_by: [convention]}

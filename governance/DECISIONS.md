@@ -82,8 +82,9 @@ follow the same form.
 ## D-0005 Agents may delete stale remote branches; B5 narrowed (2026-10-23)
 
 - **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.2.0. Widens
-  agent capability, so per RULEBOOK section 11 the PR opened 2026-10-23 merges no earlier than
-  2026-10-24. B1 is unchanged.
+  agent capability, so per RULEBOOK section 11 the PR (opened 2026-10-23T16:30Z, 2026-10-24
+  00:30 Asia/Taipei) merges no earlier than 2026-10-25 00:30 Asia/Taipei (2026-10-24T16:30Z).
+  B1 is unchanged.
 - **Context:** Founder, 2026-10-23: 「我希望你有權限幫我刪除branches」; 「我不要你一直來跟我要批准
   或是要求GO」. Cloud sessions push one branch per task, and branches merged outside
   `gh pr merge --delete-branch`, closed PRs and abandoned agent work pile up in every repo
@@ -93,22 +94,33 @@ follow the same form.
   branch, `HEAD`, `release/*`, a tag or protected by a ruleset or branch protection; it has no
   open PR; its tip SHA is the head of a merged or closed PR from it, or is already in the
   default branch (`git merge-base --is-ancestor <tip> origin/main`); it is deleted alone, after
-  those checks, with `git push <remote> --delete <branch>` or the GitHub refs API; and its name
-  and tip SHA are recorded in the session checkpoint. Deleting unmerged commits that no PR
-  preserves, force-push and history rewrite stay banned. The Bash hook now allows one literally
-  named branch per command (`git push <remote> --delete|-d <branch>`, `git push <remote>
-  :<branch>`, REST `DELETE .../git/refs/heads/<branch>`) and denies protected and release
-  names, tags, version-shaped unqualified names, globs, variables, xargs and loops, more than
-  one deletion per command, `--mirror`, `--prune`, `+<refspec>`, combined `-f` flags and GraphQL
-  `deleteRef`/`updateRefs`. The hook cannot see PR state or ancestry; those checks are the
-  agent's duty under B5.
+  those checks, as its own top-level command in one of four forms (`git push <remote> --delete
+  refs/heads/<branch>`, `-d refs/heads/<branch>`, `:refs/heads/<branch>`, or `DELETE
+  .../git/refs/heads/<branch>` via `gh api` or `curl`); and its name and tip SHA are recorded in
+  the session checkpoint. Deleting unmerged commits that no PR preserves, force-push and
+  history rewrite stay banned; `gh pr close --delete-branch` is not a B5 form. The Bash hook
+  allows only those four forms for one valid, non-protected branch per command and denies:
+  bare or tag names; protected and release names; invalid ref names and `.`/`..`/empty
+  segments; globs, variables, substitution and percent-encoding in names; deletions run
+  through xargs, parallel, find -exec, eval, `bash -c`, loops or other tools; more than one
+  deletion; abbreviated, ambiguous or unknown `git push` long options (git accepts prefixes
+  such as `--del`); `--mirror`, `--prune`, `+<refspec>`, `--force*` and short flags with `f`;
+  `remote.<name>.push`/`.mirror` set through `-c`, `GIT_CONFIG_*` or `git config`, and push
+  mirror remotes; REST create/update/force of refs and any REST method the hook cannot read;
+  writes to rulesets, branch protection and branch renames; GraphQL ref, branch-protection and
+  ruleset mutations and queries read from files; `gh pr close --delete-branch`,
+  `gh release delete --cleanup-tag` and `gh pr merge --admin`. The hook cannot see PR state or
+  ancestry; those checks are the agent's duty under B5. Review round 1 on the PR found the
+  first hook revision bypassable (prefixes, xargs placeholders, REST dot segments, combined
+  `-sX`); all reported shapes are now regression tests.
 - **Why it is reversible:** a branch whose tip is a merged or closed PR head comes back with the
   PR's "Restore branch" button (GitHub keeps `refs/pull/<n>/head`). A tip already in the default
   branch is recreated from the recorded SHA (`git push origin <sha>:refs/heads/<name>`).
-- **Residual risk:** the hook checks names, not history. An agent that skips the PR and
-  ancestry checks can delete commits no PR holds; those survive only while GitHub keeps the
-  unreachable objects (no guarantee), and only the recorded tip SHA finds them. Protected
-  branches named outside the hook's list (for example `production`) rely on their ruleset. A
-  non-version tag deleted by an unqualified name, a deletion hidden in a script file and
-  REST `PATCH ... force=true` are not caught by the hook. Mitigations: tip SHA in the checkpoint,
-  ruleset deletion protection on default branches, D3 review of any cleanup script.
+- **Residual risk:** the hook checks text, not history. An agent that skips the PR and ancestry
+  checks can delete commits no PR holds; those survive only while GitHub keeps the unreachable
+  objects (no guarantee), and only the recorded tip SHA finds them. Protected branches named
+  outside the hook's list (for example `production`) rely on their ruleset. Not caught by the
+  hook: indirection across tool calls or through a variable command name (`g=git; $g push`,
+  aliases), deletions inside script files, a REST POST whose path is in a variable, and edits
+  to `.git/config` by other means. Mitigations: tip SHA in the checkpoint, ruleset deletion
+  protection on default branches, D3 review of any cleanup script.
