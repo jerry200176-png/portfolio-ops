@@ -73,6 +73,8 @@ SAFE = [
     "curl -fsSL https://api.github.com/graphql -d '{\"query\":\"{ viewer { login } }\"}'",
     "git -C /tmp/x stash push -m wip",
     "git --no-pager stash push -m wip",
+    'git stash push -m "wip: push it"',
+    "git push origin 'feature-x'",
     # Ordinary pushes, reads and gh calls that must stay allowed.
     "git push -u origin HEAD:refs/heads/feature-x",
     "git push origin feature-x 2>/dev/null",
@@ -208,6 +210,24 @@ DANGEROUS = [
     "git -C /tmp/stash push origin --delete refs/heads/topic",
     "git -C /tmp/my-stash push origin :refs/heads/topic",
     "git -c x.stash=1 push origin --delete refs/heads/topic",
+    # Codex review of 4093471 (thread 4364676966): bash drops a backslash before an
+    # ordinary character and joins adjacent quoted parts, so these are all git push.
+    "git \\push origin --delete refs/heads/topic",
+    "\\git push origin --delete refs/heads/topic",
+    "g\\it push origin --delete refs/heads/topic",
+    "git pu\\sh origin --delete refs/heads/topic",
+    "git 'pu'sh origin --delete refs/heads/topic",
+    'git p"u"sh origin --delete refs/heads/topic',
+    "git push origin --de\\lete refs/heads/topic",
+    "git push origin '--del'ete refs/heads/topic",
+    'git push origin "-"d refs/heads/topic',
+    "git \\push --force origin x",
+    # Only the script may run the updateRefs compare-and-delete; agents may not.
+    "gh api graphql -f query='mutation($repo: ID!, $name: GitRefname!, $before: GitObjectID!, "
+    "$after: GitObjectID!) { updateRefs(input: {repositoryId: $repo, refUpdates: [{name: $name, "
+    "beforeOid: $before, afterOid: $after}]}) { clientMutationId } }' -f repo=R_x "
+    "-f name=refs/heads/x -f before=aaa -f after=0000000000000000000000000000000000000000",
+    'git -C /tmp/st"ash" push origin --delete refs/heads/topic',
     # Further shell shapes the strict hook denies wholesale.
     'git push origin "a;b" :refs/heads/main',
     "git push origin x\\:refs/heads/main :refs/heads/main",

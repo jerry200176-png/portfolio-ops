@@ -98,7 +98,9 @@ follow the same form.
   `release/*`, `releases/*`, `hotfix/*` or a tag, is unprotected with no ruleset `deletion` or
   `update` rule, is neither head nor base of an open PR, and that its tip is the head of a
   merged or closed PR from it or already in the default branch (`compare` is `behind` or
-  `identical`). It re-reads the tip just before `DELETE git/refs/heads/<branch>` and prints the
+  `identical`). It deletes with one atomic compare-and-delete, the GraphQL `updateRefs` mutation
+  with `beforeOid` = the verified tip and an all-zero `afterOid` (a literal query; GitHub
+  rejects it if the ref moved), re-reads the ref to confirm it is gone, and prints the
   name, tip SHA and a restore command that targets `--repo` explicitly (`gh api -X POST
   repos/<repo>/git/refs -f ref=refs/heads/<b> -f sha=<tip>`; the agent hook denies REST ref
   creation, so the Founder runs it or uses the PR's "Restore branch" button). The Bash hook denies every
@@ -122,16 +124,20 @@ follow the same form.
   always fixed. Codex's third review (at `ea87e45`) found 4 P1 and 2 P2, all fixed: curl and
   gh GraphQL bodies from a file, stdin or variable; curl short options with attached values
   (`-d'{...}'`, `-XPOST`) and `-G`/`--get`; the stash exemption matching a path ending in
-  `stash`; fork repos; and the restore command's target.
+  `stash`; fork repos; and the restore command's target. Codex's fourth review (at `4093471`)
+  found 2 P1, both in new code and fixed: the read-then-delete race (now an atomic
+  compare-and-delete) and `git \push` (the hook now applies bash quote removal before finding
+  `push`, so `\git`, `g\it`, `pu\sh`, `'pu'sh` and `p"u"sh` are caught).
 - **Complement (not in this PR):** GitHub's "Automatically delete head branches" repo setting
   deletes the head branch when a PR merges. It is a Founder settings change per repo and
   removes most cleanup before it is needed.
 - **Why it is reversible:** a branch whose tip is a merged or closed PR head comes back with the
   PR's "Restore branch" button (GitHub keeps `refs/pull/<n>/head`). A tip already in the default
-  branch is recreated from the printed SHA (`git push origin <sha>:refs/heads/<name>`).
-- **Residual risk:** a tip moved by someone else between the script's last check and its DELETE
-  (the REST API has no conditional ref delete); the script narrows the window by re-reading the
-  tip. Ruleset rules other than `deletion`/`update` do not stop the script. The hook does not
+  branch is recreated from the printed SHA with the printed command (`gh api -X POST
+  repos/<repo>/git/refs -f ref=refs/heads/<name> -f sha=<sha>`).
+- **Residual risk:** the compare-and-delete relies on the GraphQL `updateRefs` mutation (sent
+  with its preview media type); if GitHub changes it, the script fails closed with exit 1 and
+  deletes nothing. Ruleset rules other than `deletion`/`update` do not stop the script. The hook does not
   see git invoked through an alias or function defined in an earlier tool call, deletions inside
   other scripts or languages, or `.git/config` edited by other means; rulesets and review cover
   those. Mitigations: tip SHA in the checkpoint, ruleset deletion protection on default

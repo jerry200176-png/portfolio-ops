@@ -16,7 +16,7 @@ dir / session scratchpad, dummy `.env` content, and standalone piping of
 synthetic JSON into the hook scripts (never executing the dangerous command
 itself). The full machine-checked list lives in
 `.claude/hooks/test_guard_bash.py` (run: `python3
-.claude/hooks/test_guard_bash.py`) — 219 dangerous cases, 53 safe cases, plus
+.claude/hooks/test_guard_bash.py`) — 231 dangerous cases, 55 safe cases, plus
 branch-detection and symlink-resolution cases, all passing as of this
 writing.
 
@@ -99,11 +99,17 @@ text hook cannot close that class, so it never approves a deletion it parsed:
 - **The script decides through the GitHub API**, not the shell: forks are refused (upstream
   PRs are not visible from them); then default branch, protection,
   ruleset `deletion`/`update` rules, open PRs (head or base), and whether the tip is a merged
-  or closed PR head or already in the default branch. It re-reads the tip before deleting and
-  prints the name and tip SHA for the checkpoint (`tests/test_delete_merged_branch.py`).
+  or closed PR head or already in the default branch. It deletes with one atomic GraphQL
+  `updateRefs` compare-and-delete (`beforeOid` = the verified tip), so a push that lands after
+  the checks makes the delete fail instead of removing new work; it then confirms the ref is
+  gone and prints the name and tip SHA for the checkpoint (`tests/test_delete_merged_branch.py`).
+  Agents still cannot send that mutation themselves; only the script does.
 - **Strictness costs:** deletion-looking arguments after any `push` word are denied even in
   harmless contexts (`echo push --delete`), and a REST write whose target path holds a variable
   (`gh api -X POST "repos/o/r/issues/$N/comments"`) is denied; name write paths literally.
+- **Bash quote removal first:** the push check runs on the raw statement and on bash's quote
+  removal of it, so `git \push`, `\git`, `pu\sh`, `'pu'sh` and `p"u"sh` are recognized as
+  `git push` (a regression Codex found in the fourth review).
 - **curl and gh are parsed per client:** short clusters split per letter with attached
   values (`-d'{...}'`, `-sXPOST`, `-Fname=@f`), unambiguous long prefixes, `-G`/`--get` keeps
   `-d` a read, `-T` is a PUT. GraphQL bodies read from a file, stdin or a variable are denied

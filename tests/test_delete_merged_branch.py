@@ -15,17 +15,23 @@ SPEC.loader.exec_module(dmb)
 
 TIP = "a" * 40
 REPO, BRANCH = "o/r", "chore/old-x"
+NODE_ID = "R_kgTEST"
 
 
 class FakeGh:
-    """Routes `gh api` calls to canned responses and records them."""
+    """A fake `gh api`: REST GETs from canned state, and a GraphQL `updateRefs`
+    that, like GitHub, deletes the ref only if it still points at beforeOid."""
 
     def __init__(self, repo=REPO, **overrides):
         self.calls, self.repo = [], repo
         self.state = {
             "default": "main",
             "fork": False,
-            "tips": [TIP],  # successive answers for git/ref/heads/<branch>
+            "remote_tip": TIP,
+            "moved_to": None,  # a push that lands after verification, before the delete
+            "graphql_error": None,  # e.g. a permission error from updateRefs
+            "graphql_noop": False,  # updateRefs reports success but changes nothing
+            "deleted": False,
             "protected": False,
             "rules": [],
             "open_head": [],
@@ -33,31 +39,50 @@ class FakeGh:
             "closed": [{"number": 7, "merged_at": "2026-10-01T00:00:00Z",
                         "head": {"sha": TIP, "ref": BRANCH, "repo": {"full_name": repo}}}],
             "compare": "diverged",
-            "fail": {},  # path prefix -> stderr, returned with exit code 1
+            "fail": {},  # REST path prefix -> stderr, returned with exit code 1
         }
         self.state.update(overrides)
 
     def __call__(self, args):
-        method = args[args.index("-X") + 1] if "-X" in args else "GET"
+        if "graphql" in args:
+            return self.graphql(args)
+        assert "-X" not in args, f"REST write attempted: {args}"
         path = args[-1]
-        self.calls.append((method, path))
+        self.calls.append(("GET", path))
         for prefix, err in self.state["fail"].items():
             if path.startswith(prefix):
                 return subprocess.CompletedProcess(args, 1, "", err)
-        return subprocess.CompletedProcess(args, 0, json.dumps(self.route(method, path)), "")
+        if self.state["deleted"] and path.startswith(f"repos/{self.repo}/git/ref/heads/"):
+            return subprocess.CompletedProcess(args, 1, "", "gh: Not Found (HTTP 404)")
+        return subprocess.CompletedProcess(args, 0, json.dumps(self.route(path)), "")
 
-    def route(self, method, path):
+    def graphql(self, args):
+        fields = dict(args[i + 1].split("=", 1) for i, a in enumerate(args) if a == "-f")
+        self.calls.append(("GRAPHQL", fields))
+        s = self.state
+        if s["moved_to"]:
+            s["remote_tip"] = s["moved_to"]
+        if s["graphql_error"]:
+            body = {"errors": [{"message": s["graphql_error"]}]}
+            return subprocess.CompletedProcess(args, 1, json.dumps(body), "gh: " + s["graphql_error"])
+        if fields["before"] != s["remote_tip"]:
+            msg = f"Reference {fields['name']} is at {s['remote_tip']}, expected {fields['before']}"
+            return subprocess.CompletedProcess(args, 1, json.dumps({"errors": [{"message": msg}]}),
+                                               "gh: " + msg)
+        if fields["after"] == "0" * 40 and not s["graphql_noop"]:
+            s["deleted"] = True
+        return subprocess.CompletedProcess(
+            args, 0, json.dumps({"data": {"updateRefs": {"clientMutationId": None}}}), "")
+
+    def route(self, path):
         s, enc, repo = self.state, dmb.enc(BRANCH), self.repo
         base, _, query = path.partition("?")
         q = dict(urllib.parse.parse_qsl(query))
-        if method == "DELETE":
-            assert base == f"repos/{repo}/git/refs/heads/{enc}", base
-            return None
         if base == f"repos/{repo}":
-            return {"default_branch": s["default"], "fork": s["fork"]}
+            return {"default_branch": s["default"], "fork": s["fork"], "node_id": NODE_ID}
         if base == f"repos/{repo}/git/ref/heads/{enc}":
-            sha = s["tips"].pop(0) if len(s["tips"]) > 1 else s["tips"][0]
-            return {"ref": f"refs/heads/{BRANCH}", "object": {"type": "commit", "sha": sha}}
+            return {"ref": f"refs/heads/{BRANCH}",
+                    "object": {"type": "commit", "sha": s["remote_tip"]}}
         if base == f"repos/{repo}/branches/{enc}":
             return {"protected": s["protected"]}
         if base == f"repos/{repo}/rules/branches/{enc}":
@@ -68,7 +93,7 @@ class FakeGh:
             return s["closed"]
         if base.startswith(f"repos/{repo}/compare/"):
             return {"status": s["compare"]}
-        raise AssertionError(f"unexpected call {method} {path}")
+        raise AssertionError(f"unexpected call GET {path}")
 
 
 class DeleteMergedBranchTests(unittest.TestCase):
@@ -84,18 +109,50 @@ class DeleteMergedBranchTests(unittest.TestCase):
         return code, out.getvalue(), err.getvalue()
 
     def deletes(self, fake):
-        return [c for c in fake.calls if c[0] == "DELETE"]
+        return [c[1] for c in fake.calls if c[0] == "GRAPHQL"]
 
-    def test_deletes_branch_whose_tip_is_a_merged_pr_head(self):
+    def test_deletes_with_an_atomic_compare_and_delete(self):
         fake = FakeGh()
         code, out, _ = self.run_main(fake)
         self.assertEqual(code, 0)
-        self.assertEqual(self.deletes(fake), [("DELETE", f"repos/{REPO}/git/refs/heads/chore/old-x")])
+        (fields,) = self.deletes(fake)
+        self.assertTrue(fields["query"].startswith("mutation("))
+        self.assertIn("updateRefs", fields["query"])
+        self.assertEqual(fields, {"query": dmb.DELETE_MUTATION, "repo": NODE_ID,
+                                  "name": f"refs/heads/{BRANCH}", "before": TIP, "after": "0" * 40})
+        self.assertTrue(fake.state["deleted"])
+        # The ref is re-read after the mutation to confirm it is gone.
+        self.assertEqual(fake.calls[-1], ("GET", f"repos/{REPO}/git/ref/heads/{dmb.enc(BRANCH)}"))
         self.assertIn(f"tip={TIP}", out)
         self.assertIn("merged PR #7", out)
         self.assertIn(f"gh api -X POST repos/{REPO}/git/refs -f ref=refs/heads/{BRANCH} "
                       f"-f sha={TIP}", out)
         self.assertNotIn("git push origin", out)
+
+    def test_tip_moved_before_the_delete_is_not_deleted(self):
+        fake = FakeGh(moved_to="c" * 40)
+        code, out, err = self.run_main(fake)
+        self.assertEqual(code, 2)
+        self.assertFalse(fake.state["deleted"])
+        self.assertIn(f"changed to {'c' * 40}", err)
+        self.assertIn("not deleted", err)
+        self.assertEqual(out, "")
+
+    def test_graphql_error_exits_1_and_leaves_the_branch(self):
+        fake = FakeGh(graphql_error="Resource not accessible by integration")
+        code, out, err = self.run_main(fake)
+        self.assertEqual(code, 1)
+        self.assertFalse(fake.state["deleted"])
+        self.assertIn("Resource not accessible by integration", err)
+        self.assertIn("unchanged", err)
+        self.assertEqual(out, "")
+
+    def test_reported_success_with_the_ref_still_present_is_an_error(self):
+        fake = FakeGh(graphql_noop=True)
+        code, out, err = self.run_main(fake)
+        self.assertEqual(code, 1)
+        self.assertIn("still exists", err)
+        self.assertEqual(out, "")
 
     def test_deletes_branch_whose_tip_is_already_in_the_default_branch(self):
         for status in ("behind", "identical"):
@@ -143,7 +200,6 @@ class DeleteMergedBranchTests(unittest.TestCase):
                 "sha": "b" * 40, "ref": BRANCH, "repo": {"full_name": REPO}}}], "compare": "ahead"},
             "PR from a fork": {"closed": [{"number": 7, "merged_at": "x", "head": {
                 "sha": TIP, "ref": BRANCH, "repo": {"full_name": "fork/r"}}}], "compare": "diverged"},
-            "tip moved": {"tips": [TIP, "c" * 40]},
             "missing branch": {"fail": {f"repos/{REPO}/git/ref/": "gh: Not Found (HTTP 404)"}},
         }
         for label, overrides in cases.items():
@@ -169,7 +225,6 @@ class DeleteMergedBranchTests(unittest.TestCase):
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             dmb.main(["--rep", REPO, "--branch", BRANCH])
 
-
     def test_refuses_forks_and_says_why(self):
         fake = FakeGh(fork=True)
         code, _, err = self.run_main(fake)
@@ -186,7 +241,8 @@ class DeleteMergedBranchTests(unittest.TestCase):
             self.assertEqual(code, 0, repo)
             self.assertIn(f"restore: gh api -X POST repos/{repo}/git/refs "
                           f"-f ref=refs/heads/{BRANCH} -f sha={TIP}", out)
-            self.assertEqual(self.deletes(fake), [("DELETE", f"repos/{repo}/git/refs/heads/{BRANCH}")])
+            self.assertTrue(fake.state["deleted"], repo)
+
 
 if __name__ == "__main__":
     unittest.main()

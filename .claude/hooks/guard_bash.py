@@ -272,6 +272,36 @@ def _statements(cmd: str) -> list:
     return [s for s in out if s.strip()]
 
 
+def _bash_dequote(stmt: str) -> str:
+    """Bash quote removal within one statement: drop a backslash before any
+    character outside quotes (and before $ ` " \\ inside double quotes), and drop
+    the quote characters, so adjacent quoted parts join into one word."""
+    out, quote, i = [], None, 0
+    while i < len(stmt):
+        c = stmt[i]
+        if quote == "'":
+            quote = None if c == "'" else quote
+            if c != "'":
+                out.append(c)
+        elif quote == '"':
+            if c == '"':
+                quote = None
+            elif c == "\\" and i + 1 < len(stmt) and stmt[i + 1] in '$`"\\\n':
+                out.append(stmt[i + 1])
+                i += 1
+            else:
+                out.append(c)
+        elif c == "\\" and i + 1 < len(stmt):
+            out.append(stmt[i + 1])
+            i += 1
+        elif c in "'\"":
+            quote = c
+        else:
+            out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def _shell_words(stmt: str) -> list:
     try:
         return shlex.split(stmt, posix=True)
@@ -458,15 +488,18 @@ def check_ref_deletion(cmd: str, api_cmd: str) -> None:
                 "chaining, quoting, loop or substitution (RULEBOOK B5)."
             )
         return
-    for stmt in _statements(cmd):
-        if re.search(rf"\bgit\b{GAP}\b(?:send-pack|http-push)\b", stmt) or \
-                re.search(r"\balias\s+[^=\s]+=.*\bpush\b", stmt):
-            deny(_DENY_DELETE)
-        for m in _PUSH_WORD_RE.finditer(stmt):
-            if _STASH_BEFORE_PUSH_RE.search(stmt[: m.start()]):  # git stash push <pathspec>
-                continue
-            if _push_rest_denied(stmt[m.end():]):
+    for raw in _statements(cmd):
+        # Check both the raw text (it still shows $'...', braces and quoting) and
+        # bash's quote removal of it (`git \push`, `pu\sh`, `'pu'sh`, `p"u"sh` are push).
+        for stmt in (raw, _bash_dequote(raw)):
+            if re.search(rf"\bgit\b{GAP}\b(?:send-pack|http-push)\b", stmt) or \
+                    re.search(r"\balias\s+[^=\s]+=.*\bpush\b", stmt):
                 deny(_DENY_DELETE)
+            for m in _PUSH_WORD_RE.finditer(stmt):
+                if _STASH_BEFORE_PUSH_RE.search(stmt[: m.start()]):  # git stash push <pathspec>
+                    continue
+                if _push_rest_denied(stmt[m.end():]):
+                    deny(_DENY_DELETE)
     for stmt in _statements(api_cmd):
         words = _shell_words(stmt)
         flat = " ".join(words)
