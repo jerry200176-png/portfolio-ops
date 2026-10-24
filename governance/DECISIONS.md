@@ -78,3 +78,67 @@ follow the same form.
 - **Also:** PR 1b slimmed `CLAUDE.md`/`AGENTS.md` and pointer-ized the Constitution, Autonomy
   policy, Agent bootstrap and Portfolio agent contract, so `max_always_loaded_lines` is back at
   the default 300 (K1; the temporary 340 in D-0003 is retired).
+
+## D-0005 Agents may delete stale remote branches through one verified script (2026-10-23)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.2.0. Widens
+  agent capability, so per RULEBOOK section 11 the PR (opened 2026-10-23T16:30Z, 2026-10-24
+  00:30 Asia/Taipei) merges no earlier than 2026-10-25 00:30 Asia/Taipei (2026-10-24T16:30Z).
+  B1 is unchanged.
+- **Context:** Founder, 2026-10-23: 「我希望你有權限幫我刪除branches」; 「我不要你一直來跟我要批准
+  或是要求GO」. Cloud sessions push one branch per task, and branches merged outside
+  `gh pr merge --delete-branch`, closed PRs and abandoned agent work pile up in every repo
+  (see `docs/github-governance/BRANCH_CLEANUP_CANDIDATES.md`). Old B5 allowed only
+  `--delete-branch` at merge, so every other cleanup waited on the Founder.
+- **Decision:** Besides `gh pr merge --delete-branch`, an agent deletes a remote branch only by
+  running exactly `python3 scripts/delete-merged-branch.py --repo <owner>/<name> --branch <name>`
+  as the whole command. Through the GitHub REST API (`gh api`) the script refuses forks (an
+  upstream PR from a fork's branch is not visible from the fork) and verifies that the
+  branch is a valid name (`git check-ref-format --branch`), is not the default branch, `HEAD`,
+  `release/*`, `releases/*`, `hotfix/*` or a tag, is unprotected with no ruleset `deletion` or
+  `update` rule, is neither head nor base of an open PR, and that its tip is the head of a
+  merged or closed PR from it or already in the default branch (`compare` is `behind` or
+  `identical`). It deletes with one atomic compare-and-delete, the GraphQL `updateRefs` mutation
+  with `beforeOid` = the verified tip and an all-zero `afterOid` (a literal query; GitHub
+  rejects it if the ref moved), re-reads the ref to confirm it is gone, and prints the
+  name, tip SHA and a restore command that targets `--repo` explicitly (`gh api -X POST
+  repos/<repo>/git/refs -f ref=refs/heads/<b> -f sha=<tip>`; the agent hook denies REST ref
+  creation, so the Founder runs it or uses the PR's "Restore branch" button). The Bash hook denies every
+  other shell-level remote branch or tag deletion and ref write (`git push --delete`/`-d`/`:`
+  refspecs and their prefixes, `+refspec`, `--mirror`, `--prune`, config-driven push refspecs,
+  aliases and includes, REST writes to refs, rulesets, branch protection and renames, GraphQL
+  ref mutations, `gh pr close --delete-branch`, `gh release delete --cleanup-tag`,
+  `gh pr merge --admin`) and allows the script only in that exact form.
+- **Why a script, not hook-approved shell commands:** the first two revisions of this PR let
+  the hook approve a parsed `git push --delete` or `gh api`/`curl` DELETE. Two independent
+  reviews (a fresh-context reviewer, then Codex) found 9 P1 bypasses, each a parsing quirk:
+  git long-option prefixes, xargs placeholders, a quoted `#` read as a comment, quoted `;`
+  splitting a URL, curl URL globbing, curl's `/../` normalization, multi-line wrappers, and
+  `git config -- ... --get`. A text hook cannot model shell, curl and git exactly, so it must
+  never approve a deletion it parsed. The decision moves to code that asks GitHub for the facts.
+- **Review stop rule (from 2026-10-23):** shell-text matching cannot be complete. Protection of
+  `main`, release branches and tags rests on GitHub rulesets, which the platform enforces for
+  every token, and on deleted branches being restorable. Reviewer findings that `main`'s hook
+  also allows (not introduced or widened by this PR) go to a follow-up issue instead of
+  blocking. Findings in new code (the deletion script, new exemptions, new allowlists) are
+  always fixed. Codex's third review (at `ea87e45`) found 4 P1 and 2 P2, all fixed: curl and
+  gh GraphQL bodies from a file, stdin or variable; curl short options with attached values
+  (`-d'{...}'`, `-XPOST`) and `-G`/`--get`; the stash exemption matching a path ending in
+  `stash`; fork repos; and the restore command's target. Codex's fourth review (at `4093471`)
+  found 2 P1, both in new code and fixed: the read-then-delete race (now an atomic
+  compare-and-delete) and `git \push` (the hook now applies bash quote removal before finding
+  `push`, so `\git`, `g\it`, `pu\sh`, `'pu'sh` and `p"u"sh` are caught).
+- **Complement (not in this PR):** GitHub's "Automatically delete head branches" repo setting
+  deletes the head branch when a PR merges. It is a Founder settings change per repo and
+  removes most cleanup before it is needed.
+- **Why it is reversible:** a branch whose tip is a merged or closed PR head comes back with the
+  PR's "Restore branch" button (GitHub keeps `refs/pull/<n>/head`). A tip already in the default
+  branch is recreated from the printed SHA with the printed command (`gh api -X POST
+  repos/<repo>/git/refs -f ref=refs/heads/<name> -f sha=<sha>`).
+- **Residual risk:** the compare-and-delete relies on the GraphQL `updateRefs` mutation (sent
+  with its preview media type); if GitHub changes it, the script fails closed with exit 1 and
+  deletes nothing. Ruleset rules other than `deletion`/`update` do not stop the script. The hook does not
+  see git invoked through an alias or function defined in an earlier tool call, deletions inside
+  other scripts or languages, or `.git/config` edited by other means; rulesets and review cover
+  those. Mitigations: tip SHA in the checkpoint, ruleset deletion protection on default
+  branches, D3 review of any cleanup tooling.

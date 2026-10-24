@@ -1,6 +1,6 @@
 # Portfolio rulebook
 
-Version: 2.1.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
+Version: 2.2.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
 
 One rule set for every agent (Claude Code, Codex, Cursor, Copilot, Cubelv) in every governed repo.
 Product repos vendor this file byte-for-byte; `scripts/check-rulebook.py` fails CI on drift.
@@ -94,7 +94,7 @@ steps, verification, rollback) and send it through section 7. Everything else is
 | B2 | SSH, artisan, phpunit or file edits on production hosts (product read-only paths excepted) | Hooks + product red lines |
 | B3 | Print, echo or commit secret values; read or write `**/.env*`, `~/.ssh/**`, `~/.aws/**` | gitleaks + hooks |
 | B4 | Gmail trash or permanent delete | Claude PreToolUse hook (both Gmail tool prefixes) |
-| B5 | Delete a remote branch except via `gh pr merge --delete-branch` | Bash hook |
+| B5 | Delete a remote branch except via `gh pr merge --delete-branch` or exactly `python3 scripts/delete-merged-branch.py --repo <owner>/<name> --branch <name>`, which verifies through the GitHub API that the branch is not the default, `HEAD`, `release/*`, `releases/*`, `hotfix/*` or a tag, is not protected and has no ruleset deletion or update rule, has no open PR, and that its tip is the head of a merged or closed PR from it or already in the default branch, then prints its name and tip SHA for the session checkpoint. Every other shell-level branch or tag deletion and ref write stays banned | Bash hook (denies all other forms) + ruleset + the script's API checks |
 | B6 | Overwrite or discard uncommitted work in any repository | Bash hook + convention |
 | B7 | Lower tests, assertions, allowlists or security controls to get green | Review (D3) |
 | B8 | Send private repo content to a non-approved external service | Convention |

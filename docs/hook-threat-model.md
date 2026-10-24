@@ -5,7 +5,7 @@
 wired via `.claude/settings.json` PreToolUse hooks. They are **not a
 sandbox** — see `docs/security-boundaries.md` for what actually bounds
 agent behavior (tool-list restriction per agent, this repo's `CLAUDE.md`
-rules, GitHub rulesets, and machine bans in `AUTONOMY_POLICY.md`). This document records
+rules, GitHub rulesets, and machine bans in `governance/RULEBOOK.md` section 5). This document records
 the adversarial testing performed, what was found and fixed, and — just as
 important — what remains unfixable by a textual hook and must be covered by
 something else.
@@ -16,7 +16,7 @@ dir / session scratchpad, dummy `.env` content, and standalone piping of
 synthetic JSON into the hook scripts (never executing the dangerous command
 itself). The full machine-checked list lives in
 `.claude/hooks/test_guard_bash.py` (run: `python3
-.claude/hooks/test_guard_bash.py`) — 38 dangerous cases, 18 safe cases, plus
+.claude/hooks/test_guard_bash.py`) — 231 dangerous cases, 55 safe cases, plus
 branch-detection and symlink-resolution cases, all passing as of this
 writing.
 
@@ -41,6 +41,14 @@ writing.
 | GitHub merge tool, synonym server names | `mcp__other_github_server__merge_pull_request` | **Not covered** — matcher was one exact tool name | **2026-08-15:** matcher **removed**. R0–R2 merge after required checks is fleet-autonomous (`docs/fleet-merge-policy.md`). GitHub required checks remain the backstop. |
 | Gmail mutation tool name variants | `mcp__claude_ai_Gmail__update_label` | **Bypassed — this tool existed and was simply missing from the original deny list** | Fixed — added, plus defensive coverage for plausible future verbs (send/trash/archive/batch-delete/batch-modify) |
 | PR body / commit message *describing* a dangerous command | `gh pr create --body "$(cat <<'EOF'\nBlocks git reset --hard\nEOF\n)"` | **Bypassed live in an actual session** — unanchored git-destructive patterns matched the literal phrase inside descriptive text, not just real invocations | Fixed — `_strip_non_executed_text` blanks text captured specifically as the value of `-m`/`--body`/`--title`/`--description`/`--message`/`-F`/`--body-file`, including the `$(cat <<'EOF' ... EOF)` shape this project's own commit/PR conventions use, before pattern scanning |
+| Remote branch deletion via the shell (RULEBOOK B5) | `git push origin --delete old-feature`, `gh api -X DELETE .../git/refs/heads/x` | Main denied `git push --delete` and `:<ref>` (with a false positive on `git push origin HEAD:refs/heads/x`), but **missed** `git push -d`, `gh api`/`curl` DELETE and the shapes below | **2026-10-23 (D-0005):** every shell-level deletion is denied; the only path besides `gh pr merge --delete-branch` is `python3 scripts/delete-merged-branch.py --repo <o>/<n> --branch <b>`, allowed only as the whole command (section below) |
+| Hook-approved deletions (first two revisions of PR #144) | `git push --del`, `xargs -I BR git push origin --delete BR`, `--delete refs/heads/ok '#' refs/heads/main`, `curl -X DELETE ".../heads/m[a-a]in"`, `".../heads/old;anything/../main"`, multi-line `bash -c`/`for` wrappers, `git config -- remote.origin.push :refs/heads/main --get` | **Bypassed** in review: 4 P1 (fresh-context reviewer) + 5 P1 (Codex), each a shell, curl or git parsing quirk | Fixed by design: the hook never approves a deletion it parsed. All are regression cases and are denied wholesale |
+| Force, mirror and prune shapes | `git push origin +feature-x`, `-uf`, `--mirror`, `--prune`, prefixes `--mirr`, `--pru`, `--del`, `--f` | **Allowed** except `--force`/`-f` | Denied: any long option that is a prefix of `--delete`, `--mirror`, `--prune` or `--force*`; short flags with `d` or `f`; `:`/`+` refspecs, `$VAR:` sources, `$@`, brace/glob expansion and `$'...'` after a `push` word, quoted or not, in any wrapper |
+| REST and GraphQL ref writes | `curl -sX DELETE .../heads/main`, `gh api -iX DELETE`, `--req DELETE`, `-X DEL\ETE`, `.../issues/1/../../git/refs/...`, `g%2569t`, `PATCH ... force=true`, `POST .../git/refs`, GraphQL `deleteRef`/`updateRef` | **Allowed** | Denied: any write (explicit, abbreviated or combined method flag, or a body flag of that client) to a target with a `git`, `refs`, `matching-refs` or `rulesets` segment, a dot segment, curl glob syntax or a variable, after full percent-decoding; GraphQL ref, protection and ruleset mutations and queries read from files. Reads stay allowed (`curl -f` is `--fail`) |
+| Config-driven pushes | `git -c remote.origin.push=:refs/heads/main push`, `-c remote.origin.mirror=true`, `git config -- remote.origin.push ... --get`, `-c alias.p=push`, `-c include.path=...`, `GIT_CONFIG_*`, `git remote add --mirror=push` | **Allowed** (except the `-c ...push=:` form) | Denied: any statement naming `remote.<n>.push`/`.mirror`, `include.path` or a git alias unless it is exactly `git config --get[-all] <key>`; `GIT_CONFIG*` assignments; push mirrors |
+| Backstops B5 relies on | `gh api -X DELETE .../rulesets/1`, `PUT .../branches/main/protection/...`, `POST .../branches/main/rename`, GraphQL `deleteBranchProtectionRule` | **Allowed** | Denied: any write to rulesets, branch protection or branch renames |
+| gh shortcuts | `gh pr merge --admin`, `gh pr close --delete-branch`, `gh release delete --cleanup-tag` | **Allowed** | Denied |
+| Line continuation | `git pu\`↵`sh origin --delete ...` | Continuation replaced by a space, so `git pu sh` hid the push | Removed as bash does (an unescaped backslash-newline vanishes) |
 
 ## A false positive found and fixed along the way (two rounds)
 
@@ -75,11 +83,54 @@ piped to `python3 -` as a string literal, never executed as shell) can
 still be falsely denied — accepted as a rare, safe-direction false positive
 rather than attempting full shell parsing (see "not a sandbox," above).
 
+## Remote branch deletion (RULEBOOK B5, 2.2.0)
+
+The hook denies every shell-level remote branch or tag deletion and ref write, as strictly as
+before B5 2.2.0 or more (`governance/DECISIONS.md` D-0005). Two earlier revisions of PR #144 let
+the hook approve a parsed `git push --delete` or REST DELETE; review found 9 P1 bypasses, each a
+case where the hook's reading of the command differed from what shell, curl or git would do. A
+text hook cannot close that class, so it never approves a deletion it parsed:
+
+- **Allowed:** `gh pr merge --delete-branch`, and `python3 scripts/delete-merged-branch.py
+  --repo <owner>/<name> --branch <name>` (optionally `--dry-run`) as the *whole* command, with
+  both values matching fixed regexes (no quotes, metacharacters, globs or `..`). Any other
+  command naming the script with `--repo`/`--branch` (wrapped, chained, quoted, looped,
+  reordered, `--repo=`, another path) is denied.
+- **The script decides through the GitHub API**, not the shell: forks are refused (upstream
+  PRs are not visible from them); then default branch, protection,
+  ruleset `deletion`/`update` rules, open PRs (head or base), and whether the tip is a merged
+  or closed PR head or already in the default branch. It deletes with one atomic GraphQL
+  `updateRefs` compare-and-delete (`beforeOid` = the verified tip), so a push that lands after
+  the checks makes the delete fail instead of removing new work; it then confirms the ref is
+  gone and prints the name and tip SHA for the checkpoint (`tests/test_delete_merged_branch.py`).
+  Agents still cannot send that mutation themselves; only the script does.
+- **Strictness costs:** deletion-looking arguments after any `push` word are denied even in
+  harmless contexts (`echo push --delete`), and a REST write whose target path holds a variable
+  (`gh api -X POST "repos/o/r/issues/$N/comments"`) is denied; name write paths literally.
+- **Bash quote removal first:** the push check runs on the raw statement and on bash's quote
+  removal of it, so `git \push`, `\git`, `pu\sh`, `'pu'sh` and `p"u"sh` are recognized as
+  `git push` (a regression Codex found in the fourth review).
+- **curl and gh are parsed per client:** short clusters split per letter with attached
+  values (`-d'{...}'`, `-sXPOST`, `-Fname=@f`), unambiguous long prefixes, `-G`/`--get` keeps
+  `-d` a read, `-T` is a PUT. GraphQL bodies read from a file, stdin or a variable are denied
+  for curl and gh. The `git stash push` exemption applies only after `git [global options]
+  stash`, so `git -C /tmp/stash push ...` is checked.
+- **Review stop rule (from 2026-10-23):** shell-text matching cannot be complete. Protection of
+  `main`, release branches and tags rests on GitHub rulesets (platform-enforced for every token)
+  plus restorable branches. Reviewer findings that `main`'s hook also allows (not introduced or
+  widened by this PR) go to a follow-up issue instead of blocking; findings in new code (the
+  deletion script, new exemptions, new allowlists) are always fixed.
+- **Recommended complement:** GitHub's "Automatically delete head branches" setting removes the
+  head branch at merge; it is a Founder settings change per repo.
+
 ## What hooks reliably prevent
 
 - Direct, ordinary invocations of the listed destructive Git operations,
   including through common wrapping (`bash -c`, `env`, `command`, `git -C`,
   chaining, multiline).
+- Ordinary shell-level remote branch or tag deletion and ref writes (`git push --delete`,
+  `:<ref>`, `+<ref>`, REST or GraphQL ref writes, config-driven push refspecs); the only
+  deletion path is the verified `scripts/delete-merged-branch.py` command.
 - Ordinary attempts to read a credential-shaped file by name, including via
   a symlink or relative-path traversal.
 - Any call to the exact-named (or now wildcard-matched) merge/Gmail-mutation
@@ -108,6 +159,10 @@ rather than attempting full shell parsing (see "not a sandbox," above).
   Nothing here stops an agent explicitly instructed (e.g. via a successful
   prompt injection) to hand-craft an evasion once it knows the patterns
   above.
+- **Branch deletion through other means** (B5): git invoked through an alias or function
+  defined in an earlier tool call, deletions inside script files or other languages, and
+  `.git/config` edited by other means are not seen. The deletion script's own checks, rulesets
+  and review cover these.
 - **Non-Bash mutation paths entirely**: any MCP tool not covered by a
   PreToolUse matcher is unaffected by these hooks. New tools/integrations
   added later are not automatically covered — matcher lists need updating

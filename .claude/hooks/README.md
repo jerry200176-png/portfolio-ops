@@ -6,8 +6,17 @@ after this install).
 
 - `guard_bash.py` — matcher `Bash`. Denies: direct `git commit` on
   `main`/`master` (checked against the real current branch, not guessed),
-  force push, `git reset --hard`, `git clean -f*/-d*`, force branch delete,
-  remote branch/ref deletion, common production deploy/migration command
+  force push (including `+<refspec>`, `--mirror`, `--prune`, abbreviated
+  long options), `git reset --hard`, `git clean -f*/-d*`, force branch
+  delete, `gh pr merge --admin`, and every shell-level remote branch or tag
+  deletion and ref write (`git push --delete`/`-d`/`:<ref>`, REST and GraphQL
+  ref writes, config-driven push refspecs, aliases and includes, writes to
+  rulesets, branch protection and renames, `gh pr close --delete-branch`,
+  `gh release delete --cleanup-tag`). The only deletion paths are `gh pr
+  merge --delete-branch` and exactly `python3 scripts/delete-merged-branch.py
+  --repo <owner>/<name> --branch <name>` as the whole command, which verifies
+  the branch through the GitHub API (`governance/RULEBOOK.md` B5). Plus common
+  production deploy/migration command
   shapes (`vercel --prod`, `terraform apply`, `supabase db push`, `prisma
   migrate deploy`, `kubectl apply`, `gh workflow run *deploy*`, `npm/yarn/
   pnpm run deploy`), and commands that dump a credential-shaped file
