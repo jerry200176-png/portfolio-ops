@@ -1,6 +1,30 @@
 # CEO Dashboard
 
-## Current portfolio state — 2026-10-04
+## Current bounded observation — 2026-10-24
+
+Sources and limits: [reports/2026-10-24/portfolio-reference-refresh.md](reports/2026-10-24/portfolio-reference-refresh.md). Public GitHub metadata was
+observed at `2026-10-24T05:03:26Z`; public runtime identity/health at
+`2026-10-24T05:04:35.951151+00:00`. Counts below are open issues carrying the exact
+`priority:p0` / `priority:p1` labels, not confirmed incident counts.
+
+| Product | GitHub main | Public serving SHA / health | Open labelled P0 / P1 |
+|---|---|---|---|
+| AllTrue | `219c4ab0bca2d79fece44646b2457bc80acbcba0` | `9401260000a10070bedf765148395942f96f7479` / HEALTHY | 1 / 40 |
+| Sunrise | `73416404bfd55872b7354e477c959b68d4deb331` | `73416404bfd55872b7354e477c959b68d4deb331` / DEGRADED: memory, degraded_per_isolate | 0 / 4 |
+
+AllTrue's open labelled P0 is #1387; neither its label nor the current CI
+configuration proves historical credential containment or rotation. It remains
+an owning-product investigation, not a claim of a new verified exposure here.
+Sunrise's rate-limit finding is observed, not remediated. Product acceptance,
+artifact digests, workstation state, private research internals and historical
+queue-item completion were not revalidated. No new Founder decision is needed
+for this documentation PR; any later protected action follows existing policy.
+
+The older sections and tables below are dated history, not current status or
+an active instruction list. Current work uses the cloud model in RULEBOOK §9;
+the local gateway/provenance procedures are retired.
+
+## Historical observation — 2026-10-04
 
 The current public runtime snapshot is in
 [production-identity-public.md](reports/2026-10-04/production-identity-public.md)
@@ -706,12 +730,12 @@ Tier-0 item), in `AllTrue_System` only.
 6. **Sunrise Agent Session Provenance CI failures** — governance gate,
    needs log triage to determine severity.
 
-## Portfolio Table
+## Historical portfolio table — 2026-07-25 (stale)
 
 | Tier | Product | Production | Git status | CI | Critical work | UX risk | Current action | Next action | Data freshness |
 |---|---|---|---|---|---|---|---|---|---|
-| 0 | AllTrue System | live, health OK, version `8b4a30f1` (2 commits behind main, normal deploy lag) | main clean, 101 commits behind origin/main locally (not touched) | PR #1400, #1395 merged; PR #1333 confirmed merged (was misreported as "validating_ci") | #1401 containment unexecuted (P0); repo visibility unresolved (P0); GitGuardian cluster pending confirmation (P0); #1096 billing bug, #1100 package-overlap decision (P1) | not assessed this pass | Founder decision on #1401 containment + repo visibility | see Decisions Required | **Fresh — 2026-07-25 14:30, this triage** |
-| 0 | Sunrise Cafe | live, health OK; deployed commit confirmed current `origin/main` HEAD (not behind despite stale local checkout) | `chore/dependabot-major-policy` branch, dirty (uncommitted wildcard change, not touched), 7 commits behind origin/main | main CI green; PR #253 failing Agent Session Provenance check | Vercel cap hitting production (P0, escalated); #211 decided-not-executed (P0); provenance CI failures (P1) | medium | none taken this pass | see Decisions Required | **Fresh — 2026-07-25 14:30, this triage** |
+| 0 | AllTrue System | live, health OK, version `8b4a30f1` (2 commits behind main, normal deploy lag) | main clean, 101 commits behind origin/main locally (not touched) | PR #1400, #1395 merged; PR #1333 confirmed merged (was misreported as "validating_ci") | #1401 containment unexecuted (P0); repo visibility unresolved (P0); GitGuardian cluster pending confirmation (P0); #1096 billing bug, #1100 package-overlap decision (P1) | not assessed this pass | Founder decision on #1401 containment + repo visibility | see Decisions Required | **Historical — 2026-07-25; not current evidence** |
+| 0 | Sunrise Cafe | live, health OK; deployed commit confirmed current `origin/main` HEAD (not behind despite stale local checkout) | `chore/dependabot-major-policy` branch, dirty (uncommitted wildcard change, not touched), 7 commits behind origin/main | main CI green; PR #253 failing Agent Session Provenance check | Vercel cap hitting production (P0, escalated); #211 decided-not-executed (P0); provenance CI failures (P1) | medium | none taken this pass | see Decisions Required | **Historical — 2026-07-25; not current evidence** |
 
 ## Work Completed (this session)
 
@@ -759,7 +783,7 @@ Tier-0 item), in `AllTrue_System` only.
   `reports/2026-07-25/gmail-signals.md` for full evidence and score
   rationale.
 
-## Decisions Required
+## Historical decisions list — not revalidated
 
 1. **AllTrue #1401 containment** (most urgent) — confirm production
    deploy of PR #1400 and execute the incident's containment checklist

@@ -1,0 +1,114 @@
+{
+  "scope": "Public GitHub metadata, public runtime probe, complete public Star set only",
+  "github_observed_at": "2026-10-24T05:03:26Z",
+  "repositories": [
+    {
+      "name": "jerry200176-png/AllTrue_System",
+      "visibility": "public",
+      "default_branch": "main",
+      "head_sha": "219c4ab0bca2d79fece44646b2457bc80acbcba0",
+      "head_commit_date_utc": "2026-10-24T04:57:42Z",
+      "priority_labels": [
+        {
+          "name": "priority:p0",
+          "open_issues": 1,
+          "query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2FAllTrue_System%20is%3Aissue%20is%3Aopen%20label%3A%22priority%3Ap0%22&type=issues"
+        },
+        {
+          "name": "priority:p1",
+          "open_issues": 40,
+          "query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2FAllTrue_System%20is%3Aissue%20is%3Aopen%20label%3A%22priority%3Ap1%22&type=issues"
+        }
+      ],
+      "open_issue_query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2FAllTrue_System%20is%3Aissue%20is%3Aopen&type=issues",
+      "open_pr_query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2FAllTrue_System%20is%3Apr%20is%3Aopen&type=pullrequests"
+    },
+    {
+      "name": "jerry200176-png/exoprotocol",
+      "visibility": "public",
+      "default_branch": "main",
+      "head_sha": "a42d5cce15f5d39003b63501f43ebcf9eacf0d26",
+      "head_commit_date_utc": "2026-04-30T03:12:14Z"
+    },
+    {
+      "name": "jerry200176-png/portfolio-ops",
+      "visibility": "public",
+      "default_branch": "main",
+      "head_sha": "96de7c296f57bf57f7dfdd46f2deb03a5946b1c7",
+      "head_commit_date_utc": "2026-10-21T05:45:55Z"
+    },
+    {
+      "name": "jerry200176-png/sunrise-cafe",
+      "visibility": "public",
+      "default_branch": "main",
+      "head_sha": "73416404bfd55872b7354e477c959b68d4deb331",
+      "head_commit_date_utc": "2026-10-23T17:25:47Z",
+      "priority_labels": [
+        {
+          "name": "priority:p0",
+          "open_issues": 0,
+          "query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2Fsunrise-cafe%20is%3Aissue%20is%3Aopen%20label%3A%22priority%3Ap0%22&type=issues"
+        },
+        {
+          "name": "priority:p1",
+          "open_issues": 4,
+          "query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2Fsunrise-cafe%20is%3Aissue%20is%3Aopen%20label%3A%22priority%3Ap1%22&type=issues"
+        }
+      ],
+      "open_issue_query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2Fsunrise-cafe%20is%3Aissue%20is%3Aopen&type=issues",
+      "open_pr_query_url": "https://github.com/search?q=repo%3Ajerry200176-png%2Fsunrise-cafe%20is%3Apr%20is%3Aopen&type=pullrequests"
+    }
+  ],
+  "runtime": {
+    "generated_at": "2026-10-24T05:04:35.951151+00:00",
+    "projects": [
+      {
+        "id": "alltrue",
+        "observed_at": "2026-10-24T05:04:35.951151+00:00",
+        "serving_sha": "9401260000a10070bedf765148395942f96f7479",
+        "health": "HEALTHY",
+        "delivery_state": "RUNTIME_VERIFIED",
+        "verification_scope": "runtime_identity_and_health_only",
+        "product_acceptance": "UNKNOWN",
+        "artifact_digest": "UNKNOWN",
+        "health_details": {},
+        "candidate_state": "UNKNOWN",
+        "protected_blocker": "UNKNOWN"
+      },
+      {
+        "id": "sunrise",
+        "observed_at": "2026-10-24T05:04:35.951151+00:00",
+        "serving_sha": "73416404bfd55872b7354e477c959b68d4deb331",
+        "health": "DEGRADED",
+        "delivery_state": "RUNTIME_DEGRADED",
+        "verification_scope": "runtime_identity_and_health_only",
+        "product_acceptance": "UNKNOWN",
+        "artifact_digest": "UNKNOWN",
+        "health_details": {
+          "rate_limit_mode": "memory",
+          "rate_limit_grade": "degraded_per_isolate"
+        },
+        "candidate_state": "UNKNOWN",
+        "protected_blocker": "UNKNOWN"
+      }
+    ]
+  },
+  "star_observation": {
+    "observed_at_utc": "2026-10-24T05:08:32.839555+00:00",
+    "endpoint": "https://api.github.com/users/jerry200176-png/starred?per_page=100",
+    "pages": 1,
+    "count": 64,
+    "sorted_names_sha256": "5e5873a30117ad7b8b09c6d997c567a87b7f7fe86a424ae5c33570d0bd6af879",
+    "inventory_path": "reference-repositories.yaml#star_inventory",
+    "all_unarchived": true,
+    "all_enabled": true
+  },
+  "not_revalidated": [
+    "workstation paths/processes/WIP",
+    "private research internals",
+    "other local projects",
+    "Gmail",
+    "historical governance scores",
+    "product acceptance"
+  ]
+}
