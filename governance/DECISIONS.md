@@ -78,3 +78,18 @@ follow the same form.
 - **Also:** PR 1b slimmed `CLAUDE.md`/`AGENTS.md` and pointer-ized the Constitution, Autonomy
   policy, Agent bootstrap and Portfolio agent contract, so `max_always_loaded_lines` is back at
   the default 300 (K1; the temporary 340 in D-0003 is retired).
+
+## D-0005 Review model follows risk (K3) (2026-11-11)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.2.0.
+- **Context:** Founder, 2026-11-11, in reply to the proposal "R0 docs-only PR reviews use a small
+  model; UI migration one page PR at a time": 「可以呀 省點token」. Asked whether to amend the
+  rulebook so it matches, he chose 「修訂規則書 K3」. Measured review cost showed top-model final
+  review of docs-only and other low-risk PRs dominated token spend.
+- **Decision:** K3 now routes the D3 final-head review by risk: R0/R1 may use a smaller model; R2
+  keeps a fresh-context reviewer on a mid or top model as the product's lane table says; R3
+  (money, auth, PII, data repair, control plane) stays on the top model; design, security and
+  billing logic stay on the top model. D3 independence (reviewer is not the implementer) and every
+  F, B and T item are unchanged. Not capability-widening under section 11.
+- **Consequences:** Product repos re-vendor with `scripts/check-rulebook.py --update <sha>`.
+  AllTrue does not vendor the rulebook, so nothing to do there.

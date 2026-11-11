@@ -1,5 +1,5 @@
 # Rulebook pin for scripts/check-rulebook.py. Products pin a 40-hex SHA via --update <sha>.
 source_repo=jerry200176-png/portfolio-ops
 source_ref=self
-sha256=a082a0974c87c47be6773424131120330e4d16dcf9cd6c7fa807df27a2bef103
+sha256=54512b60f06788f3f545ad225d8176533280d91476ac3a05ed636306041783bf
 scan_include=docs/*.md
