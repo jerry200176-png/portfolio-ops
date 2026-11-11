@@ -1,137 +1,74 @@
 # Portfolio Ops
 
-Portfolio Ops is the portfolio control plane: company-level governance,
-evidence, approvals, and project health are coordinated here while product
-source remains in its own canonical repository.
-
-The workspace operating model is documented in
-[`docs/workspace-operating-model.md`](docs/workspace-operating-model.md), and
-the research benchmark is in
-[`docs/research/2026-08-company-governance-benchmark.md`](docs/research/2026-08-company-governance-benchmark.md).
-The current tool selection and closed-loop evidence are recorded in
-[`reports/2026-08-27/toolchain-closure.md`](reports/2026-08-27/toolchain-closure.md).
-
-Safe workspace scripts:
-
-```bash
-scripts/phase1-inventory-backup.sh <evidence-root> <repo>...
-scripts/phase2-fetch-only.sh <evidence-root> <phase1-evidence> <repo>...
-scripts/phase3-cleanup-proposal.sh <evidence-root> <repo>...
-scripts/portfolio-governance-audit.sh <output.tsv> <repo>...
-scripts/workspace-inventory.sh <output.tsv> <discovery-root>...
-scripts/github-governance-audit.sh <output-dir> <owner/repo>...
-python scripts/validate-governance-contract.py
-python scripts/release-evidence.py \
-  --version-url https://example.invalid/version.json \
-  --health-url https://example.invalid/api/health \
-  --expected-sha <deployed-commit-sha>
-```
-
-They are read-only or proposal-only. They do not reset, clean, merge, rebase,
-prune, remove, move, delete, change GitHub rulesets, merge pull requests,
-deploy, or mutate production data.
-
-`release-evidence.py` is the read-only last-mile check: it writes an optional
-JSON evidence file and exits non-zero when the health endpoint is unhealthy or
-the serving version does not match the intended commit. Run it after a
-controlled deployment; a green PR alone is not release evidence.
-
-This directory is the portfolio control plane for jerry200176-png's product
-portfolio:
-
-- `jerry200176-png/AllTrue_System`
-- `jerry200176-png/sunrise-cafe`
-
-AI agents handle read, analysis, triage, and Draft-PR-stage implementation
-work autonomously. Merging, deploying, production data mutation, Gmail
-mutation, issue closure, credential rotation, and Git history rewrites all
-require explicit Founder approval given in the session — see
-`governance/AUTONOMY_POLICY.md` and `CLAUDE.md`. (Formerly `company-os`,
-which granted broader autonomy; that grant was revoked 2026-07-25 — see
-`PORTFOLIO.md`'s change log.)
-
-## Canonical locations
-
-| Purpose | Path |
-|---|---|
-| Portfolio control plane (this repo) | `~/workspace/portfolio-ops/` |
-| Safe agent session launcher | `~/workspace/agent-control/` |
-| AllTrue canonical checkout | `~/workspace/AllTrue_System-clean/` |
-| Sunrise canonical checkout | `~/workspace/sunrise-cafe/` |
-| Legacy AllTrue checkout | `/home/jerry/alltrue` — never edit |
+Portfolio Ops holds company governance, evidence and project discovery;
+product code stays in its owning repository.
 
 ## Start here
 
-1. `CLAUDE.md` — safety boundaries, Git rules, Founder decision boundary.
-2. `.claude/skills/portfolio-maintain/SKILL.md` — the operating procedure,
-   invoked as `/portfolio-maintain <mode>`.
-3. `portfolio.yaml` and `CEO_DASHBOARD.md` — current portfolio state.
-4. `PORTFOLIO.md` — narrative overview and change log.
-5. `governance/AUTONOMY_POLICY.md` and `governance/COMPANY_CONSTITUTION.md`
-   — the full policy behind `CLAUDE.md`'s summary.
-6. `governance/repository-governance.yaml` — fleet policy and required agent
-   adapters/enforcement.
-7. `state/work-queue.yaml` — live work items and evidence.
+1. [`governance/RULEBOOK.md`](governance/RULEBOOK.md), then [`AGENTS.md`](AGENTS.md).
+2. [`.claude/skills/portfolio-maintain/SKILL.md`](.claude/skills/portfolio-maintain/SKILL.md)
+   and the relevant mode, limited to the task's authorized scope.
+3. [`portfolio.yaml`](portfolio.yaml), [`CEO_DASHBOARD.md`](CEO_DASHBOARD.md) and
+   [`state/work-queue.yaml`](state/work-queue.yaml). Check each observation's date
+   and scope; historical queue entries are not current product acceptance.
+4. [`PORTFOLIO.md`](PORTFOLIO.md) for product descriptions and
+   [`reference-repositories.yaml`](reference-repositories.yaml) for dated references.
 
-## Standard launch flow
+The latest bounded refresh is in
+[`reports/2026-10-24/portfolio-reference-refresh.md`](reports/2026-10-24/portfolio-reference-refresh.md).
+It separates public GitHub metadata, public runtime identity/health, source-code
+facts and unverified workstation/private-project information.
 
-```bash
-cd ~/workspace/portfolio-ops
-claude --add-dir ~/workspace
-```
+## Current working model
 
-Then, inside the session:
+Follow RULEBOOK section 9: a cloud session uses a fresh clone of the owning
+repository, a branch from its current default branch, then a PR. Use the actual
+session checkout; no fixed `/home/jerry` path is a cloud checkout location.
+`CLAUDE.md` is the tool adapter; RULEBOOK owns authorization and machine bans.
 
-```
-/portfolio-maintain <mode>      # bootstrap | triage | execute | status | weekly-review
-/goal <completion condition>    # optional: state what "done" means for this run
-```
+| Location or procedure | Meaning |
+|---|---|
+| Current session checkout | The fresh clone for this task; keep one repository and one task branch |
+| `portfolio.yaml` `local_path` fields | Historical workstation discovery records; not instructions to write there |
+| `workspace.manifest.yaml` | Retained legacy local layout; not the cloud launch contract |
+| `agent-control/`, `docs/workspace-entrypoints/`, ExoProtocol | Retired local gateway/provenance material; never required for cloud work |
+| AllTrue legacy and duplicate checkouts | Existing no-edit boundaries remain; no folder is moved, deleted or reclassified here |
 
-Start with `/portfolio-maintain status` (read-only, cheapest) if you just
-want current state. Use `bootstrap` only for a first run or a full
-re-baseline; use `triage` to refresh signals; use `execute` to do the
-highest-ROI safe work as Draft PRs; use `weekly-review` for the wider
-weekly sweep.
+See [`docs/workspace-operating-model.md`](docs/workspace-operating-model.md).
+Do not install or reactivate the retained gateway merely because its source or
+installer remains in this repository. Older local-only procedure steps yield
+to RULEBOOK section 9; PR #138 separately addresses checklist portability.
 
-From Ubuntu, `governance-audit` audits GitHub enforcement without writing.
-`governance-onboard owner/repo --dry-run` checks a new project read-only.
-ExoProtocol is retired (Founder 2026-10-14), so `--apply` and `--enable-ci`
-are refused; a new repository gets the committed
-`governance/PORTFOLIO_AGENT_CONTRACT.md` overlay through a normal PR.
+## Maintenance modes
 
-## Definition of done (this control plane's scope)
+`/portfolio-maintain <mode>` supports `bootstrap`, `triage`, `execute`, `status`
+and `weekly-review`. Use `status` for read-only inspection; a documentation
+refresh does not authorize Gmail access, a workspace-wide scan, cleanup or
+product implementation. Read the selected mode and apply the existing rules.
 
-A portfolio-maintenance task is complete only when: the relevant finding or
-change is recorded with evidence (not just claimed), any code change is on
-its own branch with a Draft PR opened (never merged by an agent), tests/
-lint/build were actually run in-session, `portfolio.yaml` and
-`CEO_DASHBOARD.md` reflect the outcome, and anything requiring merge,
-deploy, production data mutation, or another item on `CLAUDE.md`'s "never"
-list is surfaced to the Founder as a Decision Required rather than done
-silently.
-
-## GitHub platform governance
-
-Audit outputs: [`docs/github-governance/`](docs/github-governance/README.md) (2026-07 Operator audit).
-
-The gateway source is versioned under [`agent-control/`](agent-control/). Use
-`scripts/install-agent-control.sh --apply` to update the local runtime with
-backup-preserving behavior.
-
-Company context and contract checks:
+## Existing read-only checks
 
 ```bash
+python scripts/check-production-identity.py --json-out <evidence-file>
+python scripts/portfolio-freshness.py --fail-on-stale
+python scripts/validate-governance-contract.py
 python scripts/validate-company-agent-contract.py
 python scripts/company-context.py --check
 ```
 
-Recommended gateway for a company session:
+The identity probe reads the recorded public health/version endpoints. A
+healthy response plus a serving SHA establishes only that observation; it
+does not establish product acceptance or equality with GitHub main.
 
-```bash
-~/workspace/agent-control/bin/portfolio-agent-start --company <task-id> --claude
-```
+The retained workspace inventory/backup/proposal helpers are for an explicitly
+scoped local investigation. `prunable`, an old path, or an old timestamp never
+authorizes moving or deleting a worktree. GitHub governance reports are under
+[`docs/github-governance/`](docs/github-governance/README.md).
 
-It creates an isolated Portfolio Ops task worktree, runs preflight, and writes
-a session provenance manifest. Versioned workspace entrypoint sources are in
-`docs/workspace-entrypoints/`; install them with
-`scripts/install-workspace-entrypoints.sh --apply` when needed.
+## Delivery evidence
+
+Follow RULEBOOK D0–D9 and [`docs/fleet-merge-policy.md`](docs/fleet-merge-policy.md).
+Keep scope, exact-head checks, independent review, rollback and unknowns in the
+PR. Use dated evidence in the existing inventory/dashboard; never refresh a
+date to imply an unperformed production or workstation verification. This
+documentation refresh adds no schedule, permission, installation or activation.

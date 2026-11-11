@@ -1,8 +1,13 @@
-# Portfolio inventory — live data file. Schema: schemas/portfolio.schema.yaml
+# Portfolio inventory — dated observations. Schema: schemas/portfolio.schema.yaml
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-09-04T18:05:00+08:00"
+updated_at: "2026-10-24T13:11:59+08:00"
+# Refresh scope: public GitHub metadata and runtime identity/health, not product acceptance.
+# All local_path values are retained historical workstation records, not cloud work paths.
+# No local path existence, private implementation or historical governance score was reverified.
+working_model: cloud-session-fresh-clone-branch-pr
+evidence_report: reports/2026-10-24/portfolio-reference-refresh.md
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -26,20 +31,27 @@ projects:
     technical_risk: high
     ux_risk: medium
     data_sensitivity: high # billing, attendance, PII of minors
-    stack: [php, laravel]
+    stack: [php, laravel, mysql, vue, vite]
     deploy_target: raspberry_pi (self-hosted), deploy_authority=.github/workflows/deploy.yml
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-09-04"
-    last_verified_at: "2026-09-04T18:05:00+08:00"
-    source_commit: "e17d36ba838d36e6598af9f9b1d27a1f2134c204"
-    evidence_expires_at: "2026-09-05T18:05:00+08:00"
-    open_p0: 0
-    open_p1: 71
-    current_priority: "GOV-PATH-CONVERGE-20260904 — Agent writes only via agent-start + tasks/alltrue; inventory refreshed against live production identity."
-    next_action: "Keep using agent-start alltrue <task-id>; treat AllTrue_System / AllTrue_System-clean /home/jerry/alltrue as read-only forbidden checkouts."
+    latest_activity: "2026-10-24"
+    last_verified_at: "2026-10-24T13:04:35+08:00"
+    source_commit: "9401260000a10070bedf765148395942f96f7479"
+    repository_head: "219c4ab0bca2d79fece44646b2457bc80acbcba0"
+    verification_scope: public-runtime-identity-health-and-github-label-counts
+    product_acceptance: UNKNOWN
+    runtime_health: HEALTHY
+    local_path_status: historical-record-not-checked-in-this-session
+    evidence_expires_at: "2026-10-25T13:04:35+08:00"
+    open_p0: 1 # exact open issue label count, not confirmed incident count
+    open_p1: 40
+    current_priority: "Reconcile labelled P0 #1387 with its owning-product evidence; this metadata refresh does not establish containment, rotation or product acceptance."
+    next_action: "Use the product cloud-session branch/PR flow; investigate #1387 in a separately scoped product task. Do not require the retired local gateway."
     evidence_links:
+      - reports/2026-10-24/portfolio-reference-refresh.md
+      - https://github.com/jerry200176-png/AllTrue_System/commit/219c4ab0bca2d79fece44646b2457bc80acbcba0
       - https://daan.lifenet.com.tw/version.json
       - https://daan.lifenet.com.tw/api/v1/health
       - https://github.com/jerry200176-png/AllTrue_System
@@ -65,15 +77,22 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-09-04"
-    last_verified_at: "2026-09-04T18:05:00+08:00"
-    source_commit: "6630b9eb003e2d5459c84c9452f2413cc93ba8ab"
-    evidence_expires_at: "2026-09-05T18:05:00+08:00"
-    open_p0: 0
+    latest_activity: "2026-10-23"
+    last_verified_at: "2026-10-24T13:04:35+08:00"
+    source_commit: "73416404bfd55872b7354e477c959b68d4deb331"
+    repository_head: "73416404bfd55872b7354e477c959b68d4deb331"
+    verification_scope: public-runtime-identity-health-and-github-label-counts
+    product_acceptance: UNKNOWN
+    runtime_health: DEGRADED
+    local_path_status: historical-record-not-checked-in-this-session
+    evidence_expires_at: "2026-10-25T13:04:35+08:00"
+    open_p0: 0 # exact open issue label count, not confirmed incident count
     open_p1: 4
-    current_priority: "GOV-SUNRISE-RULESET-20260904 — required checks now enforced on portfolio-governance-main; rate_limit still degraded_per_isolate."
-    next_action: "Use agent-start sunrise <task-id> for writes; track durable rate-limit as a product hardening item (not a Founder merge gate)."
+    current_priority: "Public booking health still reports memory / degraded_per_isolate rate limiting; this documentation refresh does not remediate it."
+    next_action: "Use the product cloud-session branch/PR flow and existing rate-limit investigation. Keep the disabled autonomous loop disabled."
     evidence_links:
+      - reports/2026-10-24/portfolio-reference-refresh.md
+      - https://github.com/jerry200176-png/sunrise-cafe/commit/73416404bfd55872b7354e477c959b68d4deb331
       - https://sunrise-cafe-six.vercel.app/api/version
       - https://sunrise-cafe-six.vercel.app/api/booking-health
       - https://github.com/jerry200176-png/sunrise-cafe/rules
@@ -90,12 +109,12 @@ meta:
     name: Agent session launcher
     local_path: /home/jerry/workspace/agent-control
     github_repo: null
-    note: canonical session kernel (source under portfolio-ops/agent-control; installed runtime at workspace/agent-control)
+    note: retired local launcher/provenance source; not a required cloud entrypoint; workstation installation not rechecked
   - id: engineering-intelligence
     name: Engineering Intelligence
     local_path: /home/jerry/workspace/engineering-intelligence
     github_repo: jerry200176-png/engineering-intelligence
-    note: read-only engineering intelligence pipeline relative to product repos
+    note: previously recorded private research project; implementation, access and workstation path not rechecked
   - id: income-statement-app
     name: Income Statement App
     local_path: /home/jerry/workspace/income-statement-app
@@ -112,7 +131,8 @@ meta:
     github_repo: null
     note: personal/archive local checkout — remote no longer resolves; not a governed product
 
-# Governance profile is maintained separately from product risk scoring.
+# Historical governance baseline below is retained without rescoring or refreshing its dates.
+# Its counts/scores do not describe the scope of the public observation above.
 governance_baseline:
   schema_version: 1
   profile: company-control-plane-v1
@@ -133,14 +153,14 @@ governance_baseline:
     - ISSUE_PR_TEMPLATES
     - CI_DEPENDABOT
   lifecycle_policy: risk-based-agent-operator
-  integration_policy: agent-start-task-worktree-only
+  integration_policy: cloud-session-fresh-clone-branch-pr # existing RULEBOOK section 9
   projects:
     - id: alltrue
       governance_score: 8
-      note: canonical write path is tasks/alltrue via agent-start; legacy checkouts forbidden
+      note: historical score; current cloud model follows RULEBOOK section 9; legacy checkouts remain forbidden
     - id: sunrise
       governance_score: 8
-      note: ruleset now enforces Lint & Build, Playwright smoke, Agent Session Provenance
+      note: historical score; consult current product rules/checks; local provenance is retired
     - id: portfolio-ops
       governance_score: 7
-      note: control plane; agent-control canonical; Exo experiment-only
+      note: historical score; control plane; local gateway and Exo requirements are retired
