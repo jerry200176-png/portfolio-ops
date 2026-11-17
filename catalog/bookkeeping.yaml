@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: bookkeeping
+  description: Self-hosted ledger (Firefly III) for cafe stores and school branches, one tag per tax ID, with legacy-Excel governance.
+  annotations:
+    github.com/project-slug: jerry200176-png/bookkeeping
+    portfolio.company/source-path: /home/jerry/workspace/repos/bookkeeping.git
+    portfolio.company/write-path: /home/jerry/workspace/tasks/bookkeeping/
+    portfolio.company/governance-overlay: AGENTS.md
+spec:
+  owner: founder
+  lifecycle: incubating
+  tier: 2
+  dataSensitivity: high
+  deployTarget: daan_rootless_docker
+  healthUrl: https://ledger.lifenet.com.tw/health
+  versionUrl: https://ledger.lifenet.com.tw/version.json
+  recoveryOwner: founder
+  lastVerifiedAt: "2026-11-17T15:05:00+08:00"
+  evidenceTtlHours: 24

@@ -79,6 +79,38 @@ projects:
       - https://github.com/jerry200176-png/sunrise-cafe/rules
       - docs/observability-baseline.md
 
+  - id: bookkeeping
+    name: 帳本 Bookkeeping
+    local_path: /home/jerry/workspace/repos/bookkeeping.git
+    github_repo: jerry200176-png/bookkeeping
+    tier: 2
+    lifecycle: incubating
+    product_type: self-hosted ledger for cafe stores + school branches (Firefly III), one tag per tax ID; legacy-Excel data governance
+    target_users: founder, accountant
+    production_status: staged
+    business_criticality: medium
+    technical_risk: low
+    ux_risk: low
+    data_sensitivity: high # company books; real data never in git, encrypted offsite backup
+    stack: [python, docker, firefly-iii]
+    deploy_target: daan_rootless_docker (self-hosted, Daan server), deploy_authority=deploy/daan/firefly/deploy.sh
+    production:
+      version_url: https://ledger.lifenet.com.tw/version.json
+      health_url: https://ledger.lifenet.com.tw/health
+    latest_activity: "2026-11-17"
+    last_verified_at: "2026-11-17T15:05:00+08:00"
+    source_commit: "6dda219af8d9a0d4c3befaa4ee6770cc205664e9"
+    evidence_expires_at: "2026-11-18T15:05:00+08:00"
+    open_p0: 0
+    open_p1: 0
+    current_priority: "ONBOARD-BOOKKEEPING-20261117 — Founder 11-17: make the ledger a company operation with full engineering (backup, restore drill, monitoring, CI, runbook)."
+    next_action: "Founder: Cloudflare login on the account where lifenet.com.tw is Active (fixed URL), Google Drive login + age key custody (offsite backup); then lifecycle -> active."
+    evidence_links:
+      - https://github.com/jerry200176-png/bookkeeping/blob/main/docs/CHARTER.md
+      - https://github.com/jerry200176-png/bookkeeping/blob/main/docs/RUNBOOK.md
+      - https://github.com/jerry200176-png/bookkeeping/actions/workflows/monitor.yml
+      - docs/observability-baseline.md
+
 # Non-product infrastructure tracked for context, not scored/tiered as a product.
 meta:
   - id: portfolio-ops
