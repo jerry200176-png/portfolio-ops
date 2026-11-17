@@ -2,7 +2,7 @@
 # Updated by: /portfolio-maintain bootstrap|triage|status. Hand edits are fine
 # but must stay valid against the schema.
 schema_version: 1
-updated_at: "2026-09-04T18:05:00+08:00"
+updated_at: "2026-11-17T15:10:00+08:00"
 freshness:
   p0_evidence_ttl_hours: 24
   inventory_ttl_days: 7
@@ -31,12 +31,12 @@ projects:
     production:
       version_url: https://daan.lifenet.com.tw/version.json
       health_url: https://daan.lifenet.com.tw/api/v1/health
-    latest_activity: "2026-09-04"
-    last_verified_at: "2026-09-04T18:05:00+08:00"
-    source_commit: "e17d36ba838d36e6598af9f9b1d27a1f2134c204"
-    evidence_expires_at: "2026-09-05T18:05:00+08:00"
+    latest_activity: "2026-11-17"
+    last_verified_at: "2026-11-17T15:10:00+08:00"
+    source_commit: "60e88f20b636a97c8fa098749f8663fb99e42b7f"
+    evidence_expires_at: "2026-11-18T15:10:00+08:00"
     open_p0: 0
-    open_p1: 71
+    open_p1: 37
     current_priority: "GOV-PATH-CONVERGE-20260904 — Agent writes only via agent-start + tasks/alltrue; inventory refreshed against live production identity."
     next_action: "Keep using agent-start alltrue <task-id>; treat AllTrue_System / AllTrue_System-clean /home/jerry/alltrue as read-only forbidden checkouts."
     evidence_links:
@@ -65,12 +65,12 @@ projects:
     production:
       version_url: https://sunrise-cafe-six.vercel.app/api/version
       health_url: https://sunrise-cafe-six.vercel.app/api/booking-health
-    latest_activity: "2026-09-04"
-    last_verified_at: "2026-09-04T18:05:00+08:00"
-    source_commit: "6630b9eb003e2d5459c84c9452f2413cc93ba8ab"
-    evidence_expires_at: "2026-09-05T18:05:00+08:00"
+    latest_activity: "2026-11-08"
+    last_verified_at: "2026-11-17T15:10:00+08:00"
+    source_commit: "c8b9ba0d10d6590511dbaa2d752df8207bc13041"
+    evidence_expires_at: "2026-11-18T15:10:00+08:00"
     open_p0: 0
-    open_p1: 4
+    open_p1: 3
     current_priority: "GOV-SUNRISE-RULESET-20260904 — required checks now enforced on portfolio-governance-main; rate_limit still degraded_per_isolate."
     next_action: "Use agent-start sunrise <task-id> for writes; track durable rate-limit as a product hardening item (not a Founder merge gate)."
     evidence_links:
