@@ -37,6 +37,15 @@ def portfolio(expected: str = SHA_A) -> dict:
 
 
 class ProductionIdentityTests(unittest.TestCase):
+    def test_staged_project_is_not_probed(self) -> None:
+        staged = portfolio()
+        staged["projects"][0]["production_status"] = "staged"
+
+        def fetch(url: str) -> dict:
+            raise AssertionError(f"staged project probed: {url}")
+
+        self.assertEqual(MODULE.probe(staged, fetch, NOW)["projects"], [])
+
     def test_matching_full_sha_and_health_are_runtime_verified(self) -> None:
         responses = {"https://example.test/health": {"ok": True},
                      "https://example.test/version": {"commit": SHA_A}}
