@@ -93,3 +93,19 @@ follow the same form.
   F, B and T item are unchanged. Not capability-widening under section 11.
 - **Consequences:** Product repos re-vendor with `scripts/check-rulebook.py --update <sha>`.
   AllTrue does not vendor the rulebook, so nothing to do there.
+
+## D-0006 Limit subagent fan-out (K7) (2026-11-18)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.3.0.
+- **Context:** A usage audit on 2026-08-08 found that subagent fan-out, not code size, used 96% of
+  the weekly quota. The limit lived only in the Founder's local Claude settings, which cloud
+  sessions cannot see. On 2026-11-18 the local report still showed 76 subagent starts in one day,
+  60 of them general-purpose. Asked whether to put the limit into every governed repo, the
+  Founder chose 「A」 (all four repos).
+- **Decision:** New K7: main agent first; at most 2 subagents at once; no subagent starts another;
+  file search goes to a read-only small-model agent; above 6 in one session, stop and say why.
+  Exceptions: security incident, clearly independent large investigations, a Founder ask. This
+  narrows agent behavior, so it is not capability-widening under section 11. K3 (which model) and
+  D3 (independent review) are unchanged.
+- **Consequences:** Product repos re-vendor with `scripts/check-rulebook.py --update <sha>`.
+  AllTrue does not vendor the rulebook; it gets the same lines in its own `CLAUDE.md`.

@@ -2,7 +2,7 @@
 # authoritative. tests/test_rulebook.py fails if an ID or the version drifts.
 schema_version: 1
 rulebook: governance/RULEBOOK.md
-version: 2.2.0
+version: 2.3.0
 decision_log: governance/DECISIONS.md
 founder: jerry200176-png
 
@@ -56,6 +56,7 @@ context_budget:
   - {id: K4, rule: read_narrowly}
   - {id: K5, rule: cut_event_noise}
   - {id: K6, rule: measure_tokens_weekly}
+  - {id: K7, rule: limit_subagent_fan_out}
 
 founder_channel: coordinating_chat_session_batched
 stall: {same_step_failures: 2, stall_minutes: 5, action: change_approach_then_batch_question}
