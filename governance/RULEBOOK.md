@@ -149,7 +149,7 @@ skills, subagents, prompt caching); Aider repo-map; Serena (LSP symbol search); 
 - **K6** Measure weekly (ccusage-style): tokens per task type, to find the expensive loops.
 - **K7** Limit fan-out: do the work in the main agent when a direct read, search or edit takes
   similar steps. At most 2 subagents at once; subagents do not start subagents; file search goes
-  to a read-only small-model agent. More than 6 subagents in one session: stop and say why first.
+  to a read-only small-model agent. More than 6 subagents in one session: say why before starting another.
   More is fine for a security incident, clearly independent large investigations, or a Founder ask.
 
 ## 11. Changing this rulebook

@@ -103,7 +103,8 @@ follow the same form.
   60 of them general-purpose. Asked whether to put the limit into every governed repo, the
   Founder chose 「A」 (all four repos).
 - **Decision:** New K7: main agent first; at most 2 subagents at once; no subagent starts another;
-  file search goes to a read-only small-model agent; above 6 in one session, stop and say why.
+  file search goes to a read-only small-model agent; above 6 in one session, say why before starting another
+  (a self-report, not a wait for a human).
   Exceptions: security incident, clearly independent large investigations, a Founder ask. This
   narrows agent behavior, so it is not capability-widening under section 11. K3 (which model) and
   D3 (independent review) are unchanged.
