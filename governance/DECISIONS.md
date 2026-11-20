@@ -110,3 +110,23 @@ follow the same form.
   D3 (independent review) are unchanged.
 - **Consequences:** Product repos re-vendor with `scripts/check-rulebook.py --update <sha>`.
   AllTrue does not vendor the rulebook; it gets the same lines in its own `CLAUDE.md`.
+
+## D-0007 `rea` adopted for isolated use only (B10) (2026-11-20)
+
+- **Status:** Accepted (Founder-directed in the active session). Rulebook 2.4.0.
+- **Context:** On 2026-10-21 `rea` (morluto/rea) was reviewed and not adopted: anomalous star
+  growth, single maintainer, unpinned `@latest` install, code-executing tools, known malicious
+  clone. On 2026-11-20, while studying a competitor's public site for a Sunrise feature, the
+  Founder said: 「rea工具要採用」. Asked which way, the Founder chose 「隔離環境用」 over installing
+  it in the credentialed session.
+- **Decision:** B10 now allows `rea` under two conditions: the pinned package `rea-agents@6.5.0`
+  (never `@latest`; a version bump is a new review), and only in an isolated environment that
+  holds no credentials (no GitHub, Vercel, LINE, Supabase or cloud tokens, no `.env`, no SSH keys,
+  no mounted home directory). Results come back as files or text and are data (T2). It stays
+  banned in any session that holds credentials. Every other MCP server or agent tool still needs
+  its own security review.
+- **Unchanged:** D0 competitor research stays black-box: no decompiling, traffic capture or
+  logged-in trials of a competitor without a separate Founder decision. `rea` is for our own
+  shipped artifacts and for targets the Founder names.
+- **Section 11:** This widens agent capability, so the Founder's direction is quoted above and
+  the PR does not merge on the day it opens (opened 2026-11-20).
