@@ -1,6 +1,6 @@
 # Portfolio rulebook
 
-Version: 2.3.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
+Version: 2.4.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
 
 One rule set for every agent (Claude Code, Codex, Cursor, Copilot, Cubelv) in every governed repo.
 Product repos vendor this file byte-for-byte; `scripts/check-rulebook.py` fails CI on drift.
@@ -99,7 +99,7 @@ steps, verification, rollback) and send it through section 7. Everything else is
 | B7 | Lower tests, assertions, allowlists or security controls to get green | Review (D3) |
 | B8 | Send private repo content to a non-approved external service | Convention |
 | B9 | Re-enable a disabled self-dispatch autonomous loop before its product says the probe is fixed | Convention |
-| B10 | Install a new MCP server or agent tool into a session holding credentials without a security review (`rea` reviewed 2026-10-21: not adopted) | Convention + D3 review |
+| B10 | Install a new MCP server or agent tool into a session holding credentials without a security review (`rea`: only pinned `rea-agents@6.5.0`, only in an isolated environment that holds no credentials) | Convention + D3 review |
 
 ## 6. Stop-the-line
 
