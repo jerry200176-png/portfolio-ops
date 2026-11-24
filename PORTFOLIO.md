@@ -25,6 +25,16 @@ Deployed on Vercel with a Supabase backend. No stored card data. Agent writes
 go through `agent-start sunrise <task-id>`. Required GitHub checks for merge
 are Lint & Build, Playwright smoke, and Agent Session Provenance.
 
+## 帳本 Bookkeeping — Tier 2 (incubating)
+
+Company books for the cafe stores and school branches, one Firefly III tag per
+tax ID (統編). Self-hosted with rootless Docker on the Daan server (Founder
+chose it 2026-11-17), reached through a Cloudflare tunnel. Real financial data
+never enters git; legacy Excel goes through one parser per format with total
+self-checks and an issue list for the owner. Daily backup, monthly restore
+drill and a daily GitHub monitor (`ops-alert` issue). Charter, runbook and
+plan issue: `jerry200176-png/bookkeeping` (`docs/CHARTER.md`, #9).
+
 ## Non-product infrastructure
 
 - `agent-control/` — **canonical** session launcher/preflight. Not a product.
