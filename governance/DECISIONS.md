@@ -62,3 +62,51 @@ follow the same form.
      is slimmed in PR 1b.
 - **Consequences:** Older policy files become pointers in follow-up PRs; until then the rulebook
   wins on conflict. Platform controls naming the Founder stay until a product PR changes them.
+
+## D-0004 Design before code; no duplicate features (2026-10-21)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.1.0.
+- **Context:** Founder, 2026-10-21: 「我怕你在修或做功能的時候做出重複的東西 或是UI/UX不好
+  希望你做之前都能詳細規劃 有架構等 就像一個軟體公司要上線產品一樣」.
+- **Decision:** Every feature and non-trivial fix has a short design doc in the issue before
+  implementation (problem and user, inventory of existing features, at least two options,
+  architecture, UX, acceptance, rollout and rollback, metrics), modelled on Google design docs
+  and Amazon working backwards. D3 reviewers check for duplication and UX consistency;
+  duplication is P1. Skill `product-design-doc` is vendored to product repos with
+  `reference-first-design`; PR templates gain 「設計文件」 and 「重複檢查」 lines. Fixes of about
+  50 lines or less with no UI change use a 5-line version.
+- **Also:** PR 1b slimmed `CLAUDE.md`/`AGENTS.md` and pointer-ized the Constitution, Autonomy
+  policy, Agent bootstrap and Portfolio agent contract, so `max_always_loaded_lines` is back at
+  the default 300 (K1; the temporary 340 in D-0003 is retired).
+
+## D-0005 Review model follows risk (K3) (2026-11-11)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.2.0.
+- **Context:** Founder, 2026-11-11, in reply to the proposal "R0 docs-only PR reviews use a small
+  model; UI migration one page PR at a time": 「可以呀 省點token」. Asked whether to amend the
+  rulebook so it matches, he chose 「修訂規則書 K3」. Measured review cost showed top-model final
+  review of docs-only and other low-risk PRs dominated token spend.
+- **Decision:** K3 now routes the D3 final-head review by risk: R0/R1 may use a smaller model; R2
+  keeps a fresh-context reviewer on a mid or top model as the product's lane table says; R3
+  (money, auth, PII, data repair, control plane) stays on the top model; design, security and
+  billing logic stay on the top model. D3 independence (reviewer is not the implementer) and every
+  F, B and T item are unchanged. Not capability-widening under section 11.
+- **Consequences:** Product repos re-vendor with `scripts/check-rulebook.py --update <sha>`.
+  AllTrue does not vendor the rulebook, so nothing to do there.
+
+## D-0006 Limit subagent fan-out (K7) (2026-11-18)
+
+- **Status:** Accepted (Founder-directed via the coordinating session). Rulebook 2.3.0.
+- **Context:** A usage audit on 2026-08-08 found that subagent fan-out, not code size, used 96% of
+  the weekly quota. The limit lived only in the Founder's local Claude settings, which cloud
+  sessions cannot see. On 2026-11-18 the local report still showed 76 subagent starts in one day,
+  60 of them general-purpose. Asked whether to put the limit into every governed repo, the
+  Founder chose 「A」 (all four repos).
+- **Decision:** New K7: main agent first; at most 2 subagents at once; no subagent starts another;
+  file search goes to a read-only small-model agent; above 6 in one session, say why before starting another
+  (a self-report, not a wait for a human).
+  Exceptions: security incident, clearly independent large investigations, a Founder ask. This
+  narrows agent behavior, so it is not capability-widening under section 11. K3 (which model) and
+  D3 (independent review) are unchanged.
+- **Consequences:** Product repos re-vendor with `scripts/check-rulebook.py --update <sha>`.
+  AllTrue does not vendor the rulebook; it gets the same lines in its own `CLAUDE.md`.

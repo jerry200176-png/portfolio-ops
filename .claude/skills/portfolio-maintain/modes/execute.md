@@ -1,8 +1,7 @@
 # Mode: execute
 
 Do the highest-ROI reversible engineering work as PRs. The Agent is the
-operator; merge eligible changes after required checks only when merging will
-not trigger unapproved production activation.
+operator; delivery follows `../../../governance/RULEBOOK.md` section 3.
 Requires a reasonably fresh `triage` pass first — if
 `state/work-queue.yaml` / `portfolio.yaml` look stale (check
 `updated_at`/`latest_activity`), run `triage` first.
@@ -30,17 +29,9 @@ Requires a reasonably fresh `triage` pass first — if
 
 - One `repo-maintainer` per repository at a time; never mix repos in a
   branch/PR.
-- Author migration files and test them locally or in authorized isolated
-  environments without Founder approval. Production migration execution,
-  protected activation, or a merge/workflow that triggers either requires
-  explicit Founder approval before the side effect. Routine reversible
-  deployment follows existing product authorization and full release-risk review.
-- Founder-risk changes may be investigated, implemented, tested, and prepared
-  as PRs. Ask about material product-policy decisions only when the open
-  decision blocks the next safe step; continue separable containment.
-- Never `--admin`, force-push, print secrets, or use production SSH. Do not
-  dispatch a workflow that crosses the production activation boundary without
-  its required Founder decision.
+- Founder-only items (RULEBOOK F1-F4): prepare the execution package and ask
+  through RULEBOOK section 7; keep doing separable work.
+- Machine bans (RULEBOOK B1-B10) are absolute.
 
 ## Company operating loop requirements
 

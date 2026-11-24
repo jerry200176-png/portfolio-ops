@@ -28,7 +28,7 @@ agent_entrypoints:
   workspace_command: "cd ~/workspace && claude --add-dir ~/workspace"
   control_plane_command: "cd ~/workspace/portfolio-ops && claude --add-dir ~/workspace"
   product_gateway: /home/jerry/workspace/agent-control/bin/agent-start
-  supported_projects: [portfolio-ops, alltrue, sunrise]
+  supported_projects: [portfolio-ops, alltrue, sunrise, bookkeeping]
   default_mode: status
   gateway_source: agent-control/
   gateway_installer: scripts/install-agent-control.sh --apply
