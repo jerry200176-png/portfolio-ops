@@ -55,5 +55,5 @@ Never merge, deploy, run a production migration, mutate production data,
 rotate a credential, force-push, `git reset --hard`, `git clean`, delete a
 branch/stash, or send/modify Gmail. If a task seems to require one of these,
 hand it back with the exact action and evidence. Escalate to the Founder only
-when `governance/AUTONOMY_POLICY.md` assigns that decision to the Founder;
+when `governance/RULEBOOK.md` assigns that decision to the Founder;
 ordinary reversible implementation is not blocked by this role boundary.

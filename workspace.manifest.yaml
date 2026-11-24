@@ -89,6 +89,20 @@ repositories:
     branch_policy: evidence-and-investigation-only
     mutation_policy: no-edit
     approval_for_archive_or_remove: required
+  - id: bookkeeping-bare
+    path: /home/jerry/workspace/repos/bookkeeping.git
+    role: canonical-bare
+    remote: https://github.com/jerry200176-png/bookkeeping.git
+    branch_policy: fetch-only
+    mutation_policy: no-app-code-writes
+    approval_for_archive_or_remove: required
+  - id: bookkeeping-task-root
+    path: /home/jerry/workspace/tasks/bookkeeping
+    role: agent-write-root
+    remote: https://github.com/jerry200176-png/bookkeeping.git
+    branch_policy: isolated-task-branch
+    mutation_policy: isolated-worktree-pr-only
+    approval_for_archive_or_remove: required
   - id: portfolio-ops-bare
     path: /home/jerry/workspace/repos/portfolio-ops.git
     role: canonical-bare

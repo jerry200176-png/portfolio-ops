@@ -126,6 +126,8 @@ def probe(portfolio: dict, fetch: Callable[[str], dict], now: datetime,
     """
     projects = []
     for project in portfolio.get("projects", []):
+        if project.get("production_status", "live") != "live":
+            continue  # staged/none: not production yet, so no mandatory production probe
         prod = project.get("production") or {}
         expected = str(project.get("source_commit") or "")
         row = {

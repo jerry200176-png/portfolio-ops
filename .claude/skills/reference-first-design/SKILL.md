@@ -6,6 +6,8 @@ description: Reference-first, root-cause-first design (RULEBOOK D0). Use before 
 # Reference-first design
 
 Rule source: `governance/RULEBOOK.md` D0. Skip only for trivial copy, typo or formatting edits.
+Features and non-trivial fixes put the 「參考做法」 section inside the design doc from
+`.claude/skills/product-design-doc/` (search for existing features first). Vendor both skills.
 
 1. **Root cause first.** Run a short 5 Whys and list contributing factors (Google-style
    blameless postmortem). State the symptom and the root cause separately. The fix must address

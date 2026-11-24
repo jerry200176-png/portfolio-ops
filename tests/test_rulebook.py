@@ -86,8 +86,16 @@ class RulebookTests(unittest.TestCase):
         skill = (ROOT / ".claude/skills/reference-first-design/SKILL.md").read_text(encoding="utf-8")
         self.assertTrue(skill.startswith("---\nname: reference-first-design\n"))
         self.assertIn("「參考做法」", skill)
+        design = (ROOT / ".claude/skills/product-design-doc/SKILL.md").read_text(encoding="utf-8")
+        self.assertTrue(design.startswith("---\nname: product-design-doc\n"))
+        for section in ("現有功能盤點", "方案與替代方案", "驗收條件", "上線與回滾", "量測"):
+            self.assertIn(section, design)
         for path in (".github/PULL_REQUEST_TEMPLATE.md", "governance/templates/pull_request_template.md"):
-            self.assertIn("參考做法", (ROOT / path).read_text(encoding="utf-8"), path)
+            text = (ROOT / path).read_text(encoding="utf-8")
+            for needle in ("參考做法", "設計文件", "重複檢查"):
+                self.assertIn(needle, text, path)
+        self.assertIn("product-design-doc", self.rulebook)
+        self.assertIn("duplication", self.rulebook)
 
 
 if __name__ == "__main__":
