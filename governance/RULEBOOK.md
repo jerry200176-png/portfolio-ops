@@ -1,6 +1,6 @@
 # Portfolio rulebook
 
-Version: 2.1.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
+Version: 2.3.0 · Owner: Jerry (Founder) · Source: `jerry200176-png/portfolio-ops` `governance/RULEBOOK.md`
 
 One rule set for every agent (Claude Code, Codex, Cursor, Copilot, Cubelv) in every governed repo.
 Product repos vendor this file byte-for-byte; `scripts/check-rulebook.py` fails CI on drift.
@@ -137,14 +137,20 @@ skills, subagents, prompt caching); Aider repo-map; Serena (LSP symbol search); 
   procedures go into skills (loaded on demand), history into the decision log.
 - **K2** One repository per cloud session by default; each added repo loads its `CLAUDE.md`.
 - **K3** Route subagents by task: mechanical work (CI log triage, rebases, lint/PHPStan fixes,
-  notification triage, doc sync, file search) uses a smaller model; design, security, billing
-  logic and final review (D3) use the top model.
+  notification triage, doc sync, file search) uses a smaller model; design, security and billing
+  logic use the top model. Final review (D3) follows risk: R0/R1 may use a smaller model; R2 a
+  fresh-context reviewer on a mid or top model per the product's lane table; R3 (money, auth, PII,
+  data repair, control plane) the top model. D3 independence is unchanged.
 - **K4** Read narrowly: search (grep, symbols) before opening files; read line ranges; filter CI
   logs (`gh run view --log-failed | grep`); never dump transcripts or raw JSON. Subagents return
   conclusions, not file contents.
 - **K5** Cut event noise: avoid subscribing orchestrator sessions to bot-only PR events; let the
   land queue and CI drive merges; batch status checks.
 - **K6** Measure weekly (ccusage-style): tokens per task type, to find the expensive loops.
+- **K7** Limit fan-out: do the work in the main agent when a direct read, search or edit takes
+  similar steps. At most 2 subagents at once; subagents do not start subagents; file search goes
+  to a read-only small-model agent. More than 6 subagents in one session: say why before starting another.
+  More is fine for a security incident, clearly independent large investigations, or a Founder ask.
 
 ## 11. Changing this rulebook
 
